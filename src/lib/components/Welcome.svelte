@@ -1,8 +1,8 @@
 <script lang="ts">
     import { ButtonVisual, Input } from "./ui";
-    import docs from "../state/docs.svelte";
-    import ui from "../state/ui.svelte";
-    import type { DocumentID } from "../state/docs.svelte";
+    import docs from "../scripts/docs.svelte";
+    import ui from "../scripts/ui.svelte";
+    import type { DocumentID } from "../scripts/docs.svelte";
     let creatingDocument = $state(false);
 
     let name = $state("");

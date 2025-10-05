@@ -2,8 +2,8 @@
     import { Brush, Menu, MousePointer2, Eraser } from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup } from "melt/builders";
-    import ui, { modes } from "../state/ui.svelte";
-    import type { Mode } from "../state/ui.svelte";
+    import ui, { modes } from "../scripts/ui.svelte";
+    import type { Mode } from "../scripts/ui.svelte";
 
     const modesGroup = new RadioGroup({
         value: modes[0],

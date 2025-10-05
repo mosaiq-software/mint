@@ -1,10 +1,10 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { getSelectedDoc } from "../../state/docs.svelte";
+    import { getSelectedDoc } from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X } from "@lucide/svelte";
-    import type { Layer, LayerID } from "../../state/docs.svelte";
+    import type { Layer, LayerID } from "../../scripts/docs.svelte";
 
     const doc = $derived(getSelectedDoc());
 
