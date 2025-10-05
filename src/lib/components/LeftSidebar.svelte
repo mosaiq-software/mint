@@ -11,41 +11,34 @@
     });
 
 </script>
-<div>
-    <button>
-        <IconButtonVisual label="Menu">
-            <Menu color="var(--c-txt)" />
+<div {...modesGroup.root}>
+    <label for=""></label>
+    <div {...modesGroup.getItem("select").attrs}>
+        <IconButtonVisual
+            label="Select"
+            showLabel
+            selected={modesGroup.value === "select"}
+        >
+            <MousePointer2 color="var(--c-txt)" />
         </IconButtonVisual>
-    </button>
-    <div {...modesGroup.root}>
-        <label for=""></label>
-        <div {...modesGroup.getItem("select").attrs}>
-            <IconButtonVisual
-                label="Select"
-                showLabel
-                selected={modesGroup.value === "select"}
-            >
-                <MousePointer2 color="var(--c-txt)" />
-            </IconButtonVisual>
-        </div>
-        <div {...modesGroup.getItem("draw").attrs}>
-            <IconButtonVisual
-                label="Draw"
-                showLabel
-                selected={modesGroup.value === "draw"}
-            >
-                <Brush color="var(--c-txt)" />
-            </IconButtonVisual>
-        </div>
-        <div {...modesGroup.getItem("erase").attrs}>
-            <IconButtonVisual
-                label="Erase"
-                showLabel
-                selected={modesGroup.value === "erase"}
-            >
-                <Eraser color="var(--c-txt)" />
-            </IconButtonVisual>
-        </div>
+    </div>
+    <div {...modesGroup.getItem("draw").attrs}>
+        <IconButtonVisual
+            label="Draw"
+            showLabel
+            selected={modesGroup.value === "draw"}
+        >
+            <Brush color="var(--c-txt)" />
+        </IconButtonVisual>
+    </div>
+    <div {...modesGroup.getItem("erase").attrs}>
+        <IconButtonVisual
+            label="Erase"
+            showLabel
+            selected={modesGroup.value === "erase"}
+        >
+            <Eraser color="var(--c-txt)" />
+        </IconButtonVisual>
     </div>
 </div>
 

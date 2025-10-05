@@ -1,14 +1,16 @@
 <script lang="ts">
     import Header from "./lib/components/Header.svelte";
     import LeftSidebar from "./lib/components/LeftSidebar.svelte";
+    import RightSidebar from "./lib/components/RightSidebar.svelte";
     import Viewport from "./lib/components/Viewport.svelte";
 </script>
 
 <main>
-    <LeftSidebar />
+    <Header />
     <div id="center">
-        <Header />
+        <LeftSidebar />
         <Viewport />
+        <RightSidebar />
     </div>
 </main>
 
@@ -17,14 +19,14 @@
         width: 100%;
         height: 100%;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
     }
 
     #center {
         display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 0;
+        flex-direction: row;
+        width: 100%;
+        height: 0;
         flex: 1;
     }
 </style>

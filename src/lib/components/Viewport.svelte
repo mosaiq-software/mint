@@ -17,8 +17,8 @@
 <style>
     #viewport {
         background-color: var(--c-bg);
-        width: 100%;
-        height: 0;
+        height: 100%;
+        width: 0;
         flex: 1;
         display: flex;
         justify-content: center;
