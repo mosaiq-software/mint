@@ -1,22 +1,33 @@
 <script lang="ts">
     import ui from "../state/ui.svelte";
     import Welcome from "./Welcome.svelte";
+    import Canvas from "./Canvas.svelte";
 </script>
 
 <div id="viewport">
     {#if !ui.selectedDocument}
         <Welcome />
     {:else}
-        <p>Document: {ui.selectedDocument}</p>
+        <div id="scroll-container">
+            <Canvas />
+        </div>
     {/if}
 </div>
 
 <style>
     #viewport {
-        flex: 1;
         background-color: var(--c-bg);
+        width: 100%;
+        height: 0;
+        flex: 1;
         display: flex;
-        align-items: center;
         justify-content: center;
+        align-items: center;
+    }
+
+    #scroll-container {
+        height: 100%;
+        flex: 1;
+        overflow: auto;
     }
 </style>

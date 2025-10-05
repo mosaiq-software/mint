@@ -1,3 +1,5 @@
+import ui from './ui.svelte';
+
 /* IDs */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 export type DocumentID = `document-${UUID}`;
@@ -55,6 +57,14 @@ export type Document = {
     height: number;
     layers: Layer[];
 };
+
+/* Functions */
+export function getSelectedDoc(): Document {
+    const selectedId = ui.selectedDocument;
+    const doc = docs.find(d => d.id === selectedId);
+    if (!doc) throw new Error('No document selected');
+    return doc;
+}
 
 /* State */
 const docs: Document[] = $state([]);

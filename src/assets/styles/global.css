@@ -86,3 +86,9 @@ button {
     border: none;
     background: none;
 }
+
+canvas {
+    display: block;
+    max-width: none;
+    max-height: none;
+}

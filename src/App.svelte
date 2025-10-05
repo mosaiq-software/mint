@@ -23,7 +23,8 @@
     #center {
         display: flex;
         flex-direction: column;
-        width: 100%;
+        height: 100%;
+        width: 0;
         flex: 1;
     }
 </style>
