@@ -1,10 +1,15 @@
+<script lang="ts">
+    import Layers from "./panels/Layers.svelte";
+</script>
+
 <div>
-    <h2>Right Sidebar</h2>
+    <Layers />
 </div>
 
 <style>
     div {
         background-color: var(--c-sur);
         width: 250px;
+        padding: var(--s-sm);
     }
 </style>

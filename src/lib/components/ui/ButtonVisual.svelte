@@ -4,7 +4,8 @@
     interface Props {
         size?: 'small' | 'medium' | 'large';
         color?: 'text' | 'accent' | 'success' | 'danger' | 'warning';
-        style?: 'solid' | 'outline';
+        style?: 'solid' | 'outline' | 'subtle';
+        width?: 'full' | 'auto';
         disabled?: boolean;
         loading?: boolean;
         children: Snippet;
@@ -14,6 +15,7 @@
         size = 'medium',
         color = 'accent',
         style = 'solid',
+        width = 'auto',
         disabled = false,
         loading = false,
         children,
@@ -21,17 +23,7 @@
 </script>
 
 <div
-    class="button-visual"
-    class:size-small={size === 'small'}
-    class:size-medium={size === 'medium'}
-    class:size-large={size === 'large'}
-    class:color-text={color === 'text'}
-    class:color-accent={color === 'accent'}
-    class:color-success={color === 'success'}
-    class:color-danger={color === 'danger'}
-    class:color-warning={color === 'warning'}
-    class:style-solid={style === 'solid'}
-    class:style-outline={style === 'outline'}
+    class={`button-visual size-${size} color-${color} style-${style} width-${width}`}
     class:disabled={disabled}
     class:loading={loading}
 >
@@ -119,8 +111,17 @@
         color: var(--c-fb-wrn);
     }
 
+    .button-visual.style-subtle {
+        background-color: var(--c-mid);
+        color: var(--c-txt);
+    }
+
     .button-visual:hover:not(.disabled):not(.loading) {
         filter: brightness(0.9);
+    }
+
+    .button-visual.width-full {
+        width: 100%;
     }
 
     .button-visual.disabled,
