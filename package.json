@@ -19,6 +19,7 @@
     "vite": "^7.1.7"
   },
   "dependencies": {
+    "@lucide/svelte": "^0.544.0",
     "melt": "^0.41.0"
   }
 }

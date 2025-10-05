@@ -1,0 +1,27 @@
+.theme-dark {
+    /* regular colors */
+    --c-bg: #121212;
+    --c-sur: #1e1e1e;
+    --c-mid: #2c2c2c;
+    --c-txt: #ffffff;
+    --c-acc: #37916b;
+
+    /* feedback colors */
+    --c-fb-suc: #03dac6;
+    --c-fb-wrn: #cf6679;
+    --c-fb-err: #cf6679;
+}
+
+.theme-light {
+    /* regular colors */
+    --c-bg: #ffffff;
+    --c-sur: #f5f5f5;
+    --c-mid: #e0e0e0;
+    --c-txt: #000000;
+    --c-acc: #37916b;
+
+    /* feedback colors */
+    --c-fb-suc: #018786;
+    --c-fb-wrn: #c1600b;
+    --c-fb-err: #b00020;
+}
