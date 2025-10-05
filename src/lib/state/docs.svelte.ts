@@ -27,9 +27,9 @@ type BaseLayer = {
     transform: Transform;
 }
 
-type ImageLayer = BaseLayer & {
-    type: 'image';
-    canvas: HTMLCanvasElement;
+type CanvasLayer = BaseLayer & {
+    type: 'canvas';
+    canvas: OffscreenCanvas;
 };
 
 type TextLayer = BaseLayer & {
@@ -40,14 +40,7 @@ type TextLayer = BaseLayer & {
     color: Color;
 };
 
-type PaintLayer = BaseLayer & {
-    type: 'paint';
-    canvas: HTMLCanvasElement;
-    brushSize: number;
-    brushColor: Color;
-}
-
-export type Layer = ImageLayer | TextLayer | PaintLayer;
+export type Layer = CanvasLayer | TextLayer;
 
 /* Document */
 export type Document = {
@@ -59,11 +52,10 @@ export type Document = {
 };
 
 /* Functions */
-export function getSelectedDoc(): Document {
+export function getSelectedDoc(): Document | null {
     const selectedId = ui.selectedDocument;
     const doc = docs.find(d => d.id === selectedId);
-    if (!doc) throw new Error('No document selected');
-    return doc;
+    return doc || null;
 }
 
 /* State */
