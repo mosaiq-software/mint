@@ -4,7 +4,8 @@
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X } from "@lucide/svelte";
-    import type { Layer, LayerID } from "../../scripts/docs.svelte";
+    import type { Layer, LayerID } from "../../scripts/layer.ts";
+    import ui from "../../scripts/ui.svelte";
 
     const doc = $derived(getSelectedDoc());
 
@@ -26,6 +27,9 @@
     function removeLayer(layerId: LayerID) {
         if (!doc) return;
         doc.layers = doc.layers.filter(layer => layer.id !== layerId);
+        if (ui.selectedLayers[doc.id].includes(layerId)) {
+            ui.selectedLayers[doc.id] = ui.selectedLayers[doc.id].filter(id => id !== layerId);
+        }
     }
 </script>
 

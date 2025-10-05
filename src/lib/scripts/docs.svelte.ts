@@ -1,9 +1,9 @@
 import ui from './ui.svelte';
+import type { Layer } from './layer';
 
 /* IDs */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 export type DocumentID = `document-${UUID}`;
-export type LayerID = `layer-${UUID}`;
 
 /* Data Structures */
 export type Transform = {
@@ -18,30 +18,6 @@ export type Color = {
     a: number; // 0-1
 }
 
-/* Layers */
-type BaseLayer = {
-    id: LayerID;
-    name: string;
-    visible: boolean;
-    opacity: number;
-    transform: Transform;
-}
-
-type CanvasLayer = BaseLayer & {
-    type: 'canvas';
-    canvas: OffscreenCanvas;
-};
-
-type TextLayer = BaseLayer & {
-    type: 'text';
-    text: string;
-    fontFamily: string;
-    fontSize: number;
-    color: Color;
-};
-
-export type Layer = CanvasLayer | TextLayer;
-
 /* Document */
 export type Document = {
     id: DocumentID;
@@ -53,12 +29,14 @@ export type Document = {
 
 /* Functions */
 export function getSelectedDoc(): Document | null {
-    const selectedId = ui.selectedDocument;
-    const doc = docs.find(d => d.id === selectedId);
-    return doc || null;
+    if (!ui.selectedDocument) return null;
+    return docs[ui.selectedDocument] || null;
+}
+
+export function colorToCSS(color: Color): string {
+    return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
 }
 
 /* State */
-const docs: Document[] = $state([]);
-
+const docs: Record<DocumentID, Document> = $state({});
 export default docs;

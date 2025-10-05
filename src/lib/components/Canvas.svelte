@@ -1,8 +1,11 @@
 <script lang="ts">
     import { getSelectedDoc } from "../scripts/docs.svelte";
+    import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
+    import { tools } from "../scripts/tools";
 
     let doc = $derived(getSelectedDoc());
+    let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     
     $effect(() => {
@@ -16,40 +19,47 @@
     });
 
     $effect(() => {
-        if (canvas && doc) {
-            console.log("Rendering canvas");
-            render(canvas);
-        }
+        if (canvas && doc) render(canvas);
     });
 
-    function handleMouseDown(e: MouseEvent) {
+    function handlePointerDown(e: PointerEvent) {
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        console.log("Mouse down position:", x, y);
+        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
+
+        tool.onPointerDown?.({ c: p, l: layer ? p : null, e });
     }
 
-    function handleMouseMove(e: MouseEvent) {
-        // determine if mouse is down and drawing
+function handlePointerMove(e: PointerEvent) {
+    const rect = canvas.getBoundingClientRect();
+    const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
 
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        console.log("Mouse move position:", x, y);
+    // Get coalesced events for even smoother strokes
+    const events = e.getCoalescedEvents();
+    if (events.length > 0) {
+        for (const event of events) {
+            const coalescedP = { 
+                x: event.clientX - rect.left, 
+                y: event.clientY - rect.top 
+            };
+            tool.onPointerMove?.({ c: coalescedP, l: layer ? coalescedP : null, e: event });
+        }
+    } else {
+        tool.onPointerMove?.({ c: p, l: layer ? p : null, e });
     }
+}
 
-    function handleMouseUp(e: MouseEvent) {
+    function handlePointerUp(e: PointerEvent) {
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
 
-        console.log("Mouse up position:", x, y);
+        tool.onPointerUp?.({ c: p, l: layer ? p : null, e });
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-        // Handle keyboard interactions
-        console.log("Key pressed:", e.key);
+        tool.onKeyDown?.(e);
     }
 </script>
 
@@ -60,9 +70,9 @@
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
     onkeydown={handleKeyDown}
-    onmousedown={handleMouseDown}
-    onmousemove={handleMouseMove}
-    onmouseup={handleMouseUp}
+    onpointerdown={handlePointerDown}
+    onpointermove={handlePointerMove}
+    onpointerup={handlePointerUp}
 >
     <div id="canvas-container">
         <canvas bind:this={canvas} aria-hidden="true"></canvas>

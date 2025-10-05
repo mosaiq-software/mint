@@ -28,12 +28,14 @@
 
         creationError = null;
 
-        docs.push({
-            id: 'document-' + crypto.randomUUID() as DocumentID,
-            name, width, height, layers: []
-        });
+        const id = 'document-' + crypto.randomUUID() as DocumentID;
+        docs[id] = {
+            id, name, width, height, layers: []
+        };
 
-        ui.selectedDocument = docs[docs.length - 1].id;
+        ui.selectedDocument = id;
+        ui.selectedLayers[id] = [];
+        
         creatingDocument = false;
     }
 </script>
