@@ -21,6 +21,13 @@
             return;
         }
 
+        if (name.trim() === "") {
+            creationError = "Please enter a document name.";
+            return;
+        }
+
+        creationError = null;
+
         docs.push({
             id: 'document-' + crypto.randomUUID() as DocumentID,
             name, width, height, layers: []
@@ -63,7 +70,7 @@
             </div>
         </div>
         {#if creationError}
-            <p class="error">{creationError}</p>
+            <p class="error" style="color: var(--c-fb-err)">{creationError}</p>
         {/if}
         <button onclick={createDocument}>
             <ButtonVisual size="large" color="accent" style="solid">
