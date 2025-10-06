@@ -3,10 +3,12 @@
     import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { tools } from "../scripts/tools";
+    import { draw } from "../scripts/tools";
 
     let doc = $derived(getSelectedDoc());
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
+    let pointerPosition = $state({ x: 0, y: 0 });
     
     $effect(() => {
         if (canvas && doc) {
@@ -48,6 +50,8 @@ function handlePointerMove(e: PointerEvent) {
     } else {
         tool.onPointerMove?.({ c: p, l: layer ? p : null, e });
     }
+
+    pointerPosition = p;
 }
 
     function handlePointerUp(e: PointerEvent) {
@@ -79,6 +83,17 @@ function handlePointerMove(e: PointerEvent) {
         <div id="canvas-instructions" class="sr-only">
             Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
         </div>
+        {#if tool.name === 'draw'}
+            <div
+                id="draw-cursor"
+                style={`
+                    width: ${draw.brushSize}px;
+                    height: ${draw.brushSize}px;
+                    left: ${pointerPosition.x}px;
+                    top: ${pointerPosition.y}px;
+                `}
+            ></div>
+        {/if}
     </div>
 </div>
 
@@ -95,5 +110,18 @@ function handlePointerMove(e: PointerEvent) {
         height: fit-content;
         background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='10' height='10' fill='%23ccc'/%3e%3crect x='10' y='10' width='10' height='10' fill='%23ccc'/%3e%3c/svg%3e");
         background-color: #fff;
+        overflow: hidden;
+        position: relative;
+    }
+
+    #draw-cursor {
+        position: absolute;
+        pointer-events: none;
+        border: 1px solid var(--c-sec);
+        border-radius: var(--r-full);
+        transform: translate(
+            calc(-50%),
+            calc(-50%)
+        );
     }
 </style>
