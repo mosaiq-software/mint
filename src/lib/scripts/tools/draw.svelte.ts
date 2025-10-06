@@ -26,11 +26,13 @@ function drawOnCanvas(p: Point) {
         if (!drawState.stampCtx || !drawState.stampCanvas) return;
 
         const dist = Math.hypot(p.x - drawState.current.x, p.y - drawState.current.y);
-        const steps = Math.ceil(dist / (drawState.brushSize / 10));
-        for (let i = 0; i <= steps; i++) {
+        const steps = Math.max(Math.ceil(dist / (drawState.brushSize / 24)), 1);
+        for (let i = 1; i <= steps; i++) {
             const t = i / steps;
             const x = drawState.current.x + (p.x - drawState.current.x) * t;
             const y = drawState.current.y + (p.y - drawState.current.y) * t;
+
+            console.log('drawing at', x, y);
 
             const radius = drawState.brushSize / 2;
 
@@ -165,6 +167,7 @@ const draw: Tool = {
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
+        console.log('finalize draw');
     }
 }
 
