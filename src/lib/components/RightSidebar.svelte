@@ -1,8 +1,10 @@
 <script lang="ts">
+    import Brush from "./panels/Brush.svelte";
     import Layers from "./panels/Layers.svelte";
 </script>
 
 <div>
+    <Brush />
     <Layers />
 </div>
 
