@@ -31,32 +31,44 @@
             ui.selectedLayers[doc.id] = ui.selectedLayers[doc.id].filter(id => id !== layerId);
         }
     }
+
+    function selectLayer(layerId: LayerID) {
+        if (!doc) return;
+        ui.selectedLayers[doc.id] = [layerId];
+    }
 </script>
 
 <Panel title="Layers">
     <div id="layers">
-
-    </div>
-    {#if !doc}
-        <div>No document selected</div>
-    {:else}
-        {#each doc.layers as layer }
-            <div class="layer">
-                <div>{layer.name}</div>
-                <button onclick={() => removeLayer(layer.id)}>
-                    <IconButtonVisual label="Remove Layer {layer.name}">
-                        <X size={16}/>
-                    </IconButtonVisual>
-                </button>
-            </div>
-        {/each}
-    {/if}
-    <div id="add">
-        <button id="add-layer" disabled={!doc} onclick={addLayer}>
-            <ButtonVisual size="small" style="subtle" width="full" disabled={!doc}>
-                <Plus />
-            </ButtonVisual>
-        </button>
+        {#if !doc}
+            <div>No document selected</div>
+        {:else}
+            {#each doc.layers as layer }
+                <div
+                    class="layer"
+                    class:selected={ui.selectedLayers[doc.id]?.includes(layer.id)}
+                    >
+                    <button
+                        class="preview"
+                        onclick={() => selectLayer(layer.id)}
+                    >
+                        <div>{layer.name}</div>
+                    </button>
+                    <button onclick={() => removeLayer(layer.id)}>
+                        <IconButtonVisual label="Remove Layer {layer.name}">
+                            <X size={16}/>
+                        </IconButtonVisual>
+                    </button>
+                </div>
+            {/each}
+        {/if}
+        <div id="add">
+            <button id="add-layer" disabled={!doc} onclick={addLayer}>
+                <ButtonVisual size="small" style="subtle" width="full" disabled={!doc}>
+                    <Plus />
+                </ButtonVisual>
+            </button>
+        </div>
     </div>
 </Panel>
 
@@ -85,5 +97,16 @@
         background-color: var(--c-bg);
         border-radius: var(--r-sm);
         gap: var(--s-xs);
+    }
+
+    .layer.selected {
+        background-color: var(--c-acc);
+    }
+
+    .preview {
+        display: flex;
+        justify-content: flex-start;
+        flex: 1;
+        cursor: pointer;
     }
 </style>
