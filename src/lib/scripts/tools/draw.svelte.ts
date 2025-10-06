@@ -33,16 +33,20 @@ function drawOnCanvas(p: Point) {
             const y = drawState.current.y + (p.y - drawState.current.y) * t;
 
             const radius = drawState.brushSize / 2;
-            const feather = drawState.brushFeather;
 
             // Draw gradient to temp canvas
-            const offsetX = x - radius - feather;
-            const offsetY = y - radius - feather;
-            const size = (radius + feather) * 2;
+            const offsetX = x - radius;
+            const offsetY = y - radius;
 
             // Get existing pixels from stroke canvas
-            const existingData = ctx.getImageData(offsetX, offsetY, size, size);
-            const newData = drawState.stampCtx.getImageData(0, 0, size, size);
+            const existingData = ctx.getImageData(
+                offsetX, offsetY,
+                drawState.brushSize, drawState.brushSize
+            );
+            const newData = drawState.stampCtx.getImageData(
+                0, 0,
+                drawState.brushSize, drawState.brushSize
+            );
 
             // Blend: add RGB, max alpha
             for (let j = 0; j < existingData.data.length; j += 4) {
@@ -109,8 +113,7 @@ const draw: Tool = {
 
         // set up stamp canvas
         drawState.stampCanvas = new OffscreenCanvas(
-            drawState.brushSize + drawState.brushFeather * 2,
-            drawState.brushSize + drawState.brushFeather * 2
+            drawState.brushSize, drawState.brushSize
         );
         drawState.stampCtx = drawState.stampCanvas.getContext('2d');
 
@@ -119,20 +122,23 @@ const draw: Tool = {
             const radius = drawState.brushSize / 2;
             const feather = drawState.brushFeather;
             const gradient = drawState.stampCtx.createRadialGradient(
-                radius + feather, radius + feather, 0,
-                radius + feather, radius + feather, radius + feather
+                radius, radius, 0,
+                radius, radius, radius
             );
 
             const color = colorToCSS(ui.foregroundColor);
             const rgb = color.match(/\d+/g);
             if (rgb) {
                 gradient.addColorStop(0, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
-                gradient.addColorStop(radius / (radius + feather), `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
+                gradient.addColorStop(1 - feather, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
                 gradient.addColorStop(1, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0)`);
             }
 
             drawState.stampCtx.fillStyle = gradient;
-            drawState.stampCtx.fillRect(0, 0, drawState.stampCanvas.width, drawState.stampCanvas.height);
+            drawState.stampCtx.fillRect(
+                0, 0,
+                drawState.brushSize, drawState.brushSize
+            );
         }
 
         drawState.start = data.l ?? data.c;
@@ -152,6 +158,7 @@ const draw: Tool = {
     onPointerUp: (data) => {
         if (!drawState.drawing || !data.l || !drawState.drawLayer) return;
         
+        drawOnCanvas(data.l);
         drawState.drawing = false;
         drawState.current = data.l;
 
