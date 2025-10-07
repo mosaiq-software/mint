@@ -1,5 +1,6 @@
 import ui from './ui.svelte';
 import type { Layer } from './layer';
+import type { Point } from './tools';
 
 /* IDs */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
@@ -19,9 +20,9 @@ export type Color = {
 }
 
 export type TransformComponents = {
-    translate: { x: number; y: number };
+    translate: Point;
     rotate: number; // in degrees
-    scale: { x: number; y: number };
+    scale: Point;
 }
 
 /* Document */
