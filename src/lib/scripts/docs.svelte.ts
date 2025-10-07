@@ -18,6 +18,12 @@ export type Color = {
     a: number; // 0-1
 }
 
+export type TransformComponents = {
+    translate: { x: number; y: number };
+    rotate: number; // in degrees
+    scale: { x: number; y: number };
+}
+
 /* Document */
 export type Document = {
     id: DocumentID;
@@ -31,6 +37,18 @@ export type Document = {
 export function getSelectedDoc(): Document | null {
     if (!ui.selectedDocument) return null;
     return docs[ui.selectedDocument] || null;
+}
+
+export function matrixToTransformComponents(matrix: DOMMatrix): TransformComponents {
+    const { a, b, c, d, e, f } = matrix;
+    const scaleX = Math.sqrt(a * a + b * b);
+    const scaleY = Math.sqrt(c * c + d * d);
+    const rotate = Math.atan2(b, a) * (180 / Math.PI); // in degrees
+    return {
+        translate: { x: e, y: f },
+        rotate,
+        scale: { x: scaleX, y: scaleY }
+    };
 }
 
 export function colorToCSS(color: Color): string {
