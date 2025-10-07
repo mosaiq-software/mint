@@ -4,11 +4,11 @@
     import { getSelectedDoc } from "../../scripts/docs.svelte";
     interface Props {
         layer: Layer;
-        transform: Transform;
     }
 
     const doc = $derived(getSelectedDoc());
-    const { layer, transform }: Props = $props();
+    const { layer }: Props = $props();
+    const t = $derived(layer.transform);
 </script>
 <div
     class="transform-container"
@@ -18,7 +18,7 @@
     "
 >
     <div class="transform-overlay" style="
-        transform: matrix({transform.matrix.a}, {transform.matrix.b}, {transform.matrix.c}, {transform.matrix.d}, {transform.matrix.e}, {transform.matrix.f});
+        transform: matrix({t.matrix.a}, {t.matrix.b}, {t.matrix.c}, {t.matrix.d}, {t.matrix.e}, {t.matrix.f});
     ">
         <div class="transform-rotate-container">
             <div class="transform-rotate-handle"></div>
