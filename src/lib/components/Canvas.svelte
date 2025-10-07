@@ -2,13 +2,49 @@
     import { getSelectedDoc } from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
-    import { tools } from "../scripts/tools";
+    import { select, tools } from "../scripts/tools";
     import { draw } from "../scripts/tools";
+    import Transform from "./overlays/Transform.svelte";
+    import type { ScaleDirection } from "../scripts/tools/select.svelte";
 
     let doc = $derived(getSelectedDoc());
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     let pointerPosition = $state({ x: 0, y: 0 });
+    let selectedLayers = $derived(ui.selectedLayers[ui.selectedDocument!] || []);
+
+    const cursorMap: Record<ScaleDirection, string> = {
+        n: 'ns-resize',
+        s: 'ns-resize',
+        e: 'ew-resize',
+        w: 'ew-resize',
+        ne: 'nesw-resize',
+        sw: 'nesw-resize',
+        nw: 'nwse-resize',
+        se: 'nwse-resize',
+    };
+
+    const cursor = $derived.by(() => {
+        if (tool.name === 'draw' || tool.name === 'erase') {
+            return 'crosshair';
+        } else if (tool.name === 'select') {
+            if (select.action.type === 'move') {
+                return 'move';
+            } else if (select.action.type === 'scale') {
+                return cursorMap[select.action.direction];
+            } else if (select.action.type === 'rotate') {
+                if (select.dragging) {
+                    return 'grabbing';
+                } else {
+                    return 'grab';
+                }
+            } else {
+                return 'default';
+            }
+        } else {
+            return 'default';
+        }
+    });
     
     $effect(() => {
         if (canvas && doc) {
@@ -73,6 +109,7 @@ function handlePointerMove(e: PointerEvent) {
     role="application"
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
+    style="cursor: {cursor};"
     onkeydown={handleKeyDown}
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
@@ -95,6 +132,14 @@ function handlePointerMove(e: PointerEvent) {
             ></div>
         {/if}
     </div>
+    {#if tool.name === 'select'}
+        {#if (selectedLayers.length === 1)}
+            {@const layer = doc!.layers.find(l => l.id === selectedLayers[0])}
+            {#if layer}
+                <Transform {layer} transform={layer.transform} />
+            {/if}
+        {/if}
+    {/if}
 </div>
 
 <style>
@@ -102,6 +147,7 @@ function handlePointerMove(e: PointerEvent) {
         height: 100%;
         flex: 1;
         overflow: auto;
+        position: relative;
     }
 
     #canvas-container {
