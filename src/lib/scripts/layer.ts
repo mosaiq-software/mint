@@ -23,6 +23,8 @@ export type TextLayer = BaseLayer & {
     fontFamily: string;
     fontSize: number;
     color: Color;
+    width: number;
+    height: number;
 };
 
 export type Layer = CanvasLayer | TextLayer;
@@ -55,7 +57,9 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
             text: 'New Text',
             fontFamily: 'Arial',
             fontSize: 24,
-            color: { r: 0, g: 0, b: 0, a: 1 }
+            color: { r: 0, g: 0, b: 0, a: 1 },
+            width: 200,
+            height: 50
         };
     }
 }

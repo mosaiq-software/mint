@@ -16,6 +16,9 @@ export function render(canvas: HTMLCanvasElement) {
         ctx.globalAlpha = layer.opacity;
         
         if (layer.type === 'canvas') {
+            // draw the layer's canvas onto the main canvas
+            // taking into account the layer's transform
+            ctx.setTransform(layer.transform.matrix);
             ctx.drawImage(layer.canvas, 0, 0);
         }
         

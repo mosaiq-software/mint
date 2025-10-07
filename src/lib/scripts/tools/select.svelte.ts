@@ -2,6 +2,7 @@ import type { Tool } from ".";
 import { getSelectedDoc } from "../docs.svelte";
 import type { Point } from ".";
 import ui from "../ui.svelte";
+import type { Layer } from "../layer";
 
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -19,6 +20,10 @@ export type SelectAction = {
 export const selectState = $state({
     action: { type: 'select' } as SelectAction,
     dragging: false,
+    previous: {
+        c: { x: 0, y: 0 } as Point,
+        l: null as Point | null,
+    }
 });
 
 const scaleHandleHitboxSize = 3;
@@ -39,10 +44,13 @@ const select: Tool = {
             for (let i = doc.layers.length - 1; i >= 0; i--) {
                 const layer = doc.layers[i];
                 if (layer.type === 'canvas' && layer.visible) {
-                    // sample canvas pixel at data.c
+                    // sample canvas pixel at data.c, transformed to layer space
                     const ctx = layer.canvas.getContext('2d');
                     if (!ctx) continue;
-                    const pixel = ctx.getImageData(data.c.x, data.c.y, 1, 1).data;
+
+                    const invMatrix = layer.transform.matrix.inverse();
+                    const point = new DOMPoint(data.c.x, data.c.y).matrixTransform(invMatrix);
+                    const pixel = ctx.getImageData(point.x, point.y, 1, 1).data;
 
                     // if pixel is not transparent, select this layer
                     if (pixel[3] > 0) {
@@ -57,27 +65,57 @@ const select: Tool = {
             // if no layer found, clear selection and prepare to move layer
             if (!found) ui.selectedLayers[doc.id] = [];
         }
+
+        selectState.previous.c = data.c;
+        selectState.previous.l = data.l;
     },
     onPointerMove: (data) => {
         if (selectState.dragging) {
             // todo: handle dragging based on selectState.action
+
+            if (selectState.action.type === 'move') {
+                const doc = getSelectedDoc();
+                if (!doc) return;
+
+                const selectedLayers = ui.selectedLayers[doc.id];
+                if (selectedLayers.length === 0) return;
+
+                // move all selected layers by the delta
+                const deltaX = data.c.x - selectState.previous.c.x;
+                const deltaY = data.c.y - selectState.previous.c.y;
+
+                for (const layerId of selectedLayers) {
+                    const layer = doc.layers.find(l => l.id === layerId);
+                    if (layer) {
+                        layer.transform.matrix = layer.transform.matrix.translate(deltaX, deltaY);
+                    }
+                }
+
+                // trigger reactivity
+                doc.layers = [...doc.layers];
+            }
+
+            selectState.previous.c = data.c;
+            selectState.previous.l = data.l;
+
             return;
         }
 
         // determine action based on mouse position
-        setAction(data.c);
+        setAction(data.c, data.l);
+
+        selectState.previous.c = data.c;
+        selectState.previous.l = data.l;
     },
     onPointerUp: (data) => {
         selectState.dragging = false;
 
         // after mouse up, determine action based on mouse position
-        setAction(data.c);
-
-        console.log("Select tool mouse up at", data.l);
+        setAction(data.c, data.l);
     }   
 }
 
-function setAction(c: Point) {
+function setAction(c: Point, l: Point | null) {
     // grab scale of selected layer
     const doc = getSelectedDoc();
     if (!doc) return;
@@ -87,14 +125,14 @@ function setAction(c: Point) {
         const layer = doc.layers.find(l => l.id === selectedLayers[0]);
         if (!layer) return;
 
-        const handlePositions = getScaleHandlePositions(layer.transform.matrix);
+        const handlePositions = getScaleHandlePositions(layer.transform.matrix, layer);
         
         // check if mouse is over any scale handle
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
             const pos = handlePositions[dir as ScaleDirection];
-            if (Math.abs(c.x - pos.x * doc.width) <= scaleHandleHitboxSize &&
-                Math.abs(c.y - pos.y * doc.height) <= scaleHandleHitboxSize) {
+            if (Math.abs(c.x - pos.x) <= scaleHandleHitboxSize &&
+                Math.abs(c.y - pos.y) <= scaleHandleHitboxSize) {
                 overScaleHandle = dir as ScaleDirection;
                 break;
             }
@@ -106,18 +144,18 @@ function setAction(c: Point) {
         }
 
         // check if mouse is over rotate handle
-        const rotateHandle = getRotateHandlePosition(layer.transform.matrix, doc.height);
+        const rotateHandle = getRotateHandlePosition(layer.transform.matrix, layer);
 
-        if (Math.abs(c.x - rotateHandle.x * doc.width) <= rotateHandleHitboxSize &&
-            Math.abs(c.y - rotateHandle.y * doc.height) <= rotateHandleHitboxSize) {
+        if (Math.abs(c.x - rotateHandle.x) <= rotateHandleHitboxSize &&
+            Math.abs(c.y - rotateHandle.y) <= rotateHandleHitboxSize) {
             selectState.action = { type: 'rotate' };
             return;
         }
 
         // check if mouse is over non-transparent pixel
         const ctx = layer.type === 'canvas' ? layer.canvas.getContext('2d') : null;
-        if (ctx) {
-            const pixel = ctx.getImageData(c.x, c.y, 1, 1).data;
+        if (ctx && l) {
+            const pixel = ctx.getImageData(l.x, l.y, 1, 1).data;
             if (pixel[3] > 0) {
                 selectState.action = { type: 'move' };
                 return;
@@ -128,13 +166,16 @@ function setAction(c: Point) {
     selectState.action = { type: 'select' };
 }
 
-function getScaleHandlePositions(transform: DOMMatrix): Record<ScaleDirection, { x: number; y: number }> {
+function getScaleHandlePositions(transform: DOMMatrix, layer: Layer): Record<ScaleDirection, Point> {
+    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+    const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+
     // get the corners of the bounding box after transformation
     const corners = [
         new DOMPoint(0, 0).matrixTransform(transform), // top-left
-        new DOMPoint(1, 0).matrixTransform(transform), // top-right
-        new DOMPoint(1, 1).matrixTransform(transform), // bottom-right
-        new DOMPoint(0, 1).matrixTransform(transform), // bottom-left
+        new DOMPoint(width, 0).matrixTransform(transform), // top-right
+        new DOMPoint(width, height).matrixTransform(transform), // bottom-right
+        new DOMPoint(0, height).matrixTransform(transform), // bottom-left
     ];
 
     return {
@@ -151,10 +192,29 @@ function getScaleHandlePositions(transform: DOMMatrix): Record<ScaleDirection, {
 
 function getRotateHandlePosition(
     transform: DOMMatrix,
-    docHeight: number
-): { x: number; y: number } {
-    const point = new DOMPoint(0.5, -rotateHandleOffset / docHeight).matrixTransform(transform);
-    return { x: point.x, y: point.y };
+    layer: Layer,
+): Point {
+    // get the top center of the bounding box after transformation
+    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+    const topCenter = new DOMPoint(width / 2, 0).matrixTransform(transform);
+
+    // get a point just above the top center to determine the up direction
+    const upSample = new DOMPoint(width / 2, -1).matrixTransform(transform);
+
+    // calculate the vector from topCenter to upSample and normalize it
+    let vx = upSample.x - topCenter.x;
+    let vy = upSample.y - topCenter.y;
+    const len = Math.sqrt(vx * vx + vy * vy);
+    if (len > 0) {
+        vx /= len;
+        vy /= len;
+    }
+
+    // position the rotate handle some distance along this vector
+    return {
+        x: topCenter.x + vx * rotateHandleOffset,
+        y: topCenter.y + vy * rotateHandleOffset,
+    };
 }
 
 export default select;
