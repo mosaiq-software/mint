@@ -1,5 +1,5 @@
 import type { Mode } from '../ui.svelte';
-import select from './select.svelte';
+import select, { selectState } from './select.svelte';
 import draw, { drawState } from './draw.svelte';
 import erase from './erase.svelte';
 
@@ -28,5 +28,6 @@ export const tools: Record<Mode, Tool> = {
 };
 
 export {
-    drawState as draw
+    drawState as draw,
+    selectState as select
 }
