@@ -3,9 +3,16 @@
     import LeftSidebar from "./lib/components/LeftSidebar.svelte";
     import RightSidebar from "./lib/components/RightSidebar.svelte";
     import Viewport from "./lib/components/Viewport.svelte";
+
+    function handleDrop(e: DragEvent) {
+        e.preventDefault();
+        if (!e.dataTransfer) return;
+        e.dataTransfer.effectAllowed = "none";
+        e.dataTransfer.dropEffect = "none";
+    }
 </script>
 
-<main>
+<main ondragover={(e) => e.preventDefault()} ondrop={handleDrop}>
     <Header />
     <div id="center">
         <LeftSidebar />

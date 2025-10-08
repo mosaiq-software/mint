@@ -6,6 +6,7 @@
     import { draw } from "../scripts/tools";
     import Transform from "./overlays/Transform.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
+    import { handleImageDrop } from "../scripts/importImage";
 
     let doc = $derived(getSelectedDoc());
     let tool = $derived(tools[ui.mode]);
@@ -134,7 +135,11 @@
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
 >
-    <div id="canvas-container">
+    <div id="canvas-container"
+         role="application"
+         ondragover={(e) => e.preventDefault()}
+         ondrop={handleImageDrop}
+    >
         <canvas bind:this={canvas} aria-hidden="true"></canvas>
         <div id="canvas-instructions" class="sr-only">
             Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
