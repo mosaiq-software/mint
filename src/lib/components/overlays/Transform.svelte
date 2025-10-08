@@ -2,23 +2,29 @@
     import type { Transform } from "../../scripts/docs.svelte";
     import type { Layer } from "../../scripts/layer";
     import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import { matrixToTransformComponents } from "../../scripts/docs.svelte";
     interface Props {
         layer: Layer;
     }
 
     const doc = $derived(getSelectedDoc());
     const { layer }: Props = $props();
-    const t = $derived(layer.transform);
+    let t = $derived(matrixToTransformComponents(layer.transform.matrix));
+
+    let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : layer.width);
+    let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : layer.height);
 </script>
 <div
     class="transform-container"
     style="
-        width: {doc ? doc.width + 'px' : '0px'};
-        height: {doc ? doc.height + 'px' : '0px'};
+        width: {layerWidth * t.scale.x + 'px'};
+        height: {layerHeight * t.scale.y + 'px'};
     "
 >
     <div class="transform-overlay" style="
-        transform: matrix({t.matrix.a}, {t.matrix.b}, {t.matrix.c}, {t.matrix.d}, {t.matrix.e}, {t.matrix.f});
+        transform: 
+            translate({t.translate.x}px, {t.translate.y}px)
+            rotate({t.rotate}deg)
     ">
         <div class="transform-rotate-container">
             <div class="transform-rotate-handle"></div>
