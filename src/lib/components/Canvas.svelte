@@ -65,8 +65,10 @@
     });
 
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
-        const layer = doc!.layers.find(l => l.id === layerId);
+        if (!doc) return null;
+        const layer = doc.layers.find(l => l.id === layerId);
         if (!layer) return null;
+        
         const invMatrix = layer.transform.matrix.inverse();
         const point = new DOMPoint(c.x, c.y).matrixTransform(invMatrix);
         return { x: point.x, y: point.y };

@@ -73,26 +73,86 @@ const select: Tool = {
         if (selectState.dragging) {
             // todo: handle dragging based on selectState.action
 
+            const doc = getSelectedDoc();
+            if (!doc) return;
+
             if (selectState.action.type === 'move') {
-                const doc = getSelectedDoc();
-                if (!doc) return;
 
                 const selectedLayers = ui.selectedLayers[doc.id];
                 if (selectedLayers.length === 0) return;
 
                 // move all selected layers by the delta
-                const deltaX = data.c.x - selectState.previous.c.x;
-                const deltaY = data.c.y - selectState.previous.c.y;
+                let deltaX = data.c.x - selectState.previous.c.x;
+                let deltaY = data.c.y - selectState.previous.c.y;
 
                 for (const layerId of selectedLayers) {
                     const layer = doc.layers.find(l => l.id === layerId);
                     if (layer) {
-                        layer.transform.matrix = layer.transform.matrix.translate(deltaX, deltaY);
+                        // map screen delta into the layer's local (non-translated) space
+                        // so translation is not affected by the layer's scale/rotation.
+                        const { a, b, c, d, e, f } = layer.transform.matrix;
+                        const mat = new DOMMatrix([a, b, c, d, e, f]);
+                        // zero out translation so we invert only the linear part (scale+rotate)
+                        mat.m41 = 0;
+                        mat.m42 = 0;
+
+                        // guard against non-invertible matrices
+                        let localDx = deltaX;
+                        let localDy = deltaY;
+                        try {
+                            const inv = mat.inverse();
+                            const localDelta = new DOMPoint(deltaX, deltaY).matrixTransform(inv);
+                            localDx = localDelta.x;
+                            localDy = localDelta.y;
+                        } catch (err) {
+                            // fallback: if inverse fails, use raw screen delta
+                        }
+
+                        layer.transform.matrix = layer.transform.matrix.translate(localDx, localDy);
                     }
                 }
+            } else if (selectState.action.type === 'scale') {
+                const dir = selectState.action.direction;
 
-                // trigger reactivity
-                doc.layers = [...doc.layers];
+                // find the selected layer
+                const selectedLayers = ui.selectedLayers[doc.id];
+                if (selectedLayers.length !== 1) return;
+                const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+                if (!layer) return;
+                if (!data.l) return;
+
+                // handle horizontal scaling
+                if (dir === 'e' || dir === 'ne' || dir === 'se' ||
+                    dir === 'w' || dir === 'nw' || dir === 'sw') {
+                    // find factor to scale by based on mouse movement
+                    const deltaX = data.l.x - (selectState.previous.l ? selectState.previous.l.x : 0);
+
+                    // scale deltaX by the layer's width to get a relative scale factor
+                    const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width)
+                    const scaleX = 1 + deltaX / layerWidth;
+
+                    layer.transform.matrix = layer.transform.matrix.scale(scaleX, 1);
+                }
+
+                // handle vertical scaling
+                if (dir === 'n' || dir === 'ne' || dir === 'nw' ||
+                    dir === 's' || dir === 'se' || dir === 'sw') {
+                    // find factor to scale by based on mouse movement
+                    const deltaY = data.l.y - (selectState.previous.l ? selectState.previous.l.y : 0);
+                    const layerHeight = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+                    const scaleY = 1 + deltaY / layerHeight;
+                    layer.transform.matrix = layer.transform.matrix.scale(1, scaleY);
+                }
+
+                // handle west scaling (requires translation)
+                if (dir === 'w' || dir === 'nw' || dir === 'sw') {
+                    // west scaling logic here
+                }
+
+                // handle north scaling (requires translation)
+                if (dir === 'n' || dir === 'ne' || dir === 'nw') {
+                    // north scaling logic here
+                }
             }
 
             selectState.previous.c = data.c;
