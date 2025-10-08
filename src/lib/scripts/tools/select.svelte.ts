@@ -30,8 +30,8 @@ export const selectState = $state({
     }
 });
 
-const scaleHandleHitboxSize = 3;
-const rotateHandleHitboxSize = 3;
+const scaleHandleHitboxSize = 5;
+const rotateHandleHitboxSize = 5;
 const rotateHandleOffset = 25; // distance above the bounding box
 
 const select: Tool = {
@@ -39,11 +39,15 @@ const select: Tool = {
     onPointerDown: (data) => {
         selectState.dragging = true;
 
+        const doc = getSelectedDoc();
+        if (!doc) return;
+
+        const selectedLayers = ui.selectedLayers[doc.id];
+        const firstSelectedLayer = selectedLayers.length > 0 ?
+            doc.layers.find(l => l.id === selectedLayers[0]) : null;
+
         if (selectState.action.type === 'select') {
             // traverse layers from top to bottom to find the first shape under the cursor
-            const doc = getSelectedDoc();
-            if (!doc) return;
-
             let found = false;
             for (let i = doc.layers.length - 1; i >= 0; i--) {
                 const layer = doc.layers[i];
@@ -69,19 +73,13 @@ const select: Tool = {
             // if no layer found, clear selection and prepare to move layer
             if (!found) ui.selectedLayers[doc.id] = [];
         } else if (selectState.action.type === 'scale') {
-            // store initial transform of selected layers
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            if (firstSelectedLayer) {
+                selectState.initial.pivot = getScalePivotPoint(selectState.action.direction, firstSelectedLayer);
+            }
+        }
 
-            const selectedLayers = ui.selectedLayers[doc.id];
-            if (selectedLayers.length === 0) return;
-
-            // for now, only support single selection for move/scale/rotate
-            const layer = doc.layers.find(l => l.id === selectedLayers[0]);
-            if (!layer) return;
-
-            selectState.initial.matrix = layer.transform.matrix.translate(0, 0);
-            selectState.initial.pivot = getScalePivotPoint(selectState.action.direction, layer);
+        if (firstSelectedLayer) {
+            selectState.initial.matrix = firstSelectedLayer.transform.matrix.translate(0, 0);
         }
 
         selectState.previous.c = data.c;
@@ -165,6 +163,43 @@ const select: Tool = {
                     .translate(px, py)
                     .scale(scaleX, scaleY)
                     .translate(-px, -py);
+            } else if (selectState.action.type === 'rotate') {
+                // find the selected layer
+                const selectedLayers = ui.selectedLayers[doc.id];
+                if (selectedLayers.length !== 1) return;
+                const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+                if (!layer) return;
+                if (!data.l) return;
+
+                const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width);
+                const layerHeight = (layer.type === 'canvas' ? layer.canvas.height : layer.height);
+
+                // compute the center in local and world space
+                const localCenter = new DOMPoint(layerWidth / 2, layerHeight / 2);
+                const worldCenter = localCenter.matrixTransform(selectState.initial.matrix);
+
+                // calculate angle delta based on mouse movement
+                const currentPoint = new DOMPoint(data.c.x, data.c.y);
+                const delta = {
+                    x: currentPoint.x - worldCenter.x,
+                    y: currentPoint.y - worldCenter.y
+                }
+                const currentAngle = Math.atan2(delta.y, delta.x) + Math.PI / 2;
+
+                // decompose scale from the initial matrix
+                const m = selectState.initial.matrix;
+                const scaleX = Math.hypot(m.a, m.b);
+                const scaleY = Math.hypot(m.c, m.d);
+
+                // compose the new matrix:
+                // translate to world center, rotate, scale, translate back
+                const newMatrix = new DOMMatrix()
+                    .translate(worldCenter.x, worldCenter.y)
+                    .rotate((currentAngle * 180) / Math.PI)
+                    .scale(scaleX, scaleY)
+                    .translate(-localCenter.x, -localCenter.y);
+
+                layer.transform.matrix = newMatrix;
             }
         } else {
             // determine action based on mouse position
@@ -197,8 +232,8 @@ function setAction(c: Point, l: Point | null) {
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
             const pos = handlePositions[dir as ScaleDirection];
-            if (Math.abs(c.x - pos.x) <= scaleHandleHitboxSize &&
-                Math.abs(c.y - pos.y) <= scaleHandleHitboxSize) {
+            const dist = Math.hypot(c.x - pos.x, c.y - pos.y);
+            if (dist < scaleHandleHitboxSize) {
                 overScaleHandle = dir as ScaleDirection;
                 break;
             }
@@ -211,9 +246,8 @@ function setAction(c: Point, l: Point | null) {
 
         // check if mouse is over rotate handle
         const rotateHandle = getRotateHandlePosition(layer.transform.matrix, layer);
-
-        if (Math.abs(c.x - rotateHandle.x) <= rotateHandleHitboxSize &&
-            Math.abs(c.y - rotateHandle.y) <= rotateHandleHitboxSize) {
+        const dist = Math.hypot(c.x - rotateHandle.x, c.y - rotateHandle.y);
+        if (dist < rotateHandleHitboxSize) {
             selectState.action = { type: 'rotate' };
             return;
         }
