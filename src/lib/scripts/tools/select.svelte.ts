@@ -30,8 +30,8 @@ export const selectState = $state({
     }
 });
 
-const scaleHandleHitboxSize = 3;
-const rotateHandleHitboxSize = 3;
+const scaleHandleHitboxSize = 5;
+const rotateHandleHitboxSize = 5;
 const rotateHandleOffset = 25; // distance above the bounding box
 
 const select: Tool = {
@@ -232,8 +232,8 @@ function setAction(c: Point, l: Point | null) {
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
             const pos = handlePositions[dir as ScaleDirection];
-            if (Math.abs(c.x - pos.x) <= scaleHandleHitboxSize &&
-                Math.abs(c.y - pos.y) <= scaleHandleHitboxSize) {
+            const dist = Math.hypot(c.x - pos.x, c.y - pos.y);
+            if (dist < scaleHandleHitboxSize) {
                 overScaleHandle = dir as ScaleDirection;
                 break;
             }
@@ -246,9 +246,8 @@ function setAction(c: Point, l: Point | null) {
 
         // check if mouse is over rotate handle
         const rotateHandle = getRotateHandlePosition(layer.transform.matrix, layer);
-
-        if (Math.abs(c.x - rotateHandle.x) <= rotateHandleHitboxSize &&
-            Math.abs(c.y - rotateHandle.y) <= rotateHandleHitboxSize) {
+        const dist = Math.hypot(c.x - rotateHandle.x, c.y - rotateHandle.y);
+        if (dist < rotateHandleHitboxSize) {
             selectState.action = { type: 'rotate' };
             return;
         }
