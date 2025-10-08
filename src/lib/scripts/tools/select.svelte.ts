@@ -21,8 +21,14 @@ export const selectState = $state({
     action: { type: 'select' } as SelectAction,
     dragging: false,
     previous: {
+        c: { x: 0, y: 0 } as Point
+    },
+    initial: {
         c: { x: 0, y: 0 } as Point,
-        l: null as Point | null,
+        matrix: new DOMMatrix(),
+        width: 0,
+        height: 0,
+        pivot: { x: 0, y: 0} as Point
     }
 });
 
@@ -64,10 +70,26 @@ const select: Tool = {
 
             // if no layer found, clear selection and prepare to move layer
             if (!found) ui.selectedLayers[doc.id] = [];
+        } else if (selectState.action.type === 'scale') {
+            // store initial transform of selected layers
+            const doc = getSelectedDoc();
+            if (!doc) return;
+
+            const selectedLayers = ui.selectedLayers[doc.id];
+            if (selectedLayers.length === 0) return;
+
+            // for now, only support single selection for move/scale/rotate
+            const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+            if (!layer) return;
+
+            selectState.initial.matrix = layer.transform.matrix.translate(0, 0);
+            selectState.initial.width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+            selectState.initial.height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+            selectState.initial.pivot = getScalePivotPoint(selectState.action.direction, layer);
         }
 
         selectState.previous.c = data.c;
-        selectState.previous.l = data.l;
+        selectState.initial.c = data.c;
     },
     onPointerMove: (data) => {
         if (selectState.dragging) {
@@ -77,7 +99,6 @@ const select: Tool = {
             if (!doc) return;
 
             if (selectState.action.type === 'move') {
-
                 const selectedLayers = ui.selectedLayers[doc.id];
                 if (selectedLayers.length === 0) return;
 
@@ -90,8 +111,8 @@ const select: Tool = {
                     if (layer) {
                         // map screen delta into the layer's local (non-translated) space
                         // so translation is not affected by the layer's scale/rotation.
-                        const { a, b, c, d, e, f } = layer.transform.matrix;
-                        const mat = new DOMMatrix([a, b, c, d, e, f]);
+                        const mat = layer.transform.matrix.translate(0, 0);
+
                         // zero out translation so we invert only the linear part (scale+rotate)
                         mat.m41 = 0;
                         mat.m42 = 0;
@@ -121,51 +142,49 @@ const select: Tool = {
                 if (!layer) return;
                 if (!data.l) return;
 
-                // handle horizontal scaling
-                if (dir === 'e' || dir === 'ne' || dir === 'se' ||
-                    dir === 'w' || dir === 'nw' || dir === 'sw') {
-                    // find factor to scale by based on mouse movement
-                    const deltaX = data.l.x - (selectState.previous.l ? selectState.previous.l.x : 0);
+                // calculate initial mouse position in layer space
+                const initialPoint = new DOMPoint(selectState.initial.c.x, selectState.initial.c.y)
+                    .matrixTransform(selectState.initial.matrix.inverse());
+                if (isNaN(initialPoint.x) || isNaN(initialPoint.y)) return;
 
-                    // scale deltaX by the layer's width to get a relative scale factor
-                    const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width)
-                    const scaleX = 1 + deltaX / layerWidth;
+                const currentPoint = new DOMPoint(data.c.x, data.c.y)
+                    .matrixTransform(selectState.initial.matrix.inverse());
+                if (isNaN(currentPoint.x) || isNaN(currentPoint.y)) return;
 
-                    layer.transform.matrix = layer.transform.matrix.scale(scaleX, 1);
-                }
+                // calculate scale factor based on mouse movement and scale direction
+                const deltaX = currentPoint.x - initialPoint.x;
+                const deltaY = currentPoint.y - initialPoint.y;
+                const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width);
+                const layerHeight = (layer.type === 'canvas' ? layer.canvas.height : layer.height);
 
-                // handle vertical scaling
-                if (dir === 'n' || dir === 'ne' || dir === 'nw' ||
-                    dir === 's' || dir === 'se' || dir === 'sw') {
-                    // find factor to scale by based on mouse movement
-                    const deltaY = data.l.y - (selectState.previous.l ? selectState.previous.l.y : 0);
-                    const layerHeight = layer.type === 'canvas' ? layer.canvas.height : layer.height;
-                    const scaleY = 1 + deltaY / layerHeight;
-                    layer.transform.matrix = layer.transform.matrix.scale(1, scaleY);
-                }
+                let scaleX;
+                if (dir.includes('e')) scaleX = (layerWidth + deltaX) / layerWidth;
+                else if (dir.includes('w')) scaleX = (layerWidth - deltaX) / layerWidth;
+                else scaleX = 1;
 
-                // handle west scaling (requires translation)
-                if (dir === 'w' || dir === 'nw' || dir === 'sw') {
-                    // west scaling logic here
-                }
+                let scaleY;
+                if (dir.includes('s')) scaleY = (layerHeight + deltaY) / layerHeight;
+                else if (dir.includes('n')) scaleY = (layerHeight - deltaY) / layerHeight;
+                else scaleY = 1;
 
-                // handle north scaling (requires translation)
-                if (dir === 'n' || dir === 'ne' || dir === 'nw') {
-                    // north scaling logic here
-                }
+                console.log(scaleX, scaleY);
+
+                // pivot is in layer space, so we don't transform it first
+                const { x: px, y: py } = selectState.initial.pivot;
+
+                // we want to apply scaling around the pivot in layer space
+                // to do that, we move the pivot to origin, scale, move back
+                layer.transform.matrix = selectState.initial.matrix
+                    .translate(px, py)   // move pivot to origin (layer space)
+                    .scale(scaleX, scaleY)
+                    .translate(-px, -py);
             }
-
-            selectState.previous.c = data.c;
-            selectState.previous.l = data.l;
-
-            return;
+        } else {
+            // determine action based on mouse position
+            setAction(data.c, data.l);
         }
 
-        // determine action based on mouse position
-        setAction(data.c, data.l);
-
         selectState.previous.c = data.c;
-        selectState.previous.l = data.l;
     },
     onPointerUp: (data) => {
         selectState.dragging = false;
@@ -275,6 +294,22 @@ function getRotateHandlePosition(
         x: topCenter.x + vx * rotateHandleOffset,
         y: topCenter.y + vy * rotateHandleOffset,
     };
+}
+
+function getScalePivotPoint(direction: ScaleDirection, layer: Layer): Point {
+    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+    const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+
+    switch (direction) {
+        case 'n': return { x: width / 2, y: height };
+        case 's': return { x: width / 2, y: 0 };
+        case 'e': return { x: 0, y: height / 2 };
+        case 'w': return { x: width, y: height / 2 };
+        case 'ne': return { x: 0, y: height };
+        case 'nw': return { x: width, y: height };
+        case 'se': return { x: 0, y: 0 };
+        case 'sw': return { x: width, y: 0 };
+    }
 }
 
 export default select;
