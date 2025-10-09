@@ -29,32 +29,76 @@
     let y = $derived(t ? t.translate.y.toFixed(2) : "");
 
     let w = $derived(t ? (t.scale.x * layerSize.width).toFixed(2) : "");
-    let h = $derived(t ? (t.scale.y * layerSize.width).toFixed(2) : "");
+    let h = $derived(t ? (t.scale.y * layerSize.height).toFixed(2) : "");
 
     let r = $derived(t ? t.rotate : 0);
-    $inspect(r);
+
+    function safeParseFloat(val: string, fallback: number) {
+        const parsed = parseFloat(val);
+        return isNaN(parsed) ? fallback : parsed;
+    }
+
+    function applyNewMatrix() {
+        if (!t) return;
+
+        const xs = safeParseFloat(x, t.translate.x);
+        const ys = safeParseFloat(y, t.translate.y);
+        const ws = safeParseFloat(w, t.scale.x * layerSize.width) / layerSize.width;
+        const hs = safeParseFloat(h, t.scale.y * layerSize.height) / layerSize.height;
+
+        const cos = Math.cos(r * Math.PI / 180);
+        const sin = Math.sin(r * Math.PI / 180);
+        selectedLayers[0].transform.matrix = new DOMMatrix([
+            ws * cos, ws * sin,
+            -hs * sin, hs * cos,
+            xs, ys
+        ]);
+    }
+
+    let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+    function debouncedApplyNewMatrix() {
+        if (debounceTimeout) return;
+        debounceTimeout = setTimeout(() => {
+            applyNewMatrix(); debounceTimeout = null;
+        }, 8); // ~1 frame at 60Hz
+    }
 </script>
 
 <Panel title="Transform" disabled={!t}>
     <div>
-        <Input name="x" labelPosition="side" bind:value={x}>
+        <Input
+            name="x" labelPosition="side" disabled={!t}
+            bind:value={x} onBlur={applyNewMatrix}
+        >
             <label for="transform-x">X:</label>
         </Input>
-        <Input name="y" labelPosition="side" bind:value={y}>
+        <Input
+            name="y" labelPosition="side" disabled={!t}
+            bind:value={y} onBlur={applyNewMatrix}
+        >
             <label for="transform-y">Y:</label>
         </Input>
     </div>
     <div>
-        <Input name="w" labelPosition="side" bind:value={w}>
+        <Input
+            name="w" labelPosition="side" disabled={!t}
+            bind:value={w} onBlur={applyNewMatrix}
+        >
             <label for="transform-W">W:</label>
         </Input>
-        <Input name="h" labelPosition="side" bind:value={h}>
+        <Input
+            name="h" labelPosition="side" disabled={!t}
+            bind:value={h} onBlur={applyNewMatrix}
+        >
             <label for="transform-h">H:</label>
         </Input>
     </div>
     <div>
         <label for="rotation">R:</label>
-        <Slider min={-180} max={180} step={1} bind:value={r} />
+        <Slider
+            min={-180} max={180} step={1}
+            bind:value={r} onValueChange={debouncedApplyNewMatrix}
+        />
     </div>
 </Panel>
 
