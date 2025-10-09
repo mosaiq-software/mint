@@ -11,6 +11,7 @@
         value?: string;
         disabled?: boolean;
         hideLabel?: boolean;
+        onBlur?: (e: FocusEvent) => void;
     }
 
     let {
@@ -23,6 +24,7 @@
         value = $bindable(),
         disabled = false,
         hideLabel = false,
+        onBlur = (e: FocusEvent) => {}
     }: Props = $props();
 </script>
 
@@ -45,6 +47,7 @@
         placeholder={placeholder}
         bind:value
         disabled={disabled}
+        onblur={onBlur}
     />
 </div>
 
