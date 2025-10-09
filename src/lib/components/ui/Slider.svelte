@@ -2,7 +2,7 @@
     import { Slider, type SliderProps } from "melt/builders";
 
     interface Props {
-        value: number;
+        value?: number;
         min?: number;
         max?: number;
         step?: number;
@@ -18,7 +18,11 @@
     const slider = new Slider({ 
         value, min, max, step,
         orientation: 'horizontal',
-        onValueChange: (val) => value = val,
+        onValueChange: (val) => {if (value) value = val},
+    });
+
+    $effect(() => {
+        if (value) slider.value = value;
     });
 </script>
 
