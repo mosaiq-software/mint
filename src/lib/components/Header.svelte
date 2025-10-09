@@ -28,7 +28,7 @@
         border: none;
         padding: var(--s-sm);
         border-radius: var(--s-sm);
-        box-shadow: calc(-1 * var(--s-sm)) var(--s-sm) var(--s-sm) #000;
+        box-shadow: 0px 0px 10px 0px var(--c-bg);
         margin-left: var(--s-xs);
     }
 
