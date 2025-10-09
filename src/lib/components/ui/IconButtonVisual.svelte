@@ -44,6 +44,6 @@
     }
 
     span {
-        font-size: var(--f-xs);
+        font-size: var(--f-sm);
     }
 </style>

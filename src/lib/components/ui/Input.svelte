@@ -71,7 +71,6 @@
         padding: var(--s-sm) var(--s-md);
         border-radius: var(--r-sm);
         width: 100%;
-        font-size: var(--f-md);
         color: var(--c-txt);
     }
 </style>
