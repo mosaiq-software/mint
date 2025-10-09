@@ -24,7 +24,6 @@
 <Input
     type="number"
     name="canvas-width"
-    style="solid"
     placeholder="Width"
     bind:value={widthStr}
     onBlur={() => {
@@ -35,7 +34,6 @@
 <Input
     type="number"
     name="canvas-height"
-    style="solid"
     placeholder="Height"
     bind:value={heightStr}
     onBlur={() => {
