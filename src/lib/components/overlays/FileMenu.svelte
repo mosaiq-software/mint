@@ -21,22 +21,42 @@
     }
 </script>
 
-<Input
-    type="number"
-    name="canvas-width"
-    placeholder="Width"
-    bind:value={widthStr}
-    onBlur={() => {
-        widthStr = handleCanvasSizeBlur('width', widthStr)
-    }}
->Width</Input>
+<div id="file-menu">
+    <h2>Canvas Size</h2>
+    <div id="canvas-size">
+        <Input
+            type="number"
+            name="canvas-width"
+            placeholder="Width"
+            bind:value={widthStr}
+            onBlur={() => {
+                widthStr = handleCanvasSizeBlur('width', widthStr)
+            }}
+        >Width:</Input>
+        <Input
+            type="number"
+            name="canvas-height"
+            placeholder="Height"
+            bind:value={heightStr}
+            onBlur={() => {
+                heightStr = handleCanvasSizeBlur('height', heightStr)
+            }}
+        >Height:</Input>
+    </div>
+</div>
 
-<Input
-    type="number"
-    name="canvas-height"
-    placeholder="Height"
-    bind:value={heightStr}
-    onBlur={() => {
-        heightStr = handleCanvasSizeBlur('height', heightStr)
-    }}
->Height</Input>
+<style>
+    #file-menu {
+        display: flex;
+        gap: var(--s-sm);
+        align-items: stretch;
+        width: 20em;
+        flex-direction: column;
+    }
+
+    #canvas-size {
+        display: flex;
+        gap: var(--s-md);
+        width: 100%;
+    }
+</style>

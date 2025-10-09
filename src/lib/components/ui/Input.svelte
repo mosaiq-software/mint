@@ -66,7 +66,8 @@
     .input-container {
         display: flex;
         gap: var(--s-xs);
-        flex-grow: 1;
+        min-width: 5em;
+        flex: 1;
     }
 
     .input-container.label-top {
@@ -80,8 +81,9 @@
     }
 
     input {
-        width: 4ch;
-        flex: 1;
+        min-width: 0;
+        max-width: 100%;
+        width: 100%;
     }
 
     input.variant-solid {
