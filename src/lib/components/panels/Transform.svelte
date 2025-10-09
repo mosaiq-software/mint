@@ -32,6 +32,7 @@
     let h = $derived(t ? (t.scale.y * layerSize.height).toFixed(2) : "");
 
     let r = $derived(t ? t.rotate : 0);
+    let rs = $derived(t ? t.rotate.toFixed(1) : "0");
 
     function safeParseFloat(val: string, fallback: number) {
         const parsed = parseFloat(val);
@@ -70,13 +71,13 @@
             name="x" labelPosition="side" disabled={!t}
             bind:value={x} onBlur={applyNewMatrix}
         >
-            <label for="transform-x">X:</label>
+            <div class="label">X:</div>
         </Input>
         <Input
             name="y" labelPosition="side" disabled={!t}
             bind:value={y} onBlur={applyNewMatrix}
         >
-            <label for="transform-y">Y:</label>
+            <div class="label">Y:</div>
         </Input>
     </div>
     <div>
@@ -84,17 +85,27 @@
             name="w" labelPosition="side" disabled={!t}
             bind:value={w} onBlur={applyNewMatrix}
         >
-            <label for="transform-W">W:</label>
+            <div class="label">W:</div>
         </Input>
         <Input
             name="h" labelPosition="side" disabled={!t}
             bind:value={h} onBlur={applyNewMatrix}
         >
-            <label for="transform-h">H:</label>
+            <div class="label">H:</div>
         </Input>
     </div>
     <div>
-        <label for="rotation">R:</label>
+        <Input
+            name="r" labelPosition="side" disabled={!t} variant="underline"
+            style="width: 12ch;"
+            bind:value={rs} onBlur={() => {
+                if (!t) return;
+                r = safeParseFloat(rs, t.rotate);
+                applyNewMatrix();
+            }}
+        >
+            <div class="label">R:</div>
+        </Input>
         <Slider
             min={-180} max={180} step={1}
             bind:value={r} onValueChange={debouncedApplyNewMatrix}
@@ -103,8 +114,7 @@
 </Panel>
 
 <style>
-    label {
-        display: inline-block;
+    .label {
         width: 2.5ch;
     }
 
@@ -112,5 +122,6 @@
         display: flex;
         gap: var(--s-md);
         align-items: center;
+        flex: 1;
     }
 </style>
