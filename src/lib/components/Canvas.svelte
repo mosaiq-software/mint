@@ -119,7 +119,9 @@
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-        tool.onKeyDown?.(e);
+        if (e.target && (e.target as HTMLElement).tagName !== 'INPUT') {
+            tool.onKeyDown?.(e);
+        }
     }
 </script>
 
@@ -160,6 +162,8 @@
         <Transform layer={selectedLayer} />
     {/if}
 </div>
+
+<svelte:window onkeydown={handleKeyDown} />
 
 <style>
     #scroll-container {
