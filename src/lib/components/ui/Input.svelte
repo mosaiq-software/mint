@@ -26,6 +26,12 @@
         hideLabel = false,
         onBlur = (e: FocusEvent) => {}
     }: Props = $props();
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === "Enter") {
+            (e.target as HTMLInputElement).blur();
+        }
+    }
 </script>
 
 <div
@@ -48,6 +54,7 @@
         bind:value
         disabled={disabled}
         onblur={onBlur}
+        onkeydown={handleKeydown}
     />
 </div>
 
