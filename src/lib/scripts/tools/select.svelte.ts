@@ -245,7 +245,23 @@ export const selectTool: Tool = {
                 if (layer) {
                     // map screen delta into the layer's local (non-translated) space
                     // so translation is not affected by the layer's scale/rotation.
-                    layer.transform.matrix = layer.transform.matrix.translate(dx, dy);
+                    const mat = layer.transform.matrix.translate(0, 0);
+                    mat.m41 = 0;
+                    mat.m42 = 0;
+
+                    // guard against non-invertible matrices
+                    let localDx = dx;
+                    let localDy = dy;
+                    try {
+                        const inv = mat.inverse();
+                        const localDelta = new DOMPoint(dx, dy).matrixTransform(inv);
+                        localDx = localDelta.x;
+                        localDy = localDelta.y;
+                    } catch (err) {
+                        // fallback: if inverse fails, use raw screen delta
+                    }
+
+                    layer.transform.matrix = layer.transform.matrix.translate(localDx, localDy);
                 }
             }         
         }
