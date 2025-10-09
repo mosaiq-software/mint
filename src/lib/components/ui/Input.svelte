@@ -11,6 +11,7 @@
         value?: string;
         disabled?: boolean;
         hideLabel?: boolean;
+        onBlur?: (e: FocusEvent) => void;
     }
 
     let {
@@ -23,7 +24,14 @@
         value = $bindable(),
         disabled = false,
         hideLabel = false,
+        onBlur = (e: FocusEvent) => {}
     }: Props = $props();
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === "Enter") {
+            (e.target as HTMLInputElement).blur();
+        }
+    }
 </script>
 
 <div
@@ -45,6 +53,8 @@
         placeholder={placeholder}
         bind:value
         disabled={disabled}
+        onblur={onBlur}
+        onkeydown={handleKeydown}
     />
 </div>
 
