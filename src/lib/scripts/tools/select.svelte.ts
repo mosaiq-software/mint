@@ -213,7 +213,43 @@ export const selectTool: Tool = {
 
         // after mouse up, determine action based on mouse position
         setAction(data.c, data.l);
-    }   
+    },
+    onKeyDown: (e) => {
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            const doc = getSelectedDoc();
+            if (!doc) return;
+
+            const selectedLayers = ui.selectedLayers[doc.id];
+            if (selectedLayers.length === 0) return;
+
+            // remove selected layers from the document
+            doc.layers = doc.layers.filter(l => !selectedLayers.includes(l.id));
+            ui.selectedLayers[doc.id] = [];
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            const doc = getSelectedDoc();
+            if (!doc) return;
+
+            const selectedLayers = ui.selectedLayers[doc.id];
+            if (selectedLayers.length === 0) return;
+
+            const delta = e.shiftKey ? 10 : 1;
+            let dx = 0;
+            let dy = 0;
+            if (e.key === 'ArrowUp') dy = -delta;
+            else if (e.key === 'ArrowDown') dy = delta;
+            else if (e.key === 'ArrowLeft') dx = -delta;
+            else if (e.key === 'ArrowRight') dx = delta;
+
+            for (const layerId of selectedLayers) {
+                const layer = doc.layers.find(l => l.id === layerId);
+                if (layer) {
+                    // map screen delta into the layer's local (non-translated) space
+                    // so translation is not affected by the layer's scale/rotation.
+                    layer.transform.matrix = layer.transform.matrix.translate(dx, dy);
+                }
+            }         
+        }
+    }
 }
 
 function setAction(c: Point, l: Point | null) {
