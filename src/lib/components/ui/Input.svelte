@@ -68,7 +68,7 @@
     input.style-solid {
         border: 1px solid var(--c-txt);
         background-color: var(--c-bg);
-        padding: var(--s-sm) var(--s-md);
+        padding: var(--s-xs) var(--s-sm);
         border-radius: var(--r-sm);
         width: 100%;
         color: var(--c-txt);
