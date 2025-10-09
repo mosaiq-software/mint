@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Popover } from "melt/builders";
-    import {Ellipsis} from "@lucide/svelte";
-    import {IconButtonVisual, Input} from "./ui";
+    import { Ellipsis } from "@lucide/svelte";
+    import { IconButtonVisual } from "./ui";
     import FileMenu from "./overlays/FileMenu.svelte";
 
     const popover = new Popover();
