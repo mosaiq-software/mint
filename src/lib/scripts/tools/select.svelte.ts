@@ -67,6 +67,19 @@ export const selectTool: Tool = {
                         select.action = { type: 'move' };
                         break;
                     }
+                } else if (layer.type === "text" && layer.visible) {
+                    // convert point to layer space
+                    const invMatrix = layer.transform.matrix.inverse();
+                    const point = new DOMPoint(data.c.x, data.c.y).matrixTransform(invMatrix);
+
+                    // check if point is within text bounding box
+                    if (point.x >= 0 && point.x <= layer.width &&
+                        point.y >= 0 && point.y <= layer.height) {
+                        ui.selectedLayers[doc.id] = [layer.id];
+                        found = true;
+                        select.action = { type: 'move' };
+                        break;
+                    }
                 }
             }
 
