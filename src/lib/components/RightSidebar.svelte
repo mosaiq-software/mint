@@ -14,6 +14,6 @@
     div {
         background-color: var(--c-sur);
         width: 250px;
-        padding: var(--s-sm);
+        padding: 0 var(--s-md);
     }
 </style>

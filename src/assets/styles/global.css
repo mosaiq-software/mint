@@ -1,28 +1,28 @@
 /* fonts */
 @font-face {
-    font-family: 'Switzer';
-    src: url('/fonts/Switzer-Regular.woff2') format('woff2');
+    font-family: 'General Sans';
+    src: url('/fonts/GeneralSans-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'Switzer';
-    src: url('/fonts/Switzer-Bold.woff2') format('woff2');
+    font-family: 'General Sans';
+    src: url('/fonts/GeneralSans-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
 }
 
 @font-face {
-    font-family: 'Switzer';
-    src: url('/fonts/Switzer-Italic.woff2') format('woff2');
+    font-family: 'General Sans';
+    src: url('/fonts/GeneralSans-Italic.woff2') format('woff2');
     font-weight: 400;
     font-style: italic;
 }
 
 @font-face {
-    font-family: 'Switzer';
-    src: url('/fonts/Switzer-BoldItalic.woff2') format('woff2');
+    font-family: 'General Sans';
+    src: url('/fonts/GeneralSans-BoldItalic.woff2') format('woff2');
     font-weight: 700;
     font-style: italic;
 }
@@ -30,14 +30,12 @@
 /* variables and resets */
 :root {
     /* global styles */
-    --fn-sans: 'Switzer', system-ui, sans-serif;
+    --fn-sans: 'General Sans', system-ui, sans-serif;
     --fn-mono: monospace;
 
-    --f-xs: 0.75rem;
-    --f-sm: 0.875rem;
-    --f-md: 1rem;
-    --f-lg: 1.25rem;
-    --f-xl: 1.5rem;
+    --f-sm: 0.75rem;
+    --f-md: 0.875rem;
+    --f-lg: 1rem;
 
     --r-sm: 0.25rem;
     --r-md: 0.5rem;
@@ -57,6 +55,7 @@
     padding: 0;
     box-sizing: border-box;
     color: var(--c-txt);
+    font-size: var(--f-md);
 }
 
 /* global element styles */
@@ -70,15 +69,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-    font-size: var(--f-xl);
-}
-
-h2 {
     font-size: var(--f-lg);
-}
-
-h3, h4, h5, h6 {
-    font-size: var(--f-md);
 }
 
 button {

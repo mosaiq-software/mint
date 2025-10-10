@@ -40,13 +40,13 @@
     .slider {
         position: relative;
         width: 100%;
-        height: 16px;
+        height: 10px;
         display: flex;
         align-items: center;
     }
 
     .slider .track, .slider .range {
-        height: 4px;
+        height: 3px;
         margin: auto 0;
         border-radius: var(--r-full);
     }

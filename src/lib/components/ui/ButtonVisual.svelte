@@ -48,12 +48,10 @@
 
     .button-visual.size-medium {
         padding: var(--s-sm) var(--s-md);
-        font-size: var(--f-md);
     }
 
     .button-visual.size-large {
         padding: var(--s-md) var(--s-lg);
-        font-size: var(--f-md);
     }
 
     .button-visual.style-solid.color-text {

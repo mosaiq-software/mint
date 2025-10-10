@@ -11,8 +11,7 @@
     });
 
 </script>
-<div {...modesGroup.root}>
-    <label for=""></label>
+<div {...modesGroup.root} id="left-sidebar">
     <div {...modesGroup.getItem("select").attrs}>
         <IconButtonVisual
             label="Select"
@@ -43,11 +42,14 @@
 </div>
 
 <style>
+    #left-sidebar {
+        padding: 0 var(--s-sm);
+    }
+
     div {
         display: flex;
         flex-direction: column;
-        padding: var(--s-xs);
         background-color: var(--c-sur);
-        gap: var(--s-xs);
+        gap: var(--s-sm);
     }
 </style>

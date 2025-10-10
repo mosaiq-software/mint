@@ -80,7 +80,7 @@
     </div>
 {:else}
     <div id="welcome">
-        <h2>Welcome to Mint!</h2>
+        <h1>Welcome to Mint!</h1>
         <p>Create or open a document to get started.</p>
         <button onclick={() => creatingDocument = true}>
             <ButtonVisual size="large" color="accent" style="solid">
