@@ -32,8 +32,6 @@ function drawOnCanvas(p: Point) {
             const x = draw.current.x + (p.x - draw.current.x) * t;
             const y = draw.current.y + (p.y - draw.current.y) * t;
 
-            console.log('drawing at', x, y);
-
             const radius = draw.brushSize / 2;
 
             // Draw gradient to temp canvas
@@ -167,7 +165,6 @@ export const drawTool: Tool = {
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
-        console.log('finalize draw');
     }
 }
 

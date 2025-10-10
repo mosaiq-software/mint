@@ -34,8 +34,6 @@
             (e.target as HTMLInputElement).blur();
         }
     }
-
-    $inspect(value?.length);
 </script>
 
 <div
