@@ -31,7 +31,7 @@
     style:line-height={layer.lineHeight}
     spellcheck="false"
     style:transform={`matrix(${m.a}, ${m.b}, ${m.c}, ${m.d}, ${m.e}, ${m.f})`}
-    style:caret-color={colorToCSS(layer.color)}
+    style:caret-color={colorToCSS(layer.foregroundColor)}
 ></textarea>
 
 <style>

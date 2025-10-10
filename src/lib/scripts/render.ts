@@ -1,5 +1,6 @@
 import { getSelectedDoc } from './docs.svelte';
 import { text } from './tools';
+import { colorToCSS } from './docs.svelte';
 
 export function render(canvas: HTMLCanvasElement) {
     const doc = getSelectedDoc();
@@ -25,8 +26,8 @@ export function render(canvas: HTMLCanvasElement) {
             const element = text.elements[layer.id];
             const lines = getWrappedLines(element);
             
-            ctx.font = `${layer.fontSize}px ${layer.fontFamily}`;
-            ctx.fillStyle = `rgba(${layer.color.r}, ${layer.color.g}, ${layer.color.b}, ${layer.color.a})`;
+            ctx.font = `${layer.bold ? 'bold ' : ''}${layer.italic ? 'italic ' : ''}${layer.fontSize}px ${layer.fontFamily}`;
+            ctx.fillStyle = colorToCSS(layer.foregroundColor);
             ctx.textBaseline = 'top';
 
             const lineHeight = layer.fontSize * layer.lineHeight;
