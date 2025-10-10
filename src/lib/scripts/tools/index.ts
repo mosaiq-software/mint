@@ -1,7 +1,7 @@
 import type { Mode } from '../ui.svelte';
 import select, { selectTool } from './select.svelte';
 import draw, { drawTool } from './draw.svelte';
-import erase from './erase.svelte';
+import erase, { eraseTool } from './erase.svelte';
 import text, { textTool } from './text.svelte';
 
 
@@ -26,7 +26,7 @@ export interface Tool {
 }
 
 export const tools: Record<Mode, Tool> = {
-    select: selectTool, draw: drawTool, erase, text: textTool
+    select: selectTool, draw: drawTool, erase: eraseTool, text: textTool
 };
 
-export { draw, select, text }
+export { draw, select, erase, text }
