@@ -1,7 +1,18 @@
 import type { UUID, Transform, Color } from "./docs.svelte";
 import { getSelectedDoc } from "./docs.svelte";
+import ui from "./ui.svelte";
+import text from "./tools/text.svelte";
 
 export type LayerID = `layer-${UUID}`;
+
+export type TextProperties = {
+    fontFamily: string;
+    fontSize: number;
+    lineHeight: number;
+    bold: boolean;
+    italic: boolean;
+    underline: boolean;
+}
 
 /* Layers */
 type BaseLayer = {
@@ -10,6 +21,8 @@ type BaseLayer = {
     visible: boolean;
     opacity: number;
     transform: Transform;
+    foregroundColor: Color;
+    backgroundColor: Color;
 }
 
 export type CanvasLayer = BaseLayer & {
@@ -17,13 +30,9 @@ export type CanvasLayer = BaseLayer & {
     canvas: OffscreenCanvas;
 };
 
-export type TextLayer = BaseLayer & {
+export type TextLayer = BaseLayer & TextProperties & {
     type: 'text';
     text: string;
-    fontFamily: string;
-    fontSize: number;
-    lineHeight: number;
-    color: Color;
     width: number;
     height: number;
 };
@@ -42,7 +51,9 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
         opacity: 1,
         transform: {
             matrix: new DOMMatrix()
-        }
+        },
+        foregroundColor: ui.foregroundColor,
+        backgroundColor: ui.backgroundColor
     };
 
     if (type === 'canvas') {
@@ -56,12 +67,9 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
             ...base,
             type: 'text',
             text: 'Text',
-            fontFamily: 'Arial',
-            fontSize: 24,
-            color: { r: 0, g: 0, b: 0, a: 1 },
             width: 200,
             height: 200,
-            lineHeight: 1.2
+            ...text.properties
         };
     }
 }

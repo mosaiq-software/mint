@@ -1,10 +1,18 @@
 import type { Tool } from '.';
 import { getSelectedDoc } from '../docs.svelte';
 import ui from '../ui.svelte';
-import { createLayer, type LayerID } from '../layer';
+import { createLayer, type LayerID, type TextProperties } from '../layer';
 
 const text = $state({
-    elements: {} as Record<LayerID, HTMLDivElement>
+    elements: {} as Record<LayerID, HTMLDivElement>,
+    properties: {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        lineHeight: 1.2,
+        bold: false,
+        italic: false,
+        underline: false
+    } as TextProperties
 });
 
 export function getSelectedTextLayer() {
