@@ -161,7 +161,7 @@
         {/if}
     </div>
     <TextMeasure />
-    {#if (tool.name === 'select' || tool.name === 'text') && selectedLayer}
+    {#if tool.name === 'select' && selectedLayer}
         <Transform layer={selectedLayer} />
     {/if}
     {#if tool.name === 'text' && selectedLayer?.type === 'text'}

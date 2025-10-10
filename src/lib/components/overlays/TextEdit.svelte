@@ -21,32 +21,57 @@
     }
 </script>
 
-<textarea
-    value={text}
-    oninput={handleInput}
-    style:font-family={layer.fontFamily}
-    style:width={layer.width + 'px'}
-    style:height={layer.height + 'px'}
-    style:font-size={layer.fontSize + 'px'}
-    style:line-height={layer.lineHeight}
-    spellcheck="false"
-    style:transform={`matrix(${m.a}, ${m.b}, ${m.c}, ${m.d}, ${m.e}, ${m.f})`}
-    style:caret-color={colorToCSS(layer.foregroundColor)}
-></textarea>
+<div
+    id="text-edit-container"
+    style:width={layer.width + 2 + 'px'}
+    style:height={layer.height + 2 + 'px'}
+>
+    <textarea
+        value={text}
+        oninput={handleInput}
+        style:font-family={layer.fontFamily}
+        style:font-size={layer.fontSize + 'px'}
+        style:line-height={layer.lineHeight}
+        spellcheck="false"
+        style:caret-color={colorToCSS(layer.foregroundColor)}
+    ></textarea>
+    <div class="resize-handle"></div>
+</div>
 
 <style>
-    textarea {
+    #text-edit-container {
         position: absolute;
         top: var(--s-xl);
         left: var(--s-xl);
+        outline: 2px solid var(--c-acc);
+        outline-style: dashed;
+        box-sizing: border-box;
+        transform-origin: top left;
+    }
+
+    textarea {
+        position: absolute;
+        inset: 0;
         resize: none;
         border: none;
         outline: none;
+        padding: 0;
+        margin-top: -4px;
         background: transparent;
         overflow: hidden;
         white-space: pre-wrap;
         word-break: break-word;
         color: transparent;
-        transform-origin: top left;
+    }
+
+    .resize-handle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: var(--c-txt);
+        border: 1px solid var(--c-bg);
+        bottom: -5px;
+        right: -5px;
+        pointer-events: none;
     }
 </style>
