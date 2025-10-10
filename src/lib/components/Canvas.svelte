@@ -5,6 +5,8 @@
     import { select, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
     import Transform from "./overlays/Transform.svelte";
+    import TextMeasure from "./overlays/TextMeasure.svelte";
+    import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
 
@@ -12,7 +14,7 @@
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     let pointerPosition = $state({ x: 0, y: 0 });
-    const selectedLayer = $derived.by(() => {
+    let selectedLayer = $derived.by(() => {
         if (!doc) return null;
         const layerId = ui.selectedLayers[doc.id]?.[0];
         return doc.layers.find(l => l.id === layerId) || null;
@@ -158,8 +160,12 @@
             ></div>
         {/if}
     </div>
-    {#if tool.name === 'select' && selectedLayer}
+    <TextMeasure />
+    {#if (tool.name === 'select' || tool.name === 'text') && selectedLayer}
         <Transform layer={selectedLayer} />
+    {/if}
+    {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+        <TextEdit bind:layer={selectedLayer} />
     {/if}
 </div>
 
