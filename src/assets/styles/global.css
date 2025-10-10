@@ -33,9 +33,9 @@
     --fn-sans: 'General Sans', system-ui, sans-serif;
     --fn-mono: monospace;
 
-    --f-sm: 0.875rem;
-    --f-md: 1rem;
-    --f-lg: 1.125rem;
+    --f-sm: 0.75rem;
+    --f-md: 0.875rem;
+    --f-lg: 1rem;
 
     --r-sm: 0.25rem;
     --r-md: 0.5rem;
