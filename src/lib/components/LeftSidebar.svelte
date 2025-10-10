@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Brush, MousePointer2, Eraser, ALargeSmall } from "@lucide/svelte";
+    import { Brush, MousePointer2, Eraser, Type } from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup } from "melt/builders";
     import ui, { modes } from "../scripts/ui.svelte";
@@ -45,7 +45,7 @@
             showLabel
             selected={modesGroup.value === "text"}
         >
-            <ALargeSmall color="var(--c-txt)" />
+            <Type color="var(--c-txt)" />
         </IconButtonVisual>
     </div>
 </div>
