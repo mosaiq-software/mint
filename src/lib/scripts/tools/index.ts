@@ -1,6 +1,6 @@
 import type { Mode } from '../ui.svelte';
-import select, { selectState } from './select.svelte';
-import draw, { drawState } from './draw.svelte';
+import select, { selectTool } from './select.svelte';
+import draw, { drawTool } from './draw.svelte';
 import erase from './erase.svelte';
 
 
@@ -21,13 +21,11 @@ export interface Tool {
     onPointerMove?: (data: PointerEventData) => void;
     onPointerUp?: (data: PointerEventData) => void;
     onKeyDown?: (e: KeyboardEvent) => void;
+    onKeyUp?: (e: KeyboardEvent) => void;
 }
 
 export const tools: Record<Mode, Tool> = {
-    select, draw, erase
+    select: selectTool, draw: drawTool, erase
 };
 
-export {
-    drawState as draw,
-    selectState as select
-}
+export { draw, select }

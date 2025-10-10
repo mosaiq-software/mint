@@ -3,7 +3,7 @@ import docs, { getSelectedDoc, colorToCSS } from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
 
-export const drawState = $state({
+export const draw = $state({
     drawing: false,
     start: { x: 0, y: 0 } as Point,
     current: { x: 0, y: 0 } as Point,
@@ -15,26 +15,26 @@ export const drawState = $state({
 });
 
 function drawOnCanvas(p: Point) {
-    if (!drawState.drawLayer) return;
-    const canvas = drawState.drawLayer.canvas;
+    if (!draw.drawLayer) return;
+    const canvas = draw.drawLayer.canvas;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (drawState.brushFeather > 0) {
-        // Draw line from drawState.start to p using stamp
+    if (draw.brushFeather > 0) {
+        // Draw line from draw.start to p using stamp
         // adding rgb, but taking the max of alphas
-        if (!drawState.stampCtx || !drawState.stampCanvas) return;
+        if (!draw.stampCtx || !draw.stampCanvas) return;
 
-        const dist = Math.hypot(p.x - drawState.current.x, p.y - drawState.current.y);
-        const steps = Math.max(Math.ceil(dist / (drawState.brushSize / 24)), 1);
+        const dist = Math.hypot(p.x - draw.current.x, p.y - draw.current.y);
+        const steps = Math.max(Math.ceil(dist / (draw.brushSize / 24)), 1);
         for (let i = 1; i <= steps; i++) {
             const t = i / steps;
-            const x = drawState.current.x + (p.x - drawState.current.x) * t;
-            const y = drawState.current.y + (p.y - drawState.current.y) * t;
+            const x = draw.current.x + (p.x - draw.current.x) * t;
+            const y = draw.current.y + (p.y - draw.current.y) * t;
 
             console.log('drawing at', x, y);
 
-            const radius = drawState.brushSize / 2;
+            const radius = draw.brushSize / 2;
 
             // Draw gradient to temp canvas
             const offsetX = x - radius;
@@ -43,11 +43,11 @@ function drawOnCanvas(p: Point) {
             // Get existing pixels from stroke canvas
             const existingData = ctx.getImageData(
                 offsetX, offsetY,
-                drawState.brushSize, drawState.brushSize
+                draw.brushSize, draw.brushSize
             );
-            const newData = drawState.stampCtx.getImageData(
+            const newData = draw.stampCtx.getImageData(
                 0, 0,
-                drawState.brushSize, drawState.brushSize
+                draw.brushSize, draw.brushSize
             );
 
             // Blend: add RGB, max alpha
@@ -70,12 +70,12 @@ function drawOnCanvas(p: Point) {
     } else {
         // draw a line from current to p
         ctx.strokeStyle = colorToCSS(ui.foregroundColor);
-        ctx.lineWidth = drawState.brushSize;
+        ctx.lineWidth = draw.brushSize;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
         ctx.beginPath();
-        ctx.moveTo(drawState.current.x, drawState.current.y);
+        ctx.moveTo(draw.current.x, draw.current.y);
         ctx.lineTo(p.x, p.y);
         ctx.stroke();
         ctx.closePath();
@@ -84,10 +84,10 @@ function drawOnCanvas(p: Point) {
 
 // ...existing code...
 
-const draw: Tool = {
+export const drawTool: Tool = {
     name: 'draw',
     onPointerDown: (data) => {
-        drawState.drawing = true;
+        draw.drawing = true;
 
         if (!data.l) {
             const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
@@ -97,7 +97,7 @@ const draw: Tool = {
             doc.layers = [...doc.layers, newLayer];
             ui.selectedLayers[doc.id].push(newLayer.id);
 
-            drawState.drawLayer = newLayer;
+            draw.drawLayer = newLayer;
         } else {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
@@ -110,20 +110,20 @@ const draw: Tool = {
             const layer = doc.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') return;
 
-            drawState.drawLayer = layer;
+            draw.drawLayer = layer;
         }
 
         // set up stamp canvas
-        drawState.stampCanvas = new OffscreenCanvas(
-            drawState.brushSize, drawState.brushSize
+        draw.stampCanvas = new OffscreenCanvas(
+            draw.brushSize, draw.brushSize
         );
-        drawState.stampCtx = drawState.stampCanvas.getContext('2d');
+        draw.stampCtx = draw.stampCanvas.getContext('2d');
 
         // Pre-draw the stamp
-        if (drawState.stampCtx) {
-            const radius = drawState.brushSize / 2;
-            const feather = drawState.brushFeather;
-            const gradient = drawState.stampCtx.createRadialGradient(
+        if (draw.stampCtx) {
+            const radius = draw.brushSize / 2;
+            const feather = draw.brushFeather;
+            const gradient = draw.stampCtx.createRadialGradient(
                 radius, radius, 0,
                 radius, radius, radius
             );
@@ -136,33 +136,33 @@ const draw: Tool = {
                 gradient.addColorStop(1, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0)`);
             }
 
-            drawState.stampCtx.fillStyle = gradient;
-            drawState.stampCtx.fillRect(
+            draw.stampCtx.fillStyle = gradient;
+            draw.stampCtx.fillRect(
                 0, 0,
-                drawState.brushSize, drawState.brushSize
+                draw.brushSize, draw.brushSize
             );
         }
 
-        drawState.start = data.l ?? data.c;
-        drawState.current = data.l ?? data.c;
-        drawOnCanvas(drawState.start);
+        draw.start = data.l ?? data.c;
+        draw.current = data.l ?? data.c;
+        drawOnCanvas(draw.start);
     },
     onPointerMove: (data) => {
-        if (!drawState.drawing || !data.l || !drawState.drawLayer) return;
+        if (!draw.drawing || !data.l || !draw.drawLayer) return;
 
         drawOnCanvas(data.l);
-        drawState.current = data.l;
+        draw.current = data.l;
 
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
     },
     onPointerUp: (data) => {
-        if (!drawState.drawing || !data.l || !drawState.drawLayer) return;
+        if (!draw.drawing || !data.l || !draw.drawLayer) return;
         
         drawOnCanvas(data.l);
-        drawState.drawing = false;
-        drawState.current = data.l;
+        draw.drawing = false;
+        draw.current = data.l;
 
         const doc = getSelectedDoc();
         if (!doc) return;
