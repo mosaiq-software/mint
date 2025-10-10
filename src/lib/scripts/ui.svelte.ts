@@ -1,7 +1,7 @@
 import type { DocumentID, Color } from "./docs.svelte";
 import type { LayerID } from "./layer";
 
-export const modes = ['select', 'draw', 'erase'] as const;
+export const modes = ['select', 'draw', 'erase', 'text'] as const;
 export type Mode = typeof modes[number];
 
 interface UI {
