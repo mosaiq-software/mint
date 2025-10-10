@@ -55,7 +55,6 @@
                 <Input
                     type="number"
                     name="canvas-width"
-                    style="solid"
                     placeholder="Width"
                     hideLabel
                     bind:value={size.width}
@@ -64,7 +63,6 @@
                 <Input
                     type="number"
                     name="canvas-height"
-                    style="solid"
                     placeholder="Height"
                     hideLabel
                     bind:value={size.height}

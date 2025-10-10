@@ -45,7 +45,7 @@
 <style>
     .transform-overlay {
         position: absolute;
-        inset: -2px;
+        inset: -1px;
         pointer-events: none;
         box-sizing: border-box;
         border: 2px dashed var(--c-acc);
@@ -69,46 +69,46 @@
     }
 
     .transform-scale.nw {
-        top: -5px;
-        left: -5px;
+        top: -6px;
+        left: -6px;
     }
 
     .transform-scale.ne {
-        top: -5px;
-        right: -5px;
+        top: -6px;
+        right: -6px;
     }
 
     .transform-scale.se {
-        bottom: -5px;
-        left: -5px;
+        bottom: -6px;
+        left: -6px;
     }
 
     .transform-scale.sw {
-        bottom: -5px;
-        right: -5px;
+        bottom: -6px;
+        right: -6px;
     }
 
     .transform-scale.n {
         top: 50%;
-        left: -5px;
+        left: -6px;
         transform: translateY(-50%);
     }
 
     .transform-scale.e {
         top: 50%;
-        right: -5px;
+        right: -6px;
         transform: translateY(-50%);
     }
 
     .transform-scale.s {
         left: 50%;
-        bottom: -5px;
+        bottom: -6px;
         transform: translateX(-50%);
     }
 
     .transform-scale.w {
         left: 50%;
-        top: -5px;
+        top: -6px;
         transform: translateX(-50%);
     }
 

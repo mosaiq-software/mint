@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { Slider, type SliderProps } from "melt/builders";
+    import { Slider } from "melt/builders";
 
     interface Props {
-        value: number;
+        value?: number;
         min?: number;
         max?: number;
         step?: number;
+        onValueChange?: (value: number) => void;
     }
 
     let {
@@ -13,13 +14,20 @@
         min = 0,
         max = 100,
         step = 1,
+        onValueChange = () => {}
     }: Props = $props();
 
     const slider = new Slider({ 
         value, min, max, step,
         orientation: 'horizontal',
-        onValueChange: (val) => value = val,
+        onValueChange: (val) => {
+            if (value !== undefined) { value = val; onValueChange(val); }
+        },
     });
+
+    $effect(() => {
+        if (value !== undefined && slider.value !== value) slider.value = value;
+    })
 </script>
 
 <div {...slider.root} class="slider">

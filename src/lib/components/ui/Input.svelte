@@ -6,11 +6,13 @@
         children: Snippet
         type?: 'text' | 'password' | 'email' | 'number';
         labelPosition?: 'top' | 'side';
-        style?: 'solid',
+        variant?: 'solid' | 'underline',
+        style?: string;
         placeholder?: string;
         value?: string;
         disabled?: boolean;
         hideLabel?: boolean;
+        onBlur?: (e: FocusEvent) => void;
     }
 
     let {
@@ -18,16 +20,27 @@
         children,
         type = 'text',
         labelPosition = 'top',
-        style = 'solid',
+        variant = 'solid',
+        style = '',
         placeholder = '',
         value = $bindable(),
         disabled = false,
         hideLabel = false,
+        onBlur = (e: FocusEvent) => {}
     }: Props = $props();
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === "Enter") {
+            (e.target as HTMLInputElement).blur();
+        }
+    }
+
+    $inspect(value?.length);
 </script>
 
 <div
     class="input-container"
+    style={style}
     class:label-side={labelPosition === 'side'}
     class:label-top={labelPosition === 'top'}
 >
@@ -39,12 +52,13 @@
         {@render children()}
     </label>
     <input
-        class:style-solid={style === 'solid'}
-        class="input-field"
+        class="variant-{variant}"
         type={type}
         placeholder={placeholder}
         bind:value
         disabled={disabled}
+        onblur={onBlur}
+        onkeydown={handleKeydown}
     />
 </div>
 
@@ -52,7 +66,8 @@
     .input-container {
         display: flex;
         gap: var(--s-xs);
-        width: 100%;
+        min-width: 5em;
+        flex: 1;
     }
 
     .input-container.label-top {
@@ -65,12 +80,30 @@
         align-items: center;
     }
 
-    input.style-solid {
+    input {
+        min-width: 0;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    input.variant-solid {
         border: 1px solid var(--c-txt);
         background-color: var(--c-bg);
         padding: var(--s-xs) var(--s-sm);
         border-radius: var(--r-sm);
         width: 100%;
         color: var(--c-txt);
+    }
+
+    input.variant-underline {
+        border: none;
+        border-bottom: 1px solid transparent;
+        background-color: transparent;
+        font-size: var(--f-md);
+        color: var(--c-txt);
+    }
+
+    input.variant-underline:focus, input.variant-underline:hover {
+        border-color: var(--c-txt);
     }
 </style>

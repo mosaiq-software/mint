@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
-    const { title, children }: { title?: string, children: Snippet} = $props();
+    const { title, disabled, children }: { title?: string, disabled?: boolean, children: Snippet} = $props();
 </script>
 
-<div id="panel">
+<div id="panel" class:disabled={disabled ?? false}>
     {#if title}
         <h2>{title}</h2>
     {/if}
@@ -15,5 +15,10 @@
         display: flex;
         flex-direction: column;
         gap: var(--s-sm);
+    }
+
+    #panel.disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 </style>
