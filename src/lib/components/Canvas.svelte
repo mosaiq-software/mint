@@ -143,7 +143,14 @@
     function handleImageDropLocal(e: DragEvent) {
         entryCount = 0;
         dragOver = false;
-        handleImageDrop(e)
+        const margin = e.target && (e.target as HTMLElement).closest('.drop-margin');
+        if (margin) {
+            const side = margin.classList.item(1) || undefined;
+            console.log(side);
+            handleImageDrop(e, side);
+        } else {
+            handleImageDrop(e);
+        }
     }
 </script>
 

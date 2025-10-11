@@ -54,7 +54,7 @@
 </script>
 
 <div
-    class="drop-margin"
+    class="drop-margin {side}"
     style="{position}; {sizing}; {borderRadius}; {dragStyles}"
     role="application"
     ondragenter={handleDragEnter}
