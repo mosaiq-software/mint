@@ -23,9 +23,9 @@
 
 <div
     id="text-edit-container"
-    style:width={layer.width + 2 + 'px'}
-    style:height={layer.height + 2 + 'px'}
-    style:transform={`matrix(${m.a}, ${m.b}, ${m.c}, ${m.d}, ${m.e}, ${m.f})`}
+    style:width={layer.width * Math.hypot(m.a, m.b) + 2 + 'px'}
+    style:height={layer.height * Math.hypot(m.c, m.d) + 2 + 'px'}
+    style:transform={`translate(${m.e}px, ${m.f}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
 >
     <textarea
         value={text}
@@ -33,8 +33,11 @@
         style:font-family={layer.fontFamily}
         style:font-size={layer.fontSize + 'px'}
         style:line-height={layer.lineHeight}
+        style:width={layer.width + 'px'}
+        style:height={layer.height + 'px'}
         spellcheck="false"
         style:caret-color={colorToCSS(layer.foregroundColor)}
+        style:transform={`scale(${Math.hypot(m.a, m.b)}, ${Math.hypot(m.c, m.d)})`}
     ></textarea>
     <div class="resize-handle"></div>
 </div>
@@ -52,11 +55,12 @@
 
     textarea {
         position: absolute;
-        inset: 0;
         resize: none;
         border: none;
         outline: none;
         padding: 0;
+        top: 1px;
+        left: 1px;
         margin-top: -4px;
         background: transparent;
         overflow: hidden;
@@ -64,6 +68,7 @@
         word-break: break-word;
         color: transparent;
         cursor: inherit;
+        transform-origin: top left;
     }
 
     .resize-handle {
