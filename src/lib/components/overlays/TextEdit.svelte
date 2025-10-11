@@ -25,6 +25,7 @@
     id="text-edit-container"
     style:width={layer.width + 2 + 'px'}
     style:height={layer.height + 2 + 'px'}
+    style:transform={`matrix(${m.a}, ${m.b}, ${m.c}, ${m.d}, ${m.e}, ${m.f})`}
 >
     <textarea
         value={text}
@@ -62,6 +63,7 @@
         white-space: pre-wrap;
         word-break: break-word;
         color: transparent;
+        cursor: inherit;
     }
 
     .resize-handle {
@@ -70,8 +72,8 @@
         height: 10px;
         background: var(--c-txt);
         border: 1px solid var(--c-bg);
-        bottom: -5px;
-        right: -5px;
+        bottom: -3px;
+        right: -3px;
         pointer-events: none;
     }
 </style>

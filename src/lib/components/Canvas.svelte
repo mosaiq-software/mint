@@ -2,7 +2,7 @@
     import { getSelectedDoc } from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
-    import { select, tools, type Point } from "../scripts/tools";
+    import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
     import Transform from "./overlays/Transform.svelte";
     import TextMeasure from "./overlays/TextMeasure.svelte";
@@ -45,6 +45,14 @@
                 } else {
                     return 'grab';
                 }
+            } else {
+                return 'default';
+            }
+        } else if (tool.name === 'text') {
+            if (text.action === 'resize') {
+                return 'nwse-resize';
+            } else if (text.action === 'edit') {
+                return 'text';
             } else {
                 return 'default';
             }
