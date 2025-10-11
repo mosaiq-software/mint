@@ -67,8 +67,8 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
             ...base,
             type: 'text',
             text: 'Text',
-            width: 200,
-            height: 200,
+            width: text.properties.fontSize * 5,
+            height: text.properties.fontSize * 1.2,
             ...text.properties
         };
     }
