@@ -21,4 +21,9 @@
         opacity: 0.5;
         pointer-events: none;
     }
+
+    #panel:not(:last-child) {
+        border-bottom: 1px solid var(--c-mid);
+        padding-bottom: var(--s-md);
+    }
 </style>

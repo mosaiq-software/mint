@@ -32,8 +32,6 @@ function drawOnCanvas(p: Point) {
             const x = draw.current.x + (p.x - draw.current.x) * t;
             const y = draw.current.y + (p.y - draw.current.y) * t;
 
-            console.log('drawing at', x, y);
-
             const radius = draw.brushSize / 2;
 
             // Draw gradient to temp canvas
@@ -69,7 +67,8 @@ function drawOnCanvas(p: Point) {
         }
     } else {
         // draw a line from current to p
-        ctx.strokeStyle = colorToCSS(ui.foregroundColor);
+        const color = colorToCSS(draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor);
+        ctx.strokeStyle = color;
         ctx.lineWidth = draw.brushSize;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -128,7 +127,7 @@ export const drawTool: Tool = {
                 radius, radius, radius
             );
 
-            const color = colorToCSS(ui.foregroundColor);
+            const color = colorToCSS(draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor);
             const rgb = color.match(/\d+/g);
             if (rgb) {
                 gradient.addColorStop(0, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
@@ -167,8 +166,21 @@ export const drawTool: Tool = {
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
-        console.log('finalize draw');
     }
+}
+
+export function getSelectedDrawLayer() {
+    const doc = getSelectedDoc();
+    if (!doc) return null;
+
+    const selectedLayerIds = ui.selectedLayers[doc.id]
+    if (selectedLayerIds.length !== 1) return null;
+    const selectedLayerId = selectedLayerIds[0];
+
+    const layer = doc.layers.find(l => l.id === selectedLayerId);
+    if (layer?.type !== 'canvas') return null;
+    
+    return layer;
 }
 
 export default draw;

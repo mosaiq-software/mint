@@ -1,14 +1,15 @@
 import type { Tool } from ".";
 
-const erase: Tool = {
+const erase = $state({});
+export const eraseTool: Tool = {
     name: 'erase',
-    onMouseDown: (data) => {
+    onPointerDown: (data) => {
         console.log("Erase tool mouse down at", data.l);
     },
-    onMouseMove: (data) => {
+    onPointerMove: (data) => {
         console.log("Erase tool mouse move at", data.l);
     },
-    onMouseUp: (data) => {
+    onPointerUp: (data) => {
         console.log("Erase tool mouse up at", data.l);
     }   
 }
