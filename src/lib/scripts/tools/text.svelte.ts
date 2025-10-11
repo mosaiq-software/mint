@@ -45,6 +45,7 @@ export const textTool: Tool = {
 
         // create a new text layer
         const layer = createLayer('text', 'Text');
+        layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
         doc.layers.push(layer);
         ui.selectedLayers[doc.id] = [layer.id];
     },
