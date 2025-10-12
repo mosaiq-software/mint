@@ -4,8 +4,7 @@
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X } from "@lucide/svelte";
-    import type { Layer, LayerID } from "../../scripts/layer.ts";
-    import { createLayer } from "../../scripts/layer.ts";
+    import { createLayer, type LayerID } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
 
     const doc = $derived(getSelectedDoc());
