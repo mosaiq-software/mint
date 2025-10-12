@@ -2,9 +2,26 @@
     import ui from "../scripts/ui.svelte";
     import Welcome from "./Welcome.svelte";
     import Canvas from "./Canvas.svelte";
+    import {importImageAsNewDoc} from "../scripts/importImage";
+
+    function handleDragOver(e: DragEvent) {
+        if (!ui.selectedDocument) e.preventDefault();
+    }
+
+    function handleDrop(e: DragEvent) {
+        if (!ui.selectedDocument) e.preventDefault();
+        const files = e.dataTransfer?.files;
+        if (files) {
+            importImageAsNewDoc(files[0]);
+        }
+    }
 </script>
 
-<div id="viewport">
+<div id="viewport"
+     ondragover={handleDragOver}
+     ondrop={handleDrop}
+     role="application"
+>
     {#if !ui.selectedDocument}
         <Welcome />
     {:else}
