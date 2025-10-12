@@ -2,6 +2,7 @@ import type { Tool } from '.';
 import { getSelectedDoc } from '../docs.svelte';
 import ui from '../ui.svelte';
 import { createLayer, type LayerID, type TextProperties } from '../layer';
+import { focusAndSelect } from '../../components/overlays/TextEdit.svelte';
 
 const resizeHitboxSize = 5;
 
@@ -38,16 +39,24 @@ export const textTool: Tool = {
     onPointerDown: (data) => {
         text.dragging = true;
 
-        if (data.l) return;
-        
         const doc = getSelectedDoc();
         if (!doc) return;
+
+        // check if a text layer is already selected
+        const selectedTextLayer = getSelectedTextLayer();
+        if (selectedTextLayer) return;
 
         // create a new text layer
         const layer = createLayer('text', 'Text');
         layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
         doc.layers.push(layer);
         ui.selectedLayers[doc.id] = [layer.id];
+
+        // focus the textarea after a short delay to ensure it's in the DOM
+        // also select the text
+        setTimeout(() => {
+            focusAndSelect();
+        }, 50);
     },
     onPointerMove: (data) => {
         if (!data.l) return;
