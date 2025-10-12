@@ -30,7 +30,7 @@
     const editColorPopover = new Popover({
         floatingConfig: {
             computePosition: {
-                placement: "right"
+                placement: "right-end"
             }
         }
     });
