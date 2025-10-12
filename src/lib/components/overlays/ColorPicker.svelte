@@ -185,7 +185,7 @@
         </div>
     </div>
     <div id="codes">
-        <div>rgba({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(color.b)}, {color.a.toFixed(2)})</div>
+        <div>rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(color.b)})</div>
         <div>hsl({c.h.toFixed(2)}, {c.s.toFixed(2)}, {c.l.toFixed(2)})</div>
         <div>hex: {colorToHex(color)}</div>
         <div>{(color.a * 100).toFixed(0)}%</div>
