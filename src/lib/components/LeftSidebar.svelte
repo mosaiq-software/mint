@@ -34,6 +34,12 @@
             }
         }
     });
+
+    function swapColors() {
+        const fg = { ...source.foregroundColor };
+        source.foregroundColor = { ...source.backgroundColor };
+        source.backgroundColor = fg;
+    }
 </script>
 
 
@@ -97,7 +103,7 @@
                 editColorPopover.trigger.onclick(e);
             }}
         ></button>
-        <button id="swap-colors" title="Swap Colors">
+        <button id="swap-colors" title="Swap Colors" onclick={swapColors}>
             <MoveHorizontal color="var(--c-txt)" size={16}/>
         </button>
         <div {...editColorPopover.content} class="context-menu">
