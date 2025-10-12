@@ -15,56 +15,50 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                 const doc = getSelectedDoc();
                 if (!doc) return;
 
-                let imgWidth = 0, imgHeight = 0;
-
                 switch (marginSide) {
                     case 'left': {
-                        imgHeight = layer.canvas.height;
-                        imgWidth = img.width * (layer.canvas.height / img.height);
-                        doc.width += imgWidth;
+                        const scale = layer.canvas.height / img.height;
+                        layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
+                        doc.width += img.width * scale;
                         doc.layers.forEach(oldLayer => {
-                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(imgWidth, 0);
+                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(img.width * scale, 0);
                         });
                         break;
                     }
                     case 'top': {
-                        imgWidth = layer.canvas.width;
-                        imgHeight = img.height * (layer.canvas.width / img.width);
-                        doc.height += imgHeight;
+                        const scale = layer.canvas.width / img.width;
+                        layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
+                        doc.height += img.height * scale;
                         doc.layers.forEach(oldLayer => {
-                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(0, imgHeight);
+                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(0, img.height * scale);
                         });
                         break;
                     }
                     case 'right': {
-                        imgHeight = layer.canvas.height;
-                        imgWidth = img.width * (layer.canvas.height / img.height);
-                        layer.transform.matrix = layer.transform.matrix.translate(doc.width, 0);
-                        doc.width += imgWidth;
+                        const scale = layer.canvas.height / img.height;
+                        layer.transform.matrix = layer.transform.matrix.translate(doc.width, 0).scale(scale, scale);
+                        doc.width += img.width * scale;
                         break;
                     }
                     case 'bottom': {
-                        imgWidth = layer.canvas.width;
-                        imgHeight = img.height * (layer.canvas.width / img.width);
-                        layer.transform.matrix = layer.transform.matrix.translate(0, doc.height);
-                        doc.height += imgHeight;
+                        const scale = layer.canvas.width / img.width;
+                        layer.transform.matrix = layer.transform.matrix.translate(0, doc.height).scale(scale, scale);
+                        doc.height += img.height * scale;
                         break;
                     }
                     default: {
-                        imgWidth = img.width;
-                        imgHeight = img.height;
-                        const layerX = event.offsetX - imgWidth / 2;
-                        const layerY = event.offsetY - imgHeight / 2;
+                        const layerX = event.offsetX - img.width / 2;
+                        const layerY = event.offsetY - img.height / 2;
                         const translateMatrix = layer.transform.matrix.translate(layerX, layerY);
                         layer.transform.matrix = translateMatrix;
                         break;
                     }
                 }
 
-                layer.canvas.width = imgWidth;
-                layer.canvas.height = imgHeight;
+                layer.canvas.width = img.width;
+                layer.canvas.height = img.height;
                 const ctx = layer.canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, imgWidth, imgHeight);
+                ctx?.drawImage(img, 0, 0, img.width, img.height);
                 doc.layers.push(layer);
             };
             img.src = readerEvent.target?.result as string;
