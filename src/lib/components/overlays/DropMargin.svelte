@@ -6,10 +6,10 @@
     }
     const { side }: DropMarginProps = $props();
     const position = {
-        left: `top: 0; right: 100%`,
-        top: `left: 0; bottom: 100%`,
-        right: `top: 0; left: 100%`,
-        bottom: `left: 0; top: 100%`
+        left: `top: -1px; right: 100%`,
+        top: `left: -1px; bottom: 100%`,
+        right: `top: -1px; left: 100%`,
+        bottom: `left: -1px; top: 100%`
     }[side];
     const borderRadiusSize = 'var(--s-lg)';
     const borderRadius = {
@@ -18,10 +18,10 @@
         right: `border-top-right-radius: ${borderRadiusSize}; border-bottom-right-radius: ${borderRadiusSize}`,
         bottom: `border-bottom-left-radius: ${borderRadiusSize}; border-bottom-right-radius: ${borderRadiusSize}`,
     }[side];
-    const marginSize = 'var(--s-xl)';
+    const marginSize = 'calc(var(--s-xl) - var(--s-sm))';
     const sizing = (side === 'top' || side === 'bottom')
-        ? `width: 100%; height: ${marginSize}`
-        : `height: 100%; width: ${marginSize}`;
+        ? `width: calc(100% + 2px); height: ${marginSize}`
+        : `height: calc(100% + 2px); width: ${marginSize}`;
 
     let dragOver = $state(false);
     let dragStyles = $derived.by(() => {
@@ -79,7 +79,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--c-txt);
+        border: 1px solid var(--c-mid);
     }
 
     .dropmargin-chevron {
