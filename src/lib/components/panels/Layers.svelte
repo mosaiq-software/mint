@@ -30,7 +30,7 @@
     }
 </script>
 
-<Panel title="Layers">
+<Panel title="Layers" scrollable>
     <div id="layers">
         {#if !doc}
             <div>No document selected</div>

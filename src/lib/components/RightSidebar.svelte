@@ -20,5 +20,6 @@
         display: flex;
         flex-direction: column;
         gap: var(--s-md);
+        height: 100%;
     }
 </style>
