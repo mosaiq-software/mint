@@ -9,7 +9,9 @@
     }
 
     function handleDrop(e: DragEvent) {
-        if (!ui.selectedDocument) e.preventDefault();
+        if (ui.selectedDocument) return;
+
+        e.preventDefault();
         const files = e.dataTransfer?.files;
         if (files) {
             importImageAsNewDoc(files[0]);
