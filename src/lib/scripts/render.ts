@@ -25,6 +25,11 @@ export function render(canvas: HTMLCanvasElement) {
         } else if (layer.type === 'text') {
             const element = text.elements[layer.id];
             const lines = getWrappedLines(element);
+
+            // create clipping region
+            ctx.beginPath();
+            ctx.rect(0, 0, layer.width, layer.height);
+            ctx.clip();
             
             ctx.font = `${layer.bold ? 'bold ' : ''}${layer.italic ? 'italic ' : ''}${layer.fontSize}px ${layer.fontFamily}`;
             ctx.fillStyle = colorToCSS(layer.foregroundColor);

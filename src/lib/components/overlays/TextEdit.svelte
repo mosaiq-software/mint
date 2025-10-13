@@ -29,6 +29,12 @@
         const target = event.target as HTMLTextAreaElement;
         layer.text = target.value;
         if (doc) doc.layers = [...doc.layers]; // trigger reactivity
+
+        // Reset scroll after the browser's automatic scroll
+        requestAnimationFrame(() => {
+            target.scrollTop = 0;
+            target.scrollLeft = 0;
+        });
     }
 </script>
 
