@@ -6,6 +6,7 @@
     import { Plus, X } from "@lucide/svelte";
     import { createLayer, type LayerID } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
+    import Input from "../ui/Input.svelte";
 
     const doc = $derived(getSelectedDoc());
 
@@ -28,6 +29,12 @@
         if (!doc) return;
         ui.selectedLayers[doc.id] = [layerId];
     }
+
+    let layerBeingRenamed: LayerID | null = $state(null);
+
+    function renameLayer(layerId: LayerID) {
+        layerBeingRenamed = layerId;
+    }
 </script>
 
 <Panel title="Layers" scrollable>
@@ -43,8 +50,17 @@
                     <button
                         class="preview"
                         onclick={() => selectLayer(layer.id)}
+                        ondblclick={() => renameLayer(layer.id)}
                     >
-                        <div>{layer.name}</div>
+                        {#if layerBeingRenamed === layer.id}
+                            <Input
+                                    name="layer-name"
+                                    bind:value={layer.name}
+                                    onBlur={() => layerBeingRenamed = null}
+                            ><div></div></Input>
+                        {:else}
+                            <div>{layer.name}</div>
+                        {/if}
                     </button>
                     <button onclick={() => removeLayer(layer.id)}>
                         <IconButtonVisual label="Remove Layer {layer.name}">
