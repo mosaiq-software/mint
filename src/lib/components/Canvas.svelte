@@ -9,6 +9,7 @@
     import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
+    import DropMargin from "./overlays/DropMargin.svelte";
 
     let doc = $derived(getSelectedDoc());
     let tool = $derived(tools[ui.mode]);
@@ -133,6 +134,34 @@
             tool.onKeyDown?.(e);
         }
     }
+
+    let dragOver = $state(false);
+    let entryCount = $state(0);
+
+    function handleDragEnter() {
+        entryCount++;
+        dragOver = true;
+    }
+
+    function handleDragLeave() {
+        entryCount--;
+        if (entryCount === 0) {
+            dragOver = false;
+        }
+    }
+
+    function handleImageDropLocal(e: DragEvent) {
+        entryCount = 0;
+        dragOver = false;
+        const margin = e.target && (e.target as HTMLElement).closest('.drop-margin');
+        if (margin) {
+            const side = margin.classList.item(1) || undefined;
+            console.log(side);
+            handleImageDrop(e, side);
+        } else {
+            handleImageDrop(e);
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -146,11 +175,13 @@
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
+    ondragenter={handleDragEnter}
+    ondragleave={handleDragLeave}
 >
     <div id="canvas-container"
          role="application"
          ondragover={(e) => e.preventDefault()}
-         ondrop={handleImageDrop}
+         ondrop={handleImageDropLocal}
     >
         <canvas bind:this={canvas} aria-hidden="true"></canvas>
         <div id="canvas-instructions" class="sr-only">
@@ -166,6 +197,12 @@
                     top: ${pointerPosition.y}px;
                 `}
             ></div>
+        {/if}
+        {#if dragOver}
+            <DropMargin side="left" />
+            <DropMargin side="top" />
+            <DropMargin side="bottom" />
+            <DropMargin side="right" />
         {/if}
     </div>
     <TextMeasure />
@@ -193,7 +230,6 @@
         height: fit-content;
         background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='10' height='10' fill='%23ccc'/%3e%3crect x='10' y='10' width='10' height='10' fill='%23ccc'/%3e%3c/svg%3e");
         background-color: #fff;
-        overflow: hidden;
         position: relative;
     }
 

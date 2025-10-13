@@ -1,3 +1,14 @@
+<script module>
+    let textarea: HTMLTextAreaElement;
+
+    export function focusAndSelect() {
+        if (textarea) {
+            textarea.focus();
+            textarea.select();
+        }
+    }
+</script>
+
 <script lang="ts">
     import type { TextLayer } from "../../scripts/layer";
     import { getSelectedDoc } from "../../scripts/docs.svelte";
@@ -18,6 +29,12 @@
         const target = event.target as HTMLTextAreaElement;
         layer.text = target.value;
         if (doc) doc.layers = [...doc.layers]; // trigger reactivity
+
+        // Reset scroll after the browser's automatic scroll
+        requestAnimationFrame(() => {
+            target.scrollTop = 0;
+            target.scrollLeft = 0;
+        });
     }
 </script>
 
@@ -28,6 +45,7 @@
     style:transform={`translate(${m.e}px, ${m.f}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
 >
     <textarea
+        bind:this={textarea}
         value={text}
         oninput={handleInput}
         style:font-family={layer.fontFamily}

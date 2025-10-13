@@ -3,6 +3,7 @@
     import docs from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
     import type { DocumentID } from "../scripts/docs.svelte";
+    import {importImageAsNewDoc} from "../scripts/importImage";
     let creatingDocument = $state(false);
 
     let name = $state("");
@@ -37,6 +38,19 @@
         ui.selectedLayers[id] = [];
         
         creatingDocument = false;
+    }
+
+    function handleImportImage() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = () => {
+            if (input.files) {
+                importImageAsNewDoc(input.files[0], () => {
+                    creatingDocument = false;
+                });
+            }
+        }
+        input.click();
     }
 </script>
 
@@ -87,6 +101,12 @@
                 New Document
             </ButtonVisual>
         </button>
+        <button onclick={handleImportImage}>
+            <ButtonVisual size="large" color="accent" style="solid">
+                Import Image
+            </ButtonVisual>
+        </button>
+        <p>(or drag to import)</p>
     </div>
 {/if}
 
