@@ -2,9 +2,11 @@
     import { getSelectedDoc } from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
-    import { select, tools, type Point } from "../scripts/tools";
+    import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
     import Transform from "./overlays/Transform.svelte";
+    import TextMeasure from "./overlays/TextMeasure.svelte";
+    import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
@@ -13,7 +15,7 @@
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     let pointerPosition = $state({ x: 0, y: 0 });
-    const selectedLayer = $derived.by(() => {
+    let selectedLayer = $derived.by(() => {
         if (!doc) return null;
         const layerId = ui.selectedLayers[doc.id]?.[0];
         return doc.layers.find(l => l.id === layerId) || null;
@@ -44,6 +46,14 @@
                 } else {
                     return 'grab';
                 }
+            } else {
+                return 'default';
+            }
+        } else if (tool.name === 'text') {
+            if (text.action === 'resize') {
+                return 'nwse-resize';
+            } else if (text.action === 'edit') {
+                return 'text';
             } else {
                 return 'default';
             }
@@ -195,8 +205,12 @@
             <DropMargin side="right" />
         {/if}
     </div>
+    <TextMeasure />
     {#if tool.name === 'select' && selectedLayer}
         <Transform layer={selectedLayer} />
+    {/if}
+    {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+        <TextEdit bind:layer={selectedLayer} />
     {/if}
 </div>
 

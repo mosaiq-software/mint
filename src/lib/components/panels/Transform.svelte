@@ -115,7 +115,7 @@
 
 <style>
     .label {
-        width: 2.5ch;
+        width: 2ch;
     }
 
     div {

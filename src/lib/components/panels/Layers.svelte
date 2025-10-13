@@ -4,7 +4,7 @@
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X } from "@lucide/svelte";
-    import type { Layer, LayerID } from "../../scripts/layer.ts";
+    import { createLayer, type LayerID } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
 
     const doc = $derived(getSelectedDoc());
@@ -12,15 +12,7 @@
     function addLayer() {
         if (!doc) return;
 
-        const newLayer: Layer = {
-            type: 'canvas',
-            id: 'layer-' + crypto.randomUUID() as LayerID,
-            name: `Layer ${doc.layers.length + 1}`,
-            visible: true,
-            opacity: 1,
-            transform: { matrix: new DOMMatrix() },
-            canvas: new OffscreenCanvas(doc.width, doc.height),
-        };
+        const newLayer = createLayer("canvas", `Layer ${doc.layers.length + 1}`);
         doc.layers = [...doc.layers, newLayer];
     }
 
