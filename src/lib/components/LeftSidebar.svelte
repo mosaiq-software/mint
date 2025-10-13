@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Brush, Menu, MousePointer2, Eraser } from "@lucide/svelte";
+    import { Brush, MousePointer2, Eraser, Type } from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup } from "melt/builders";
     import ui, { modes } from "../scripts/ui.svelte";
@@ -37,6 +37,15 @@
             selected={modesGroup.value === "erase"}
         >
             <Eraser color="var(--c-txt)" />
+        </IconButtonVisual>
+    </div>
+    <div {...modesGroup.getItem("text").attrs}>
+        <IconButtonVisual
+            label="Text"
+            showLabel
+            selected={modesGroup.value === "text"}
+        >
+            <Type color="var(--c-txt)" />
         </IconButtonVisual>
     </div>
 </div>
