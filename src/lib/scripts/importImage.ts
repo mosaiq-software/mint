@@ -1,4 +1,4 @@
-import {type CanvasLayer, createLayer} from "./layer";
+import {type CanvasLayer, createLayer, translateLayerBy} from "./layer";
 import docs, {type DocumentID, getSelectedDoc} from "./docs.svelte";
 import ui from "./ui.svelte";
 
@@ -20,38 +20,39 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                     case 'left': {
                         const scale = layer.canvas.height / img.height;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
-                        doc.width += img.width * scale;
+                        const imgWidth = Math.floor(img.width * scale);
+                        doc.width += imgWidth;
                         doc.layers.forEach(oldLayer => {
-                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(img.width * scale, 0);
+                            translateLayerBy(oldLayer, imgWidth, 0);
                         });
                         break;
                     }
                     case 'top': {
                         const scale = layer.canvas.width / img.width;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
-                        doc.height += img.height * scale;
+                        const imgHeight = Math.floor(img.height * scale);
+                        doc.height += imgHeight;
                         doc.layers.forEach(oldLayer => {
-                            oldLayer.transform.matrix = oldLayer.transform.matrix.translate(0, img.height * scale);
+                            translateLayerBy(oldLayer, 0, imgHeight);
                         });
                         break;
                     }
                     case 'right': {
                         const scale = layer.canvas.height / img.height;
                         layer.transform.matrix = layer.transform.matrix.translate(doc.width, 0).scale(scale, scale);
-                        doc.width += img.width * scale;
+                        doc.width += Math.floor(img.width * scale);
                         break;
                     }
                     case 'bottom': {
                         const scale = layer.canvas.width / img.width;
                         layer.transform.matrix = layer.transform.matrix.translate(0, doc.height).scale(scale, scale);
-                        doc.height += img.height * scale;
+                        doc.height += Math.floor(img.height * scale);
                         break;
                     }
                     default: {
                         const layerX = event.offsetX - img.width / 2;
                         const layerY = event.offsetY - img.height / 2;
-                        const translateMatrix = layer.transform.matrix.translate(layerX, layerY);
-                        layer.transform.matrix = translateMatrix;
+                        layer.transform.matrix = layer.transform.matrix.translate(layerX, layerY);
                         break;
                     }
                 }

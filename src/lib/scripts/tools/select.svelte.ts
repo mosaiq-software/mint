@@ -2,7 +2,7 @@ import type { Tool } from ".";
 import { getSelectedDoc } from "../docs.svelte";
 import type { Point } from ".";
 import ui from "../ui.svelte";
-import type { Layer } from "../layer";
+import {translateLayerBy, type Layer } from "../layer";
 
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -256,25 +256,7 @@ export const selectTool: Tool = {
             for (const layerId of selectedLayers) {
                 const layer = doc.layers.find(l => l.id === layerId);
                 if (layer) {
-                    // map screen delta into the layer's local (non-translated) space
-                    // so translation is not affected by the layer's scale/rotation.
-                    const mat = layer.transform.matrix.translate(0, 0);
-                    mat.m41 = 0;
-                    mat.m42 = 0;
-
-                    // guard against non-invertible matrices
-                    let localDx = dx;
-                    let localDy = dy;
-                    try {
-                        const inv = mat.inverse();
-                        const localDelta = new DOMPoint(dx, dy).matrixTransform(inv);
-                        localDx = localDelta.x;
-                        localDy = localDelta.y;
-                    } catch (err) {
-                        // fallback: if inverse fails, use raw screen delta
-                    }
-
-                    layer.transform.matrix = layer.transform.matrix.translate(localDx, localDy);
+                    translateLayerBy(layer, dx, dy);
                 }
             }         
         }
