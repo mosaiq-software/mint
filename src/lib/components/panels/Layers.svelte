@@ -3,8 +3,8 @@
     import { getSelectedDoc } from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
-    import { Plus, X } from "@lucide/svelte";
-    import { createLayer, type LayerID } from "../../scripts/layer";
+    import { Plus, X, Eye, EyeOff } from "@lucide/svelte";
+    import { createLayer, type LayerID, type Layer } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
     import Input from "../ui/Input.svelte";
 
@@ -35,6 +35,10 @@
     function renameLayer(layerId: LayerID) {
         layerBeingRenamed = layerId;
     }
+
+    function toggleLayerVisibility(layer: Layer) {
+        layer.visible = !layer.visible;
+    }
 </script>
 
 <Panel title="Layers" scrollable>
@@ -59,8 +63,17 @@
                                     onBlur={() => layerBeingRenamed = null}
                             ><div></div></Input>
                         {:else}
-                            <div>{layer.name}</div>
+                            <div class="name">{layer.name}</div>
                         {/if}
+                    </button>
+                    <button onclick={() => toggleLayerVisibility(layer)}>
+                        <IconButtonVisual label="{layer.visible ? 'Hide' : 'Show'} Layer {layer.name}">
+                            {#if layer.visible}
+                                <EyeOff size={16} />
+                            {:else}
+                                <Eye size={16} />
+                            {/if}
+                        </IconButtonVisual>
                     </button>
                     <button onclick={() => removeLayer(layer.id)}>
                         <IconButtonVisual label="Remove Layer {layer.name}">
@@ -105,10 +118,15 @@
         background-color: var(--c-bg);
         border-radius: var(--r-sm);
         gap: var(--s-xs);
+        width: 100%;
     }
 
     .layer.selected {
         background-color: var(--c-acc);
+    }
+
+    .layer button {
+        flex-shrink: 0;
     }
 
     .preview {
@@ -116,5 +134,14 @@
         justify-content: flex-start;
         flex: 1;
         cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .name {
+        flex-shrink: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 </style>
