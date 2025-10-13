@@ -3,12 +3,14 @@
     import Layers from "./panels/Layers.svelte";
     import Transform from "./panels/Transform.svelte";
     import Type from "./panels/Type.svelte";
+    import LayerStyles from "./panels/LayerStyles.svelte";
 </script>
 
 <div>
     <Type />
     <Brush />
     <Layers />
+    <LayerStyles />
     <Transform />
 </div>
 
