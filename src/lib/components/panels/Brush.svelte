@@ -3,9 +3,22 @@
     import { Slider } from "../ui";
     import { draw } from "../../scripts/tools";
     import ui from "../../scripts/ui.svelte";
-    import { colorToCSS } from "../../scripts/docs.svelte";
+    import { colorToCSS, getSelectedDoc, type Color } from "../../scripts/docs.svelte";
 
     const gradientId = $derived(`brush-gradient-${Math.random()}`);
+    const colors: {
+        foregroundColor: Color;
+        backgroundColor: Color;
+    } = $derived.by(() => {
+        if (!ui.selectedDocument) return ui;
+        const selectedLayers = ui.selectedLayers[ui.selectedDocument];
+        if (selectedLayers.length === 1) {
+            const doc = getSelectedDoc()
+            if (!doc) return ui;
+            return doc.layers.find((l) => l.id === selectedLayers[0]) || ui;
+        }
+        return ui;
+    });
 </script>
 
 <Panel title="Brush">
@@ -30,9 +43,9 @@
             <svg width="50" height="50">
                 <defs>
                     <radialGradient id={gradientId}>
-                        <stop offset="0%" stop-color={colorToCSS(ui.foregroundColor)} stop-opacity="1" />
-                        <stop offset={`${(1 - draw.brushFeather) * 100}%`} stop-color={colorToCSS(ui.foregroundColor)} stop-opacity="1" />
-                        <stop offset="100%" stop-color={colorToCSS(ui.foregroundColor)} stop-opacity="0" />
+                        <stop offset="0%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
+                        <stop offset={`${(1 - draw.brushFeather) * 100}%`} stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
+                        <stop offset="100%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="0" />
                     </radialGradient>
                 </defs>
                 <circle

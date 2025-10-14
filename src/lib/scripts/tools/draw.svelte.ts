@@ -20,6 +20,8 @@ function drawOnCanvas(p: Point) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const color = draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor;
+
     if (draw.brushFeather > 0) {
         // Draw line from draw.start to p using stamp
         // adding rgb, but taking the max of alphas
@@ -55,10 +57,9 @@ function drawOnCanvas(p: Point) {
                 const maxAlpha = Math.max(existingAlpha, newAlpha);
                 
                 if (maxAlpha > 0) {
-                    // Blend colors proportionally to their alphas
-                    existingData.data[j] = Math.min(255, existingData.data[j] + newData.data[j]);
-                    existingData.data[j + 1] = Math.min(255, existingData.data[j + 1] + newData.data[j + 1]);
-                    existingData.data[j + 2] = Math.min(255, existingData.data[j + 2] + newData.data[j + 2]);
+                    existingData.data[j] = color.r;
+                    existingData.data[j + 1] = color.g;
+                    existingData.data[j + 2] = color.b;
                     existingData.data[j + 3] = maxAlpha * 255;
                 }
             }
@@ -127,13 +128,10 @@ export const drawTool: Tool = {
                 radius, radius, radius
             );
 
-            const color = colorToCSS(draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor);
-            const rgb = color.match(/\d+/g);
-            if (rgb) {
-                gradient.addColorStop(0, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
-                gradient.addColorStop(1 - feather, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 1)`);
-                gradient.addColorStop(1, `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0)`);
-            }
+            const color = draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor;
+            gradient.addColorStop(0, `rgba(0, 0, 0, 1)`);
+            gradient.addColorStop(1 - feather, `rgba(0, 0, 0, 1)`);
+            gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
 
             draw.stampCtx.fillStyle = gradient;
             draw.stampCtx.fillRect(
