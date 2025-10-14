@@ -39,18 +39,80 @@
     function toggleLayerVisibility(layer: Layer) {
         layer.visible = !layer.visible;
     }
+
+    function handleDragover(event: DragEvent) {
+        event.preventDefault();
+        if (!layersRect) return;
+        const layersElement = document.getElementById('layers')!;
+        const scrollTop = layersElement.scrollTop;
+        const yWithinLayers = scrollTop + (event.clientY - layersRect.top);
+        const uncappedIndex = Math.floor(yWithinLayers / interLayerDiff);
+        shadowLayerIndex = Math.max(0, Math.min(uncappedIndex, layerDisplayList.length));
+    }
+
+    function updateLayerOrder() {
+        if (doc)
+            doc.layers = layerDisplayList;
+    }
+
+    function handleDragEnd() {
+        window.clearInterval(updateLayerInterval);
+        updateLayerOrder();
+        layerBeingDragged = null;
+        shadowLayerIndex = null;
+    }
+
+    let layerBeingDragged: Layer | null = $state(null);
+    let shadowLayerIndex: number | null = $state(null);
+    let layersRect: DOMRect | null = $state(null);
+    let interLayerDiff: number = $state(1);
+    let updateLayerInterval: number = $state(-1);
+
+    function handleDragStart(event: DragEvent, layer: Layer, index: number) {
+        if (!doc || doc.layers.length < 2) event.preventDefault();
+        layerBeingDragged = layer;
+        shadowLayerIndex = index;
+        const layersElement = document.getElementById('layers');
+        layersRect = layersElement?.getBoundingClientRect() ?? null;
+        const layer1Rect = layersElement?.children[0]?.getBoundingClientRect();
+        const layer2Rect = layersElement?.children[1]?.getBoundingClientRect();
+        if (layer1Rect && layer2Rect)
+            interLayerDiff = layer2Rect.top - layer1Rect.top;
+        updateLayerInterval = window.setInterval(updateLayerOrder, 50);
+    }
+
+    let layerDisplayList = $derived.by(() => {
+        if (!doc) return [];
+        if (!layerBeingDragged || shadowLayerIndex === null) return doc.layers;
+        const draggedId = layerBeingDragged.id;
+        const allButDragged = doc.layers.filter(l => l.id !== draggedId);
+        return [
+            ...allButDragged.slice(0, shadowLayerIndex),
+            layerBeingDragged,
+            ...allButDragged.slice(shadowLayerIndex)
+        ];
+    });
 </script>
 
 <Panel title="Layers" scrollable>
-    <div id="layers">
+    <div id="layers"
+         ondragover={handleDragover}
+         ondrop={(e) => e.preventDefault()}
+         role="application"
+    >
         {#if !doc}
             <div>No document selected</div>
         {:else}
-            {#each doc.layers as layer }
+            {#each layerDisplayList as layer, index}
                 <div
                     class="layer"
+                    style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
                     class:selected={ui.selectedLayers[doc.id]?.includes(layer.id)}
-                    >
+                    draggable="true"
+                    ondragstart={(event) => handleDragStart(event, layer, index)}
+                    ondragend={handleDragEnd}
+                    role="application"
+                >
                     <button
                         class="preview"
                         onclick={() => selectLayer(layer.id)}
@@ -151,5 +213,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex-grow: 1;
+        text-align: left;
     }
 </style>
