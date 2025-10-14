@@ -3,7 +3,7 @@
     import { getSelectedDoc } from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
-    import { Plus, X, Eye, EyeOff } from "@lucide/svelte";
+    import { Plus, X, Eye, EyeOff, Type, Image } from "@lucide/svelte";
     import { createLayer, type LayerID, type Layer } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
     import Input from "../ui/Input.svelte";
@@ -56,8 +56,14 @@
                         onclick={() => selectLayer(layer.id)}
                         ondblclick={() => renameLayer(layer.id)}
                     >
+                        {#if layer.type === 'canvas'}
+                            <Image size={16} />
+                        {:else}
+                            <Type size={16} />
+                        {/if}
                         {#if layerBeingRenamed === layer.id}
                             <Input
+                                    placeholder="Layer name"
                                     name="layer-name"
                                     bind:value={layer.name}
                                     onBlur={() => layerBeingRenamed = null}
@@ -136,6 +142,8 @@
         cursor: pointer;
         white-space: nowrap;
         overflow: hidden;
+        align-items: center;
+        gap: var(--s-xs);
     }
 
     .name {
