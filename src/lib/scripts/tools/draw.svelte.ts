@@ -1,5 +1,5 @@
 import type { Tool, Point } from ".";
-import { getSelectedDoc, colorToCSS } from "../docs.svelte";
+import { getSelectedDoc } from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
 
@@ -24,7 +24,7 @@ const strokeCanvas = $derived(
         : null
 );
 
-function drawOnCanvas(p: Point) {
+function drawStamp(p: Point) {
     if (!drawLayer || !strokeCanvas) return;
     const ctx = strokeCanvas.getContext('2d');
     if (!ctx) return;
@@ -126,7 +126,9 @@ export const drawTool: Tool = {
             );
 
             if (feather === 0) {
-                gradient.addColorStop(0.9, `rgba(0, 0, 0, 1)`);
+                // add ~2px of feathering for basic anti-aliasing
+                const antiAliasSize = draw.brushSize < 3 ? 1 : 2 / draw.brushSize;
+                gradient.addColorStop(1 - antiAliasSize, `rgba(0, 0, 0, 1)`);
                 gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
             } else {
                 gradient.addColorStop(1 - feather, `rgba(0, 0, 0, 1)`);
@@ -158,12 +160,12 @@ export const drawTool: Tool = {
 
         stroke.start = data.l ?? data.c;
         stroke.current = data.l ?? data.c;
-        drawOnCanvas(stroke.start);
+        drawStamp(stroke.start);
     },
     onPointerMove: (data) => {
         if (!draw.drawing || !data.l || !drawLayer) return;
 
-        drawOnCanvas(data.l);
+        drawStamp(data.l);
         stroke.current = data.l;
 
         const doc = getSelectedDoc();
@@ -173,7 +175,7 @@ export const drawTool: Tool = {
     onPointerUp: (data) => {
         if (!draw.drawing || !data.l || !drawLayer) return;
         
-        drawOnCanvas(data.l);
+        drawStamp(data.l);
         draw.drawing = false;
         stroke.current = data.l;
         stroke.stamp = null;
