@@ -1,6 +1,5 @@
-import {type CanvasLayer, createLayer, translateLayerBy} from "./layer";
-import docs, {type DocumentID, getSelectedDoc} from "./docs.svelte";
-import ui from "./ui.svelte";
+import { type CanvasLayer, createLayer, translateLayerBy } from "./layer";
+import docs, { getSelectedDoc, createDocument } from "./docs.svelte";
 
 export function handleImageDrop(event: DragEvent, marginSide: string = '') {
     event.preventDefault();
@@ -71,23 +70,16 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
 }
 
 export function importImageAsNewDoc(file: File, onSuccess: () => void = () => {}) {
-    const id = 'document-' + crypto.randomUUID() as DocumentID;
-
     const reader = new FileReader();
     reader.onload = (readerEvent) => {
         const img = new Image();
         img.onload = () => {
+            if (img.width === 0 || img.height === 0) {
+                console.error("Failed to load image");
+                return;
+            }
 
-            docs[id] = {
-                id,
-                name: file.name,
-                width: img.width, 
-                height: img.height,
-                layers: []
-            };
-
-            ui.selectedDocument = id;
-            ui.selectedLayers[id] = [];
+            const id = createDocument(file.name, img.width, img.height);
 
             const layer = createLayer('canvas', file.name) as CanvasLayer;
             layer.canvas.width = img.width;

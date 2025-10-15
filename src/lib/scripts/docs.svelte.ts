@@ -56,6 +56,19 @@ export function colorToCSS(color: Color): string {
     return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
 }
 
+export function createDocument(name: string, width: number, height: number): DocumentID {
+    const id: DocumentID = `document-${crypto.randomUUID()}`;
+    docs[id] = {
+        id, name, width, height, layers: []
+    };
+
+    ui.selectedDocument = id;
+    ui.selectedLayers[id] = [];
+    ui.actions[id] = [];
+
+    return id;
+}
+
 /* State */
 const docs: Record<DocumentID, Document> = $state({});
 export default docs;
