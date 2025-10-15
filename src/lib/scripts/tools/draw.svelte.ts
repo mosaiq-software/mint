@@ -2,6 +2,7 @@ import type { Tool, Point } from ".";
 import { getSelectedDoc } from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
+import { preAction, postAction } from "../action";
 
 export const draw = $state({
     drawing: false,
@@ -95,6 +96,8 @@ export const drawTool: Tool = {
             const doc = getSelectedDoc();
             if (!doc) return;
 
+            // add new layer to document and select it
+            preAction(newLayer.id, null, doc.id);
             doc.layers = [...doc.layers, newLayer];
             ui.selectedLayers[doc.id] = [newLayer.id];
         } else {
@@ -108,6 +111,8 @@ export const drawTool: Tool = {
 
             const layer = doc.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') return;
+
+            preAction(layer.id, layer, doc.id);
         }
 
         // set up stamp canvas
@@ -190,6 +195,8 @@ export const drawTool: Tool = {
         // force update
         const doc = getSelectedDoc();
         if (!doc) return;
+        
+        if (drawLayer) postAction(drawLayer.id, drawLayer, doc.id);
         doc.layers = [...doc.layers];
     }
 }
