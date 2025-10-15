@@ -1,5 +1,5 @@
 import { undoAction, redoAction } from "./action";
-import { getSelectedDoc } from "./docs.svelte";
+import docs from "./docs.svelte";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -17,47 +17,45 @@ export function handleShortcuts(event: KeyboardEvent) {
 }
 
 function handleUndo() {
-    const doc = getSelectedDoc();
-    if (!doc) return;
+    if (!docs.selected) return;
 
-    const action = undoAction(doc.id);
+    const action = undoAction(docs.selected.id);
     if (!action) return;
 
     if (action.oldLayer === null) {
         // layer was deleted, so remove it from document
-        doc.layers = doc.layers.filter(l => l.id !== action.layerID);
+        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layerID);
     } else {
         // layer was modified or added, so update it
-        const layerIndex = doc.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
         if (layerIndex !== -1) {
             // update existing layer
-            doc.layers[layerIndex] = action.oldLayer;
+            docs.selected.layers[layerIndex] = action.oldLayer;
         } else {
             // add layer back to document
-            doc.layers.push(action.oldLayer);
+            docs.selected.layers.push(action.oldLayer);
         }
     }
 }
 
 function handleRedo() {
-    const doc = getSelectedDoc();
-    if (!doc) return;
+    if (!docs.selected) return;
 
-    const action = redoAction(doc.id);
+    const action = redoAction(docs.selected.id);
     if (!action) return;
 
     if (action.newLayer === null) {
         // layer was deleted, so remove it from document
-        doc.layers = doc.layers.filter(l => l.id !== action.layerID);
+        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layerID);
     } else {
         // layer was modified or added, so update it
-        const layerIndex = doc.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
         if (layerIndex !== -1) {
             // update existing layer
-            doc.layers[layerIndex] = action.newLayer;
+            docs.selected.layers[layerIndex] = action.newLayer;
         } else {
             // add layer back to ducment
-            doc.layers.push(action.newLayer);
+            docs.selected.layers.push(action.newLayer);
         }
     }
 }

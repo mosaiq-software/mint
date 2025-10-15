@@ -11,7 +11,7 @@
 
 <script lang="ts">
     import type { TextLayer } from "../../scripts/layer";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
 
     interface Props {
@@ -20,15 +20,13 @@
 
     let { layer = $bindable() }: Props = $props();
 
-    const doc = $derived(getSelectedDoc());
-
     const text = $derived(layer.text);
     const m = $derived(layer.transform.matrix);
 
     function handleInput(event: Event) {
         const target = event.target as HTMLTextAreaElement;
         layer.text = target.value;
-        if (doc) doc.layers = [...doc.layers]; // trigger reactivity
+        if (docs.selected) docs.selected.layers = [...docs.selected.layers]; // trigger reactivity
 
         // Reset scroll after the browser's automatic scroll
         requestAnimationFrame(() => {

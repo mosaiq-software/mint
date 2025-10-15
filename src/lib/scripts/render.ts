@@ -1,17 +1,16 @@
-import { getSelectedDoc } from './docs.svelte';
+import docs from './docs.svelte';
 import { text } from './tools';
 import { colorToCSS } from './docs.svelte';
 
 export function render(canvas: HTMLCanvasElement) {
-    const doc = getSelectedDoc();
-    if (!doc) return;
+    if (!docs.selected) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, doc.width, doc.height);
+    ctx.clearRect(0, 0, docs.selected.width, docs.selected.height);
 
-    for (const layer of doc.layers) {
+    for (const layer of docs.selected.layers) {
         if (!layer.visible) continue;
 
         ctx.save();

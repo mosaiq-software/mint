@@ -1,44 +1,42 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X } from "@lucide/svelte";
     import { createLayer, type LayerID } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
 
-    const doc = $derived(getSelectedDoc());
-
     function addLayer() {
-        if (!doc) return;
+        if (!docs.selected) return;
 
-        const newLayer = createLayer("canvas", `Layer ${doc.layers.length + 1}`);
-        doc.layers = [...doc.layers, newLayer];
+        const newLayer = createLayer("canvas", `Layer ${docs.selected.layers.length + 1}`);
+        docs.selected.layers = [...docs.selected.layers, newLayer];
     }
 
     function removeLayer(layerId: LayerID) {
-        if (!doc) return;
-        doc.layers = doc.layers.filter(layer => layer.id !== layerId);
-        if (ui.selectedLayers[doc.id].includes(layerId)) {
-            ui.selectedLayers[doc.id] = ui.selectedLayers[doc.id].filter(id => id !== layerId);
+        if (!docs.selected) return;
+        docs.selected.layers = docs.selected.layers.filter(layer => layer.id !== layerId);
+        if (ui.selectedLayers[docs.selected.id].includes(layerId)) {
+            ui.selectedLayers[docs.selected.id] = ui.selectedLayers[docs.selected.id].filter(id => id !== layerId);
         }
     }
 
     function selectLayer(layerId: LayerID) {
-        if (!doc) return;
-        ui.selectedLayers[doc.id] = [layerId];
+        if (!docs.selected) return;
+        ui.selectedLayers[docs.selected.id] = [layerId];
     }
 </script>
 
 <Panel title="Layers">
     <div id="layers">
-        {#if !doc}
+        {#if !docs.selected}
             <div>No document selected</div>
         {:else}
-            {#each doc.layers as layer }
+            {#each docs.selected.layers as layer }
                 <div
                     class="layer"
-                    class:selected={ui.selectedLayers[doc.id]?.includes(layer.id)}
+                    class:selected={ui.selectedLayers[docs.selected.id]?.includes(layer.id)}
                     >
                     <button
                         class="preview"
@@ -55,8 +53,8 @@
             {/each}
         {/if}
         <div id="add">
-            <button id="add-layer" disabled={!doc} onclick={addLayer}>
-                <ButtonVisual size="small" style="subtle" width="full" disabled={!doc}>
+            <button id="add-layer" disabled={!docs.selected} onclick={addLayer}>
+                <ButtonVisual size="small" style="subtle" width="full" disabled={!docs.selected}>
                     <Plus />
                 </ButtonVisual>
             </button>

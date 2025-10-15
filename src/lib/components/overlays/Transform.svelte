@@ -1,13 +1,10 @@
 <script lang="ts">
-    import type { Transform } from "../../scripts/docs.svelte";
     import type { Layer } from "../../scripts/layer";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
     import { matrixToTransformComponents } from "../../scripts/docs.svelte";
     interface Props {
         layer: Layer;
     }
 
-    const doc = $derived(getSelectedDoc());
     const { layer }: Props = $props();
     let t = $derived(matrixToTransformComponents(layer.transform.matrix));
 

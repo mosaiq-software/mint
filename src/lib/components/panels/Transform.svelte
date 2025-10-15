@@ -1,14 +1,12 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import { Slider, Input } from "../ui";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
-    import { matrixToTransformComponents } from "../../scripts/docs.svelte";
+    import docs, { matrixToTransformComponents } from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
 
-    const doc = $derived(getSelectedDoc());
     const selectedLayers = $derived.by(() => {
-        if (!doc) return [];
-        return doc.layers.filter((l) => ui.selectedLayers[doc.id].includes(l.id));
+        if (!docs.selected) return [];
+        return docs.selected.layers.filter((l) => ui.selectedLayers[docs.selected!.id].includes(l.id));
     });
 
     const t = $derived(

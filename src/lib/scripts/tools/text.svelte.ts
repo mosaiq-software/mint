@@ -1,9 +1,9 @@
 import type { Tool } from '.';
-import { getSelectedDoc } from '../docs.svelte';
+import docs from '../docs.svelte';
 import ui from '../ui.svelte';
 import { createLayer, type LayerID, type TextProperties } from '../layer';
 import { focusAndSelect } from '../../components/overlays/TextEdit.svelte';
-import { preAction, postAction } from '../action';
+import { postAction } from '../action';
 
 const resizeHitboxSize = 5;
 
@@ -22,14 +22,13 @@ const text = $state({
 });
 
 export function getSelectedTextLayer() {
-    const doc = getSelectedDoc();
-    if (!doc) return null;
+    if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[doc.id]
+    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
     if (selectedLayerIds.length !== 1) return null;
     const selectedLayerId = selectedLayerIds[0];
 
-    const layer = doc.layers.find(l => l.id === selectedLayerId);
+    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
     if (layer?.type !== 'text') return null;
     
     return layer;
@@ -40,25 +39,18 @@ export const textTool: Tool = {
     onPointerDown: (data) => {
         text.dragging = true;
 
-        const doc = getSelectedDoc();
-        if (!doc) return;
+        if (!docs.selected) return;
 
         // check if a text layer is already selected
         const selectedTextLayer = getSelectedTextLayer();
-        if (selectedTextLayer) {
-            // if resizing, begin action
-            if (text.action === "resize") {
-                preAction(selectedTextLayer.id, selectedTextLayer, doc.id);
-            }
-        } else {
+        if (!selectedTextLayer) {
             // create a new text layer
             const layer = createLayer('text', 'Text');
             layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
-            doc.layers.push(layer);
-            ui.selectedLayers[doc.id] = [layer.id];
+            docs.selected.layers.push(layer);
+            ui.selectedLayers[docs.selected.id] = [layer.id];
 
-            preAction(layer.id, null, doc.id);
-            postAction(layer.id, layer, doc.id);
+            postAction(layer.id, layer);
 
             // focus the textarea after a short delay to ensure it's in the DOM
             // also select the text
@@ -106,10 +98,8 @@ export const textTool: Tool = {
 
         const layer = getSelectedTextLayer();
         if (layer && text.action === "resize") {
-            const doc = getSelectedDoc();
-            if (!doc) return;
-
-            postAction(layer.id, layer, doc.id);
+            if (!docs.selected) return;
+            postAction(layer.id, layer);
         }
     }
 }

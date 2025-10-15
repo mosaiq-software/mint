@@ -1,5 +1,5 @@
 import { type CanvasLayer, createLayer, translateLayerBy } from "./layer";
-import docs, { getSelectedDoc, createDocument } from "./docs.svelte";
+import docs, { createDocument } from "./docs.svelte";
 
 export function handleImageDrop(event: DragEvent, marginSide: string = '') {
     event.preventDefault();
@@ -12,16 +12,15 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
             const img = new Image();
             img.onload = () => {
                 const layer = createLayer('canvas', file.name) as CanvasLayer;
-                const doc = getSelectedDoc();
-                if (!doc) return;
+                if (!docs.selected) return;
 
                 switch (marginSide) {
                     case 'left': {
                         const scale = layer.canvas.height / img.height;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
                         const imgWidth = Math.floor(img.width * scale);
-                        doc.width += imgWidth;
-                        doc.layers.forEach(oldLayer => {
+                        docs.selected.width += imgWidth;
+                        docs.selected.layers.forEach(oldLayer => {
                             translateLayerBy(oldLayer, imgWidth, 0);
                         });
                         break;
@@ -30,22 +29,22 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                         const scale = layer.canvas.width / img.width;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
                         const imgHeight = Math.floor(img.height * scale);
-                        doc.height += imgHeight;
-                        doc.layers.forEach(oldLayer => {
+                        docs.selected.height += imgHeight;
+                        docs.selected.layers.forEach(oldLayer => {
                             translateLayerBy(oldLayer, 0, imgHeight);
                         });
                         break;
                     }
                     case 'right': {
                         const scale = layer.canvas.height / img.height;
-                        layer.transform.matrix = layer.transform.matrix.translate(doc.width, 0).scale(scale, scale);
-                        doc.width += Math.floor(img.width * scale);
+                        layer.transform.matrix = layer.transform.matrix.translate(docs.selected.width, 0).scale(scale, scale);
+                        docs.selected.width += Math.floor(img.width * scale);
                         break;
                     }
                     case 'bottom': {
                         const scale = layer.canvas.width / img.width;
-                        layer.transform.matrix = layer.transform.matrix.translate(0, doc.height).scale(scale, scale);
-                        doc.height += Math.floor(img.height * scale);
+                        layer.transform.matrix = layer.transform.matrix.translate(0, docs.selected.height).scale(scale, scale);
+                        docs.selected.height += Math.floor(img.height * scale);
                         break;
                     }
                     default: {
@@ -60,7 +59,7 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                 layer.canvas.height = img.height;
                 const ctx = layer.canvas.getContext('2d');
                 ctx?.drawImage(img, 0, 0, img.width, img.height);
-                doc.layers.push(layer);
+                docs.selected.layers.push(layer);
             };
             img.src = readerEvent.target?.result as string;
         };
