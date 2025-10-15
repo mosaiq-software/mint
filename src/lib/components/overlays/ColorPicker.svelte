@@ -14,7 +14,6 @@
         if (newC.s > 0.001) {
             hue = newC.h;
             hSlider.value = hue;
-            drawSLSquare(hue);
         }
 
         aSlider.value = color.a;
@@ -25,6 +24,7 @@
     };
 
     let slCanvas: HTMLCanvasElement;
+    $effect(() => drawSLSquare(hue));
 
     const hSlider = new Slider({
         min: 0,
@@ -32,11 +32,9 @@
         step: 1 / 360,
         orientation: 'horizontal',
         onValueChange: (val) => {
-        if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {  // Use tolerance for floating point
-            console.log(hue, val);
+        if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {
             hue = val;
             updateColor();
-            drawSLSquare(hue);
         }
         },
     });
@@ -48,7 +46,7 @@
         step: 0.01,
         orientation: 'horizontal',
         onValueChange: (val) => {
-            if (Math.abs(color.a - val) > 0.001) { // Use tolerance for floating point
+            if (Math.abs(color.a - val) > 0.001) {
                 color = { ...color, a: val };
             }
         }
