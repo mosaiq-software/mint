@@ -13,6 +13,7 @@
     import type { TextLayer } from "../../scripts/layer";
     import docs from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
+    import { postAction } from "../../scripts/action";
 
     interface Props {
         layer: TextLayer;
@@ -34,6 +35,10 @@
             target.scrollLeft = 0;
         });
     }
+
+    function handleBlur() {
+        postAction(layer.id, layer);
+    }
 </script>
 
 <div
@@ -46,6 +51,7 @@
         bind:this={textarea}
         value={text}
         oninput={handleInput}
+        onblur={handleBlur}
         style:font-family={layer.fontFamily}
         style:font-size={layer.fontSize + 'px'}
         style:line-height={layer.lineHeight}
