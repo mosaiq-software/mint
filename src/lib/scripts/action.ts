@@ -46,6 +46,11 @@ export function postAction(layerID: LayerID, newLayer: Layer | null) {
         newLayer: newLayerCopy
     });
     currentActionIndex[documentId]++;
+    if (currentActionIndex[documentId] >= 50) {
+        // limit the number of actions to 50
+        actions[documentId].shift();
+        currentActionIndex[documentId]--;
+    }
 
     // update the snapshot
     snapshots[layerID] = newLayerCopy;
