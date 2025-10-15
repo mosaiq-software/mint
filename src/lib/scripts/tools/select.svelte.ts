@@ -3,6 +3,7 @@ import { getSelectedDoc } from "../docs.svelte";
 import type { Point } from ".";
 import ui from "../ui.svelte";
 import {translateLayerBy, type Layer } from "../layer";
+import { preAction, postAction } from "../action";
 
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -93,6 +94,12 @@ export const selectTool: Tool = {
 
         if (firstSelectedLayer) {
             select.initial.matrix = firstSelectedLayer.transform.matrix.translate(0, 0);
+        }
+
+        // if action is scale/move/rotate, record pre-action state
+        if ((select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate')
+            && firstSelectedLayer) {
+            preAction(firstSelectedLayer.id, firstSelectedLayer, doc.id);
         }
 
         select.previous.c = data.c;
@@ -223,6 +230,18 @@ export const selectTool: Tool = {
     },
     onPointerUp: (data) => {
         select.dragging = false;
+
+        // if action is scale/move/rotate, record post-action state
+        const doc = getSelectedDoc();
+        if (doc) {
+            const selectedLayers = ui.selectedLayers[doc.id];
+            const firstSelectedLayer = doc.layers.find(l => l.id === selectedLayers[0]);
+            if (firstSelectedLayer) {
+                if (select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate') {
+                    postAction(firstSelectedLayer.id, firstSelectedLayer, doc.id);
+                }
+            }
+        }
 
         // after mouse up, determine action based on mouse position
         setAction(data.c, data.l);

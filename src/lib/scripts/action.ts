@@ -106,6 +106,8 @@ export function postAction(layerID: LayerID, newLayer: Layer | null, documentId:
  * @returns 
  */
 function deepCopyLayer(layer: Layer): Layer {
+    const layerCopy = { ...layer };
+
     if (layer.type === 'canvas') {
         // create a new OffscreenCanvas and copy the contents
         const canvasCopy = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
@@ -113,13 +115,14 @@ function deepCopyLayer(layer: Layer): Layer {
         if (ctx) {
             ctx.drawImage(layer.canvas, 0, 0);
         }
-
-        // return new layer with copied canvas, but shallow copy other properties
-        return { ...layer, canvas: canvasCopy };
-    } else {
-        // for other layer types, return a shallow copy
-        return { ...layer };
+        layer.canvas = canvasCopy;
     }
+
+    // copy the layer transform
+    layerCopy.transform = { ...layer.transform };
+    layerCopy.transform.matrix = layer.transform.matrix.translate(0, 0);
+
+    return layerCopy;
 }
 
 export function undoAction(documentId: DocumentID): Action | null {
