@@ -32,10 +32,10 @@
         step: 1 / 360,
         orientation: 'horizontal',
         onValueChange: (val) => {
-        if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {
-            hue = val;
-            updateColor();
-        }
+            if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {
+                hue = val;
+                updateColor();
+            }
         },
     });
 
