@@ -37,8 +37,9 @@
     }
 </script>
 
-<Panel title="Layer Styles">
+<Panel title="Layer Styles" disabled={!selectedLayer}>
     <div>
+        <div class="label">Opacity: </div>
         <Input
             name="r" labelPosition="side" disabled={!selectedLayer} variant="underline"
             style="flex-grow: 1; flex-shrink: 0"
@@ -50,7 +51,7 @@
                 updateLayer();
             }}
         >
-            <div class="label">Op: </div>
+            <div></div>
         </Input>
         <Slider
             min={0} max={1} step={0.01}
