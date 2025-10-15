@@ -69,7 +69,6 @@
     let updateLayerInterval: number = $state(-1);
 
     function handleDragStart(event: DragEvent, layer: Layer, index: number) {
-        if (!doc || doc.layers.length < 2) event.preventDefault();
         layerBeingDragged = layer;
         shadowLayerIndex = index;
         const layersElement = document.getElementById('layers');
@@ -108,7 +107,7 @@
                     class="layer"
                     style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
                     class:selected={ui.selectedLayers[doc.id]?.includes(layer.id)}
-                    draggable="true"
+                    draggable={doc?.layers.length >= 2 && layer.id !== layerBeingRenamed ? 'true' : undefined}
                     ondragstart={(event) => handleDragStart(event, layer, index)}
                     ondragend={handleDragEnd}
                     role="application"
@@ -137,9 +136,9 @@
                     <button onclick={() => toggleLayerVisibility(layer)}>
                         <IconButtonVisual label="{layer.visible ? 'Hide' : 'Show'} Layer {layer.name}">
                             {#if layer.visible}
-                                <EyeOff size={16} />
-                            {:else}
                                 <Eye size={16} />
+                            {:else}
+                                <EyeOff size={16} />
                             {/if}
                         </IconButtonVisual>
                     </button>
