@@ -10,6 +10,7 @@
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
+    import { handleShortcuts } from "../scripts/shortcut";
 
     let doc = $derived(getSelectedDoc());
     let tool = $derived(tools[ui.mode]);
@@ -132,6 +133,7 @@
     function handleKeyDown(e: KeyboardEvent) {
         if (e.target && (e.target as HTMLElement).tagName !== 'INPUT') {
             tool.onKeyDown?.(e);
+            handleShortcuts(e);
         }
     }
 
@@ -156,7 +158,6 @@
         const margin = e.target && (e.target as HTMLElement).closest('.drop-margin');
         if (margin) {
             const side = margin.classList.item(1) || undefined;
-            console.log(side);
             handleImageDrop(e, side);
         } else {
             handleImageDrop(e);

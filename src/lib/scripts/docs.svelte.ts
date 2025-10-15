@@ -64,7 +64,6 @@ export function createDocument(name: string, width: number, height: number): Doc
 
     ui.selectedDocument = id;
     ui.selectedLayers[id] = [];
-    ui.actions[id] = [];
 
     return id;
 }

@@ -13,6 +13,7 @@ export interface Action {
 }
 
 const actions: Record<DocumentID, Action[]> = {};
+const currentActionIndex: Record<DocumentID, number> = {};
 let layersPerformingAction: LayerID[] = [];
 
 /**
@@ -30,17 +31,24 @@ export function preAction(layerID: LayerID, oldLayer: Layer | null, documentId: 
         return;
     }
 
-    // create action array for document if it doesn't exist
-    const a = actions[documentId];
-    if (!a) {
+    // create action array or current action index for document if it doesn't exist
+    if (actions[documentId] === undefined) {
         actions[documentId] = [];
     }
+
+    if (currentActionIndex[documentId] === undefined) {
+        currentActionIndex[documentId] = -1;
+    }
+
+    // increment current action index and remove any actions after it
+    currentActionIndex[documentId]++;
+    actions[documentId] = actions[documentId].slice(0, currentActionIndex[documentId]);
 
     // make deep copy of layer
     const oldLayerCopy = oldLayer ? deepCopyLayer(oldLayer) : null;
 
     // add action to actions array
-    a.push({
+    actions[documentId].push({
         layerID,
         oldLayer: oldLayerCopy,
         newLayer: null,
@@ -103,7 +111,7 @@ function deepCopyLayer(layer: Layer): Layer {
         const canvasCopy = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
         const ctx = canvasCopy.getContext('2d');
         if (ctx) {
-            ctx.drawImage(canvasCopy, 0, 0);
+            ctx.drawImage(layer.canvas, 0, 0);
         }
 
         // return new layer with copied canvas, but shallow copy other properties
@@ -112,4 +120,28 @@ function deepCopyLayer(layer: Layer): Layer {
         // for other layer types, return a shallow copy
         return { ...layer };
     }
+}
+
+export function undoAction(documentId: DocumentID): Action | null {
+    const a = actions[documentId];
+    const index = currentActionIndex[documentId];
+
+    // make sure there is an action to undo
+    if (a && index >= 0) {
+        currentActionIndex[documentId]--;
+        return a[index];
+    }
+    return null;
+}
+
+export function redoAction(documentId: DocumentID): Action | null {
+    const a = actions[documentId];
+    const index = currentActionIndex[documentId];
+
+    // make sure there is an action to redo
+    if (a && index < a.length - 1) {
+        currentActionIndex[documentId]++;
+        return a[index+1];
+    }
+    return null;
 }
