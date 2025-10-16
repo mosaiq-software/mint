@@ -3,9 +3,28 @@
     import { Slider } from "melt/builders";
 
     let { color = $bindable() }: { color: Color } = $props();
-    let c = $state(rgbToHsl(color.r, color.g, color.b));
+    let hue: number = $state(0);
+    let sl = $derived.by(() => {
+        const newC = rgbToHsl(color.r, color.g, color.b);
+        return { s: newC.s, l: newC.l };
+    });
+    
+    $effect(() => {
+        const newC = rgbToHsl(color.r, color.g, color.b);
+        if (newC.s > 0.001) {
+            hue = newC.h;
+            hSlider.value = hue;
+        }
+
+        aSlider.value = color.a;
+    });
+
+    function updateColor() {
+        color = {...hslToRgb(hue, sl.s, sl.l), a: color.a};
+    };
 
     let slCanvas: HTMLCanvasElement;
+    $effect(() => drawSLSquare(hue));
 
     const hSlider = new Slider({
         min: 0,
@@ -13,32 +32,24 @@
         step: 1 / 360,
         orientation: 'horizontal',
         onValueChange: (val) => {
-            if (c.h !== val) {
-                c = { ...c, h: val };
+            if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {
+                hue = val;
                 updateColor();
             }
         },
     });
 
     const aSlider = new Slider({
+        value: 1,
         min: 0,
         max: 1,
         step: 0.01,
         orientation: 'horizontal',
         onValueChange: (val) => {
-            if (color.a !== val) {
+            if (Math.abs(color.a - val) > 0.001) {
                 color = { ...color, a: val };
             }
-        },
-    });
-
-    // re-draw the SL square when hue changes
-    $effect(() => drawSLSquare(slCanvas, c.h));
-
-    // keep sliders in sync with color prop changes
-    $effect(() => {
-        if (hSlider.value !== c.h) hSlider.value = c.h;
-        if (aSlider.value !== color.a) aSlider.value = color.a;
+        }
     });
 
     /**
@@ -46,11 +57,13 @@
      * @param canvas HTMLCanvasElement
      * @param hue number (0 to 1)
      */
-    function drawSLSquare(canvas: HTMLCanvasElement, hue: number) {
-        const ctx = canvas.getContext('2d');
+    function drawSLSquare(hue: number) {
+        if (!slCanvas) return;
+
+        const ctx = slCanvas.getContext('2d');
         if (!ctx) return;
 
-        const { width, height } = canvas;
+        const { width, height } = slCanvas;
         const img = ctx.createImageData(width, height);
         const data = img.data;
 
@@ -82,16 +95,11 @@
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
-        const s = Math.min(Math.max(x / rect.width, 0), 1);
-        const l = Math.min(Math.max(1 - y / rect.height, 0), 1);
-
-        c = { ...c, s, l };
+        sl = {
+            s: Math.min(Math.max(x / rect.width, 0), 1),
+            l: Math.min(Math.max(1 - y / rect.height, 0), 1)
+        };
         updateColor();
-    }
-
-    function updateColor() {
-        const rgb = hslToRgb(c.h, c.s, c.l);
-        color = { r: rgb.r, g: rgb.g, b: rgb.b, a: color.a };
     }
 
     function colorToHex(c: Color) {
@@ -167,7 +175,7 @@
         ></canvas>
         <div
             id="sl-indicator"
-            style:transform={`translate(${c.s * 200 - 6}px, ${(1 - c.l) * 200 - 6}px)`}
+            style:transform={`translate(${sl.s * 200 - 6}px, ${(1 - sl.l) * 200 - 6}px)`}
         ></div>
     </div>
     <div class="h-slider">
@@ -186,7 +194,7 @@
     </div>
     <div id="codes">
         <div>rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(color.b)})</div>
-        <div>hsl({c.h.toFixed(2)}, {c.s.toFixed(2)}, {c.l.toFixed(2)})</div>
+        <div>hsl({hue.toFixed(2)}, {sl.s.toFixed(2)}, {sl.l.toFixed(2)})</div>
         <div>hex: {colorToHex(color)}</div>
         <div>{(color.a * 100).toFixed(0)}%</div>
     </div>

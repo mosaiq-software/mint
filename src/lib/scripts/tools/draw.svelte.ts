@@ -1,85 +1,86 @@
 import type { Tool, Point } from ".";
-import docs, { getSelectedDoc, colorToCSS } from "../docs.svelte";
+import { getSelectedDoc } from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
 
 export const draw = $state({
     drawing: false,
-    start: { x: 0, y: 0 } as Point,
-    current: { x: 0, y: 0 } as Point,
     brushSize: 10,
-    brushFeather: 0,
-    drawLayer: null as CanvasLayer | null,
-    stampCanvas: null as OffscreenCanvas | null,
-    stampCtx: null as OffscreenCanvasRenderingContext2D | null,
+    brushFeather: 0
 });
 
-function drawOnCanvas(p: Point) {
-    if (!draw.drawLayer) return;
-    const canvas = draw.drawLayer.canvas;
-    const ctx = canvas.getContext('2d');
+const stroke = {
+    stamp: null as ImageData | null,
+    start: { x: 0, y: 0 } as Point,
+    current: { x: 0, y: 0 } as Point,
+};
+
+const drawLayer = $derived(getSelectedDrawLayer());
+
+let layerSnapshot = null as ImageData | null;
+const strokeCanvas = $derived(
+    drawLayer
+        ? new OffscreenCanvas(drawLayer.canvas.width, drawLayer.canvas.height)
+        : null
+);
+
+function drawStamp(p: Point) {
+    if (!drawLayer || !strokeCanvas) return;
+    const ctx = strokeCanvas.getContext('2d');
     if (!ctx) return;
 
-    const color = draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor;
+    const color = drawLayer ? drawLayer.foregroundColor : ui.foregroundColor;
 
-    if (draw.brushFeather > 0) {
-        // Draw line from draw.start to p using stamp
-        // adding rgb, but taking the max of alphas
-        if (!draw.stampCtx || !draw.stampCanvas) return;
+    // Draw line from stroke.start to p using stamp
+    // adding rgb, but taking the max of alphas
+    if (!stroke.stamp) return;
 
-        const dist = Math.hypot(p.x - draw.current.x, p.y - draw.current.y);
-        const steps = Math.max(Math.ceil(dist / (draw.brushSize / 24)), 1);
-        for (let i = 1; i <= steps; i++) {
-            const t = i / steps;
-            const x = draw.current.x + (p.x - draw.current.x) * t;
-            const y = draw.current.y + (p.y - draw.current.y) * t;
+    const dist = Math.hypot(p.x - stroke.current.x, p.y - stroke.current.y);
+    const steps = Math.max(Math.ceil(dist / (draw.brushSize / 24)), 1);
+    for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const x = stroke.current.x + (p.x - stroke.current.x) * t;
+        const y = stroke.current.y + (p.y - stroke.current.y) * t;
 
-            const radius = draw.brushSize / 2;
+        const radius = draw.brushSize / 2;
 
-            // Draw gradient to temp canvas
-            const offsetX = x - radius;
-            const offsetY = y - radius;
+        // Draw gradient to temp canvas
+        const offsetX = x - radius;
+        const offsetY = y - radius;
 
-            // Get existing pixels from stroke canvas
-            const existingData = ctx.getImageData(
-                offsetX, offsetY,
-                draw.brushSize, draw.brushSize
-            );
-            const newData = draw.stampCtx.getImageData(
-                0, 0,
-                draw.brushSize, draw.brushSize
-            );
+        // Get existing pixels from stroke canvas
+        const existingData = ctx.getImageData(
+            offsetX, offsetY,
+            draw.brushSize, draw.brushSize
+        );
 
-            // Blend: add RGB, max alpha
-            for (let j = 0; j < existingData.data.length; j += 4) {
-                const existingAlpha = existingData.data[j + 3] / 255;
-                const newAlpha = newData.data[j + 3] / 255;
-                const maxAlpha = Math.max(existingAlpha, newAlpha);
-                
-                if (maxAlpha > 0) {
-                    existingData.data[j] = color.r;
-                    existingData.data[j + 1] = color.g;
-                    existingData.data[j + 2] = color.b;
-                    existingData.data[j + 3] = maxAlpha * 255;
-                }
+        // blend: add rgb, max alpha
+        for (let j = 0; j < existingData.data.length; j += 4) {
+            const existingAlpha = existingData.data[j + 3];
+            const newAlpha = stroke.stamp.data[j + 3] * color.a;
+            const maxAlpha = Math.max(existingAlpha, newAlpha);
+            
+            if (maxAlpha > 0) {
+                existingData.data[j] = color.r;
+                existingData.data[j + 1] = color.g;
+                existingData.data[j + 2] = color.b;
+                existingData.data[j + 3] = maxAlpha;
             }
-
-            ctx.putImageData(existingData, offsetX, offsetY);
         }
-    } else {
-        // draw a line from current to p
-        const color = colorToCSS(draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = draw.brushSize;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
 
-        ctx.beginPath();
-        ctx.moveTo(draw.current.x, draw.current.y);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-        ctx.closePath();
+        ctx.putImageData(existingData, offsetX, offsetY);
     }
+
+    // composite snapshot and strokeCanvas onto drawLayer.canvas
+    const drawCtx = drawLayer.canvas.getContext('2d');
+    if (!drawCtx) return;
+
+    if (layerSnapshot) {
+        drawCtx.putImageData(layerSnapshot, 0, 0);
+    } else {
+        drawCtx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
+    }
+    drawCtx.drawImage(strokeCanvas, 0, 0);
 }
 
 // ...existing code...
@@ -95,9 +96,7 @@ export const drawTool: Tool = {
             if (!doc) return;
 
             doc.layers = [...doc.layers, newLayer];
-            ui.selectedLayers[doc.id].push(newLayer.id);
-
-            draw.drawLayer = newLayer;
+            ui.selectedLayers[doc.id] = [newLayer.id];
         } else {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
@@ -109,58 +108,86 @@ export const drawTool: Tool = {
 
             const layer = doc.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') return;
-
-            draw.drawLayer = layer;
         }
 
         // set up stamp canvas
-        draw.stampCanvas = new OffscreenCanvas(
+        const stampCanvas = new OffscreenCanvas(
             draw.brushSize, draw.brushSize
         );
-        draw.stampCtx = draw.stampCanvas.getContext('2d');
+        const stampCtx = stampCanvas.getContext('2d');
 
-        // Pre-draw the stamp
-        if (draw.stampCtx) {
+        // pre-draw the stamp
+        if (stampCtx) {
             const radius = draw.brushSize / 2;
             const feather = draw.brushFeather;
-            const gradient = draw.stampCtx.createRadialGradient(
+            const gradient = stampCtx.createRadialGradient(
                 radius, radius, 0,
                 radius, radius, radius
             );
 
-            const color = draw.drawLayer ? draw.drawLayer.foregroundColor : ui.foregroundColor;
-            gradient.addColorStop(0, `rgba(0, 0, 0, 1)`);
-            gradient.addColorStop(1 - feather, `rgba(0, 0, 0, 1)`);
-            gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
+            if (feather === 0) {
+                // add ~2px of feathering for basic anti-aliasing
+                const antiAliasSize = draw.brushSize < 3 ? 1 : 2 / draw.brushSize;
+                gradient.addColorStop(1 - antiAliasSize, `rgba(0, 0, 0, 1)`);
+                gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
+            } else {
+                gradient.addColorStop(1 - feather, `rgba(0, 0, 0, 1)`);
+                gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
+            }
 
-            draw.stampCtx.fillStyle = gradient;
-            draw.stampCtx.fillRect(
+            stampCtx.fillStyle = gradient;
+            stampCtx.fillRect(
+                0, 0,
+                draw.brushSize, draw.brushSize
+            );
+            stroke.stamp = stampCtx.getImageData(
                 0, 0,
                 draw.brushSize, draw.brushSize
             );
         }
 
-        draw.start = data.l ?? data.c;
-        draw.current = data.l ?? data.c;
-        drawOnCanvas(draw.start);
+        // take a snapshot of the layer
+        if (drawLayer && !layerSnapshot) {
+            const ctx = drawLayer.canvas.getContext('2d');
+            if (ctx) {
+                layerSnapshot = ctx.getImageData(
+                    0, 0,
+                    drawLayer.canvas.width,
+                    drawLayer.canvas.height
+                );
+            }
+        }
+
+        stroke.start = data.l ?? data.c;
+        stroke.current = data.l ?? data.c;
+        drawStamp(stroke.start);
     },
     onPointerMove: (data) => {
-        if (!draw.drawing || !data.l || !draw.drawLayer) return;
+        if (!draw.drawing || !data.l || !drawLayer) return;
 
-        drawOnCanvas(data.l);
-        draw.current = data.l;
+        drawStamp(data.l);
+        stroke.current = data.l;
 
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
     },
     onPointerUp: (data) => {
-        if (!draw.drawing || !data.l || !draw.drawLayer) return;
+        if (!draw.drawing || !data.l || !drawLayer) return;
         
-        drawOnCanvas(data.l);
+        drawStamp(data.l);
         draw.drawing = false;
-        draw.current = data.l;
+        stroke.current = data.l;
+        stroke.stamp = null;
 
+        // clear stroke canvas and snapshot
+        const ctx = strokeCanvas?.getContext('2d');
+        if (ctx && drawLayer) {
+            ctx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
+        }
+        layerSnapshot = null;
+
+        // force update
         const doc = getSelectedDoc();
         if (!doc) return;
         doc.layers = [...doc.layers];
