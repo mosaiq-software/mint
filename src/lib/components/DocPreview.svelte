@@ -19,12 +19,10 @@
     const {width, height} = getPreviewSize(doc);
 
     $effect(() => {
-        if (canvas) {
+        if (canvas && doc.preview) {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
-            window.setTimeout(() => {
-                ctx.drawImage(doc.preview, 0, 0);
-            }, 1);
+            ctx.drawImage(doc.preview, 0, 0);
         }
     })
 

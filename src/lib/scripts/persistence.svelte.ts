@@ -70,14 +70,19 @@ async function getAllFromDB<type extends DBs>(name: DBs) {
     })
 }
 
-function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingContext2D) {
-    const img = new Image();
-    img.src = URL.createObjectURL(blob);
+async function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingContext2D) {
+    return new Promise<null>((resolve, reject) => {
 
-    img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(img.src);
-    }
+        const img = new Image();
+        img.src = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(img.src);
+            resolve(null);
+        }
+
+    });
 }
 
 export const PREVIEW_MAX_SIZE = 64;
@@ -159,18 +164,23 @@ export async function getDocumentsFromDB() {
     const docsP = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
     const previewsP = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
 
+    const [docs, previews] = await Promise.all([docsP, previewsP]);
+
+    const fullDocPs = docs.map(async (d, index) => {
+        const {width: pWidth, height: pHeight} = getPreviewSize(d);
+        const blob = previews[index];
+        const canvas = new OffscreenCanvas(pWidth, pHeight);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            const blobDrawn = await drawBlobOnOffscreenCanvas(blob, ctx);
+        }
+        return {...d, preview: canvas};
+    });
+
+    const fullDocs = await Promise.all(fullDocPs);
+
     return new Promise<(Document & {preview: OffscreenCanvas})[]>((resolve, reject) => {
-        Promise.all([docsP, previewsP]).then(([docs, previews]) => {
-            resolve(docs.map((d, index) => {
-                const {width: pWidth, height: pHeight} = getPreviewSize(d);
-                const blob = previews[index];
-                const canvas = new OffscreenCanvas(pWidth, pHeight);
-                const ctx = canvas.getContext('2d');
-                if (ctx)
-                    drawBlobOnOffscreenCanvas(blob, ctx);
-                return {...d, preview: canvas};
-            }))
-        });
+        resolve(fullDocs);
     });
 }
 
