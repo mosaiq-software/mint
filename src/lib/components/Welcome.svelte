@@ -138,6 +138,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: var(--s-md);
+        justify-content: center;
     }
 
     .db-message {

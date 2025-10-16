@@ -45,7 +45,7 @@
         <span class="canvas-wrapper" style="width: {PREVIEW_MAX_SIZE}px; height: {PREVIEW_MAX_SIZE}px">
             <canvas bind:this={canvas} width={width} height={height} style="width: {width}px; height: {height}px"></canvas>
         </span>
-        <span class="text title">{doc.name}</span>
+        <span class="text title" title={doc.name}>{doc.name}</span>
         <span class="text dimensions">{doc.width} x {doc.height}</span>
     </button>
     <button class="ellipsis" {...popover.trigger}>
@@ -97,20 +97,20 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: auto;
     }
 
     .wrapper {
         position: relative;
+        width: 100px;
     }
 
     .button {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
         padding: var(--s-sm);
         border-radius: var(--s-sm);
         cursor: pointer;
+        width: 100%;
+        overflow: hidden;
     }
 
     .button:hover {
@@ -133,5 +133,6 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: block;
     }
 </style>
