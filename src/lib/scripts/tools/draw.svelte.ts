@@ -98,6 +98,12 @@ export const drawTool: Tool = {
             // add new layer to document and select it
             docs.selected.layers = [...docs.selected.layers, newLayer];
             ui.selectedLayers[docs.selected.id] = [newLayer.id];
+
+            postAction({
+                type: 'create',
+                layer: newLayer,
+                position: docs.selected.layers.length - 1
+            });
         } else {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
@@ -189,7 +195,13 @@ export const drawTool: Tool = {
         // force update
         if (!docs.selected) return;
         
-        if (drawLayer) postAction(drawLayer.id, drawLayer);
+        if (drawLayer) postAction({
+            type: "content",
+            layerID: drawLayer.id,
+            newContent: drawLayer.canvas
+                .getContext('2d')!
+                .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
+        });
         docs.selected.layers = [...docs.selected.layers];
     }
 }

@@ -227,7 +227,11 @@ export const selectTool: Tool = {
             const firstSelectedLayer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (firstSelectedLayer) {
                 if (select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate') {
-                    postAction(firstSelectedLayer.id, firstSelectedLayer);
+                    postAction({
+                        type: "transform",
+                        layerID: firstSelectedLayer.id,
+                        newMatrix: firstSelectedLayer.transform.matrix,
+                    });
                 }
             }
         }
@@ -243,7 +247,20 @@ export const selectTool: Tool = {
             if (selectedLayers.length === 0) return;
 
             // remove selected layers from the document
-            docs.selected.layers = docs.selected.layers.filter(l => !selectedLayers.includes(l.id));
+            for (const layerId of selectedLayers) {
+                const layerIndex = docs.selected.layers.findIndex(l => l.id === layerId);
+                if (layerIndex !== -1) {
+                    const layer = docs.selected.layers[layerIndex];
+                    docs.selected.layers.splice(layerIndex, 1);
+
+                    postAction({
+                        type: "delete",
+                        layer: layer,
+                        position: layerIndex,
+                    });
+                }
+            }
+            
             ui.selectedLayers[docs.selected.id] = [];
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if (!docs.selected) return;
@@ -263,6 +280,11 @@ export const selectTool: Tool = {
                 const layer = docs.selected.layers.find(l => l.id === layerId);
                 if (layer) {
                     translateLayerBy(layer, dx, dy);
+                    postAction({
+                        type: "transform",
+                        layerID: layer.id,
+                        newMatrix: layer.transform.matrix,
+                    })
                 }
             }         
         }

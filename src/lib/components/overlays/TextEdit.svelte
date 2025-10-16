@@ -37,7 +37,11 @@
     }
 
     function handleBlur() {
-        postAction(layer.id, layer);
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { text: layer.text },
+        });
     }
 </script>
 

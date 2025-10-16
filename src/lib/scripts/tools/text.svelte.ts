@@ -50,7 +50,11 @@ export const textTool: Tool = {
             docs.selected.layers.push(layer);
             ui.selectedLayers[docs.selected.id] = [layer.id];
 
-            postAction(layer.id, layer);
+            postAction({
+                type: "create",
+                layer,
+                position: docs.selected.layers.length - 1
+            });
 
             // focus the textarea after a short delay to ensure it's in the DOM
             // also select the text
@@ -99,7 +103,11 @@ export const textTool: Tool = {
         const layer = getSelectedTextLayer();
         if (layer && text.action === "resize") {
             if (!docs.selected) return;
-            postAction(layer.id, layer);
+            postAction({
+                type: "update",
+                layerID: layer.id,
+                newLayer: { width: layer.width, height: layer.height },
+            });
         }
     }
 }
