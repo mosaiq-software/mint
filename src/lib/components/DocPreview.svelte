@@ -1,6 +1,7 @@
 <script lang="ts">
-    import {type Document} from '../scripts/docs.svelte';
-    import {getPreviewSize, PREVIEW_MAX_SIZE} from "../scripts/persistence.svelte";
+    import docs, {type Document} from '../scripts/docs.svelte';
+    import {getPreviewSize, PREVIEW_MAX_SIZE, getDocumentFromDB} from "../scripts/persistence.svelte";
+    import ui from "../scripts/ui.svelte";
 
     const {doc}: {doc: Document & { preview: OffscreenCanvas }} = $props();
     let canvas: HTMLCanvasElement;
@@ -10,20 +11,29 @@
         if (canvas) {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
-            ctx.drawImage(doc.preview, 0, 0);
+            window.setTimeout(() => {
+                ctx.drawImage(doc.preview, 0, 0);
+            }, 1);
         }
     })
+
+    async function selectDoc() {
+        docs[doc.id] = await getDocumentFromDB(doc.id);
+        ui.selectedLayers[doc.id] = [];
+        ui.selectedDocument = doc.id;
+    }
 </script>
 
-<div class="wrapper">
-    <div class="canvas-wrapper" style="width: {PREVIEW_MAX_SIZE}px; height: {PREVIEW_MAX_SIZE}px">
+<button class="wrapper" onclick={selectDoc}>
+    <span class="canvas-wrapper" style="width: {PREVIEW_MAX_SIZE}px; height: {PREVIEW_MAX_SIZE}px">
         <canvas bind:this={canvas} width={width} height={height} style="width: {width}px; height: {height}px"></canvas>
-    </div>
-    <p class="title">{doc.name}</p>
-    <p class="dimensions">{doc.width} x {doc.height}</p>
-</div>
+    </span>
+    <span class="text title">{doc.name}</span>
+    <span class="text dimensions">{doc.width} x {doc.height}</span>
+</button>
 
 <style>
+
     .canvas-wrapper {
         display: flex;
         align-items: center;
@@ -56,7 +66,7 @@
         opacity: 0.8;
     }
 
-    p {
+    .text {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
