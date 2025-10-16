@@ -76,62 +76,71 @@ function getPreview(doc: Document): ImageData {
     return ptx.getImageData(0, 0, pWidth, pHeight);
 }
 
-export function saveDocumentToDB(document: Document, onsuccess: () => void = () => {}) {
+export async function saveDocumentToDB(document: Document) {
     const docId = document.id;
-    const promises = [
-        putInDB(DBs.METADATA, docId, {
-            ...document,
-            layers: document.layers.map(l => {
-                return {...l, canvas: undefined}
+    return new Promise<Document>((resolve, reject) => {
+        const promises = [
+            putInDB(DBs.METADATA, docId, {
+                ...document,
+                layers: document.layers.map(l => {
+                    return {...l, canvas: undefined}
+                })
+            }),
+            putInDB(DBs.PREVIEWS, docId, getPreview(document)),
+            ...document.layers.filter(layer => layer.type === 'canvas').map(layer => {
+                const canvas = layer.canvas;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return new Promise((res) => res(null));
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                return putInDB(DBs.LAYERS, layer.id, imageData);
             })
-        }),
-        putInDB(DBs.PREVIEWS, docId, getPreview(document)),
-        ...document.layers.filter(layer => layer.type === 'canvas').map(layer => {
-            const canvas = layer.canvas;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return new Promise((res) => res(null));
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            return putInDB(DBs.LAYERS, layer.id, imageData);
-        })
-    ];
-    Promise.all(promises).then(onsuccess);
-}
-
-// for an actual document -- metadata + layers
-export async function getDocumentFromDB(docId: DocumentID, onsuccess: (d: Document) => void) {
-    const doc: Document = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
-    const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
-    const layerPromises = canvasLayers.map(l =>
-        getFromDB<DBs.LAYERS>(DBs.LAYERS, l.id)
-    );
-
-    Promise.all(layerPromises).then(results => {
-        let resultIndex = 0;
-        for (let i = 0; i < doc.layers.length; i++) {
-            const l = doc.layers[i];
-            if (l.type === 'canvas') {
-                const imageData = results[resultIndex];
-                l.canvas = new OffscreenCanvas(doc.width, doc.height);
-                const ctx = l.canvas.getContext('2d');
-                ctx?.putImageData(imageData, 0, 0);
-                resultIndex++;
-            }
-        }
-        onsuccess(doc);
+        ];
+        Promise.all(promises).then(() => resolve(document));
     });
 }
 
-// for a document header -- metadata + preview
-export async function getDocumentsFromDB(onsuccess: (d: (Document & {preview: OffscreenCanvas})[]) => void) {
+// for an actual document -- metadata + layers
+export async function getDocumentFromDB(docId: DocumentID) {
+    const doc: Document = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
+
+    return new Promise<Document>((resolve, reject) => {
+
+        const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
+        const layerPromises = canvasLayers.map(l =>
+            getFromDB<DBs.LAYERS>(DBs.LAYERS, l.id)
+        );
+
+        Promise.all(layerPromises).then(results => {
+            let resultIndex = 0;
+            for (let i = 0; i < doc.layers.length; i++) {
+                const l = doc.layers[i];
+                if (l.type === 'canvas') {
+                    const imageData = results[resultIndex];
+                    l.canvas = new OffscreenCanvas(doc.width, doc.height);
+                    const ctx = l.canvas.getContext('2d');
+                    ctx?.putImageData(imageData, 0, 0);
+                    resultIndex++;
+                }
+            }
+            resolve(doc);
+        });
+    });
+}
+
+// for document headers -- metadata + preview
+export async function getDocumentsFromDB() {
     const docs = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
-    const previewPromises = docs.map(d => getFromDB<DBs.PREVIEWS>(DBs.PREVIEWS, d.id));
-    Promise.all(previewPromises).then(results => {
-        onsuccess(docs.map((d, index) => {
-            const previewImage = results[index];
-            const canvas = new OffscreenCanvas(previewImage.width, previewImage.height);
-            const ctx = canvas.getContext('2d');
-            ctx?.putImageData(previewImage, 0, 0);
-            return {...d, preview: canvas};
-        }))
-    })
+
+    return new Promise<(Document & {preview: OffscreenCanvas})[]>((resolve, reject) => {
+        const previewPromises = docs.map(d => getFromDB<DBs.PREVIEWS>(DBs.PREVIEWS, d.id));
+        Promise.all(previewPromises).then(results => {
+            resolve(docs.map((d, index) => {
+                const previewImage = results[index];
+                const canvas = new OffscreenCanvas(previewImage.width, previewImage.height);
+                const ctx = canvas.getContext('2d');
+                ctx?.putImageData(previewImage, 0, 0);
+                return {...d, preview: canvas};
+            }))
+        });
+    });
 }
