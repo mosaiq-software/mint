@@ -7,6 +7,7 @@
         max?: number;
         step?: number;
         onValueChange?: (value: number) => void;
+        onBlur?: () => void;
     }
 
     let {
@@ -14,7 +15,8 @@
         min = 0,
         max = 100,
         step = 1,
-        onValueChange = () => {}
+        onValueChange = () => {},
+        onBlur = () => {}
     }: Props = $props();
 
     const slider = new Slider({ 
@@ -27,13 +29,30 @@
 
     $effect(() => {
         if (value !== undefined && slider.value !== value) slider.value = value;
-    })
+    });
+
+    let pointerUpHandler: ((e: PointerEvent) => void) | null = null;
+
+    function handleFocus() {
+        pointerUpHandler = (e) => {
+            document.getElementById(slider.thumb.id)?.blur();
+        };
+        document.addEventListener('pointerup', pointerUpHandler);
+    }
+
+    function handleBlur() {
+        if (pointerUpHandler) {
+            document.removeEventListener('pointerup', pointerUpHandler);
+            pointerUpHandler = null;
+        }
+        onBlur();
+    }
 </script>
 
 <div {...slider.root} class="slider">
     <div class="track"></div>
     <div class="range"></div>
-    <div {...slider.thumb}></div>
+    <div {...slider.thumb} onfocus={handleFocus} onblur={handleBlur}></div>
 </div>
 
 <style>
