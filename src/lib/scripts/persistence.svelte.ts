@@ -182,10 +182,8 @@ export async function getDocumentFromDB(docId: DocumentID) {
 
 // for document headers -- metadata + preview
 export async function getDocumentsFromDB() {
-    const docsP = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
-    const previewsP = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
-
-    const [docs, previews] = await Promise.all([docsP, previewsP]);
+    const docs = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
+    const previews = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
 
     const fullDocPs = docs.map(async (d, index) => {
         const {width: pWidth, height: pHeight} = getPreviewSize(d);
