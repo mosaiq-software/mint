@@ -11,11 +11,24 @@
     import { Popover } from "melt/builders";
 
     const {doc, rerenderDocs}: {
-        doc: Document & { preview: OffscreenCanvas },
+        doc: Document & { preview: OffscreenCanvas, lastModified: Date },
         rerenderDocs: () => void
     } = $props();
     let canvas: HTMLCanvasElement;
     const {width, height} = getPreviewSize(doc);
+
+    function getDateString() {
+        const date = new Date(doc.lastModified);
+        const now = new Date();
+        const dateIsToday = date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth() &&
+            date.getDate() === now.getDate();
+        if (!dateIsToday) {
+            return date.toLocaleDateString();
+        } else {
+            return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        }
+    }
 
     $effect(() => {
         if (canvas && doc.preview) {
@@ -44,7 +57,8 @@
             <canvas bind:this={canvas} width={width} height={height} style="width: {width}px; height: {height}px"></canvas>
         </span>
         <span class="text title" title={doc.name}>{doc.name}</span>
-        <span class="text dimensions">{doc.width} x {doc.height}</span>
+        <span class="text secondary">{getDateString()}</span>
+        <span class="text secondary">{doc.width} x {doc.height}</span>
     </button>
     <button class="ellipsis" {...popover.trigger}>
         <IconButtonVisual label="Settings" selected>
@@ -123,7 +137,7 @@
         font-weight: bold;
     }
 
-    .dimensions {
+    .secondary {
         opacity: 0.8;
     }
 

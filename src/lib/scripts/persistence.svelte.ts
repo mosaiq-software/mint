@@ -9,7 +9,15 @@ enum DBs {
 }
 
 interface DatabaseTypes {
-    [DBs.METADATA]: Document & {layers: (TextLayer | (Omit<CanvasLayer, 'canvas'> & {canvasDimensions: {width: number, height: number}}) )[]},
+    [DBs.METADATA]: Document & {
+        layers: (TextLayer | (Omit<CanvasLayer, "canvas"> & {
+            canvasDimensions: {
+                width: number
+                height: number
+            }
+        }))[],
+        lastModified: Date
+    },
     [DBs.LAYERS]: Blob,
     [DBs.PREVIEWS]: Blob
 }
@@ -147,7 +155,8 @@ export async function saveDocumentToDB(document: Document) {
                         : {}
                 )
             };
-        })
+        }),
+        lastModified: Date.now()
     });
 
     const preview = await getPreview(document);
@@ -217,7 +226,7 @@ export async function getDocumentsFromDB() {
 
     const fullDocs = await Promise.all(fullDocPs);
 
-    return new Promise<(Document & {preview: OffscreenCanvas})[]>((resolve, reject) => {
+    return new Promise<(Document & {preview: OffscreenCanvas, lastModified: Date})[]>((resolve, reject) => {
         resolve(fullDocs);
     });
 }

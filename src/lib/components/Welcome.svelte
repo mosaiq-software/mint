@@ -50,6 +50,10 @@
     function rerenderDocs() {
         DBDocuments = getDocumentsFromDB();
     }
+
+    function sortByLastModified(documents: Document[] & {lastModified: Date}) {
+        return [...documents].sort((a, b) => a.lastModified < b.lastModified);
+    }
 </script>
 
 {#if creatingDocument}
@@ -106,16 +110,16 @@
         </button>
         <p>(or drag to import)</p>
         {#await DBDocuments}
-            <div class="db-message">Loading your documents...</div>
+            <div></div>
         {:then documents}
             {#if documents.length > 0}
                 <div class="docs">
-                    {#each documents as doc}
+                    {#each sortByLastModified(documents) as doc}
                         <DocPreview doc={doc} rerenderDocs={rerenderDocs} />
                     {/each}
                 </div>
             {:else}
-                <div class="db-message">No documents found.</div>
+                <div></div>
             {/if}
         {:catch error}
             <div class="db-message">Error loading your documents: {error}.</div>
@@ -129,11 +133,6 @@
         flex-wrap: wrap;
         gap: var(--s-md);
         justify-content: center;
-    }
-
-    .db-message {
-        opacity: 0.8;
-        font-style: italic;
     }
 
     #welcome {
