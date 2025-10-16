@@ -146,14 +146,14 @@ export async function getDocumentFromDB(docId: DocumentID) {
 
 // for document headers -- metadata + preview
 export async function getDocumentsFromDB() {
-    const docs = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
+    const docsP = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
+    const previewsP = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
 
     return new Promise<(Document & {preview: OffscreenCanvas})[]>((resolve, reject) => {
-        const previewPromises = docs.map(d => getFromDB<DBs.PREVIEWS>(DBs.PREVIEWS, d.id));
-        Promise.all(previewPromises).then(results => {
+        Promise.all([docsP, previewsP]).then(([docs, previews]) => {
             resolve(docs.map((d, index) => {
                 const {width: pWidth, height: pHeight} = getPreviewSize(d);
-                const blob = results[index];
+                const blob = previews[index];
                 const canvas = new OffscreenCanvas(pWidth, pHeight);
                 const ctx = canvas.getContext('2d');
                 if (ctx)
