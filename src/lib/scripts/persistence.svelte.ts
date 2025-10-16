@@ -179,7 +179,7 @@ export async function getDocumentFromDB(docId: DocumentID) {
     const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
 
     const layerIDs = canvasLayers.map(l => l.id);
-    const layers = await getSeveralFromDB<DBs.LAYERS>(DBs.LAYERS, layerIDs);
+    const layers = canvasLayers.length > 0 ? await getSeveralFromDB<DBs.LAYERS>(DBs.LAYERS, layerIDs) : [];
 
     const canvasBlobPs: Promise<null>[] = [];
 
@@ -201,7 +201,9 @@ export async function getDocumentFromDB(docId: DocumentID) {
         }
     }
 
-    await Promise.all(canvasBlobPs);
+    if (canvasBlobPs.length > 0) {
+        await Promise.all(canvasBlobPs);
+    }
 
     return new Promise<Document>((resolve, reject) => {
         resolve(doc);
