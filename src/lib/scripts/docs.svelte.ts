@@ -1,6 +1,7 @@
 import ui from './ui.svelte';
 import type { Layer } from './layer';
 import type { Point } from './tools';
+import { populateSnapshots } from './action';
 
 /* IDs */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
@@ -71,6 +72,7 @@ export function selectDocument(id: DocumentID) {
     ui.selectedDocument = id;
     ui.selectedLayers[id] = [];
     docs.selected = docs[id];
+    if (docs.selected) populateSnapshots(docs.selected.layers);
 }
 
 export default docs;
