@@ -1,10 +1,8 @@
-import { getSelectedDoc } from './docs.svelte';
+import { type Document } from './docs.svelte';
 import { text } from './tools';
 import { colorToCSS } from './docs.svelte';
 
-export function render(canvas: HTMLCanvasElement) {
-    const doc = getSelectedDoc();
-    if (!doc) return;
+export function render(canvas: HTMLCanvasElement, doc: Document) {
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
