@@ -5,6 +5,7 @@
     import type { DocumentID } from "../scripts/docs.svelte";
     import {importImageAsNewDoc} from "../scripts/importImage";
     import {getDocumentsFromDB} from "../scripts/persistence.svelte";
+    import DocPreview from './DocPreview.svelte';
     let creatingDocument = $state(false);
 
     let name = $state("");
@@ -112,12 +113,11 @@
             <div class="db-message">Loading your documents...</div>
         {:then documents}
             {#if documents.length > 0}
-                <!--componentize this later-->
-                {#each documents as doc}
-                    <div>
-                        {doc.name}
-                    </div>
-                {/each}
+                <div class="docs">
+                    {#each documents as doc}
+                        <DocPreview doc={doc} />
+                    {/each}
+                </div>
             {:else}
                 <div class="db-message">No documents found.</div>
             {/if}
@@ -128,6 +128,12 @@
 {/if}
 
 <style>
+    .docs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s-md);
+    }
+
     .db-message {
         opacity: 0.8;
         font-style: italic;

@@ -70,8 +70,9 @@ function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingCont
     }
 }
 
-function getPreviewSize(doc: Document) {
-    const PREVIEW_MAX_SIZE = 32;
+export const PREVIEW_MAX_SIZE = 64;
+
+export function getPreviewSize(doc: Document) {
     const docOverPreviewSize = Math.floor(Math.max(doc.width, doc.height) / PREVIEW_MAX_SIZE);
     const pWidth = Math.floor(doc.width / docOverPreviewSize);
     const pHeight = Math.floor(doc.height / docOverPreviewSize);
