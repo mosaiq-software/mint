@@ -3,6 +3,7 @@
     import { Slider, Input } from "../ui";
     import docs, { matrixToTransformComponents } from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
+    import { postAction } from "../../scripts/action";
 
     const selectedLayers = $derived.by(() => {
         if (!docs.selected) return [];
@@ -37,7 +38,7 @@
         return isNaN(parsed) ? fallback : parsed;
     }
 
-    function applyNewMatrix() {
+    function applyNewMatrix(triggerPostAction: boolean) {
         if (!t) return;
 
         const xs = safeParseFloat(x, t.translate.x);
@@ -52,13 +53,21 @@
             -hs * sin, hs * cos,
             xs, ys
         ]);
+
+        if (triggerPostAction) {
+            postAction({
+                type: "update",
+                layerID: selectedLayers[0].id,
+                newLayer: { transform: selectedLayers[0].transform }
+            });
+        }
     }
 
     let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
     function debouncedApplyNewMatrix() {
         if (debounceTimeout) return;
         debounceTimeout = setTimeout(() => {
-            applyNewMatrix(); debounceTimeout = null;
+            applyNewMatrix(false); debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
     }
 </script>
@@ -67,13 +76,13 @@
     <div>
         <Input
             name="x" labelPosition="side" disabled={!t}
-            bind:value={x} onBlur={applyNewMatrix}
+            bind:value={x} onBlur={() => applyNewMatrix(true)}
         >
             <div class="label">X:</div>
         </Input>
         <Input
             name="y" labelPosition="side" disabled={!t}
-            bind:value={y} onBlur={applyNewMatrix}
+            bind:value={y} onBlur={() => applyNewMatrix(true)}
         >
             <div class="label">Y:</div>
         </Input>
@@ -81,13 +90,13 @@
     <div>
         <Input
             name="w" labelPosition="side" disabled={!t}
-            bind:value={w} onBlur={applyNewMatrix}
+            bind:value={w} onBlur={() => applyNewMatrix(true)}
         >
             <div class="label">W:</div>
         </Input>
         <Input
             name="h" labelPosition="side" disabled={!t}
-            bind:value={h} onBlur={applyNewMatrix}
+            bind:value={h} onBlur={() => applyNewMatrix(true)}
         >
             <div class="label">H:</div>
         </Input>
@@ -96,10 +105,11 @@
         <Input
             name="r" labelPosition="side" disabled={!t} variant="underline"
             style="width: 12ch;"
-            bind:value={rs} onBlur={() => {
+            bind:value={rs}
+            onBlur={() => {
                 if (!t) return;
                 r = safeParseFloat(rs, t.rotate);
-                applyNewMatrix();
+                applyNewMatrix(true);
             }}
         >
             <div class="label">R:</div>
@@ -107,6 +117,7 @@
         <Slider
             min={-180} max={180} step={1}
             bind:value={r} onValueChange={debouncedApplyNewMatrix}
+            onBlur={() => applyNewMatrix(true)}
         />
     </div>
 </Panel>
