@@ -1,6 +1,7 @@
 <script lang="ts">
     import Input from '../ui/Input.svelte';
     import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import {saveDocumentToDB} from "../../scripts/persistence.svelte";
 
     const doc = $derived(getSelectedDoc());
 
@@ -19,30 +20,42 @@
             return dimStr;
         }
     }
+
+    function handleSave() {
+        if (doc) {
+            saveDocumentToDB(doc);
+        }
+    }
 </script>
 
 <div id="file-menu">
-    <h2>Canvas Size</h2>
-    <div id="canvas-size">
-        <Input
-            type="number"
-            name="canvas-width"
-            placeholder="Width"
-            bind:value={widthStr}
-            onBlur={() => {
-                widthStr = handleCanvasSizeBlur('width', widthStr)
-            }}
-        >Width:</Input>
-        <Input
-            type="number"
-            name="canvas-height"
-            placeholder="Height"
-            bind:value={heightStr}
-            onBlur={() => {
-                heightStr = handleCanvasSizeBlur('height', heightStr)
-            }}
-        >Height:</Input>
-    </div>
+    {#if doc}
+        <h2>Canvas Size</h2>
+        <div id="canvas-size">
+            <Input
+                type="number"
+                name="canvas-width"
+                placeholder="Width"
+                bind:value={widthStr}
+                onBlur={() => {
+                    widthStr = handleCanvasSizeBlur('width', widthStr)
+                }}
+            >Width:</Input>
+            <Input
+                type="number"
+                name="canvas-height"
+                placeholder="Height"
+                bind:value={heightStr}
+                onBlur={() => {
+                    heightStr = handleCanvasSizeBlur('height', heightStr)
+                }}
+            >Height:</Input>
+        </div>
+        <h2>File</h2>
+        <button onclick={handleSave}>Save</button>
+    {:else}
+        <div>Open a doc to get started.</div>
+    {/if}
 </div>
 
 <style>
@@ -58,5 +71,15 @@
         display: flex;
         gap: var(--s-md);
         width: 100%;
+    }
+
+    button {
+        text-align: left;
+        padding: 0 var(--s-sm);
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: var(--c-sur);
     }
 </style>

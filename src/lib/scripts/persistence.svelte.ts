@@ -9,8 +9,8 @@ enum DBs {
 
 interface DatabaseTypes {
     [DBs.METADATA]: Document,
-    [DBs.LAYERS]: ImageData,
-    [DBs.PREVIEWS]: ImageData
+    [DBs.LAYERS]: Blob,
+    [DBs.PREVIEWS]: Blob
 }
 
 function workOnDatabase(name: DBs, version: number = 1): Promise<IDBDatabase> {
@@ -34,7 +34,7 @@ async function putInDB(name: DBs, key: IDBValidKey, value: any) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
         const tx = db.transaction(name, 'readwrite');
-        const req = tx.objectStore(name).put(value, key);
+        const req = tx.objectStore(name).put($state.snapshot(value), key);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
     });
@@ -60,43 +60,58 @@ async function getAllFromDB<type extends DBs>(name: DBs) {
     })
 }
 
-function getPreview(doc: Document): ImageData {
+function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingContext2D) {
+    const img = new Image();
+    img.src = URL.createObjectURL(blob);
+
+    img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(img.src);
+    }
+}
+
+function getPreviewSize(doc: Document) {
     const PREVIEW_MAX_SIZE = 32;
     const docOverPreviewSize = Math.floor(Math.max(doc.width, doc.height) / PREVIEW_MAX_SIZE);
-    const canvas = new HTMLCanvasElement();
+    const pWidth = Math.floor(doc.width / docOverPreviewSize);
+    const pHeight = Math.floor(doc.height / docOverPreviewSize);
+    return {width: pWidth, height: pHeight};
+}
+
+async function getPreview(doc: Document) {
+    const canvas = document.createElement('canvas');
     canvas.width = doc.width;
     canvas.height = doc.height;
     render(canvas, doc);
-    const pWidth = Math.floor(doc.width / docOverPreviewSize);
-    const pHeight = Math.floor(doc.height / docOverPreviewSize);
+    const {width: pWidth, height: pHeight} = getPreviewSize(doc);
     const preview = new OffscreenCanvas(pWidth, pHeight);
     const ptx = preview.getContext('2d');
-    if (!ptx) return new ImageData(pWidth, pHeight);
+    if (!ptx) return new Blob();
     ptx.drawImage(canvas, 0, 0, pWidth, pHeight);
-    return ptx.getImageData(0, 0, pWidth, pHeight);
+    return await preview.convertToBlob();
 }
 
 export async function saveDocumentToDB(document: Document) {
     const docId = document.id;
-    return new Promise<Document>((resolve, reject) => {
-        const promises = [
-            putInDB(DBs.METADATA, docId, {
-                ...document,
-                layers: document.layers.map(l => {
-                    return {...l, canvas: undefined}
-                })
-            }),
-            putInDB(DBs.PREVIEWS, docId, getPreview(document)),
-            ...document.layers.filter(layer => layer.type === 'canvas').map(layer => {
-                const canvas = layer.canvas;
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return new Promise((res) => res(null));
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                return putInDB(DBs.LAYERS, layer.id, imageData);
-            })
-        ];
-        Promise.all(promises).then(() => resolve(document));
+
+    const metadataP = putInDB(DBs.METADATA, docId, {
+        ...document,
+        layers: document.layers.map(l => {
+            return {...l, canvas: undefined}
+        })
     });
+
+    const preview = await getPreview(document);
+    const previewP = putInDB(DBs.PREVIEWS, docId, preview);
+    const layerPs = document.layers.filter(layer => layer.type === 'canvas')
+        .map(async layer => {
+            const blob = await layer.canvas.convertToBlob();
+            return putInDB(DBs.LAYERS, layer.id, blob);
+        });
+
+    await Promise.all([metadataP, previewP, ...layerPs]);
+
+    return document;
 }
 
 // for an actual document -- metadata + layers
@@ -115,10 +130,11 @@ export async function getDocumentFromDB(docId: DocumentID) {
             for (let i = 0; i < doc.layers.length; i++) {
                 const l = doc.layers[i];
                 if (l.type === 'canvas') {
-                    const imageData = results[resultIndex];
+                    const blob = results[resultIndex];
                     l.canvas = new OffscreenCanvas(doc.width, doc.height);
                     const ctx = l.canvas.getContext('2d');
-                    ctx?.putImageData(imageData, 0, 0);
+                    if (ctx)
+                        drawBlobOnOffscreenCanvas(blob, ctx);
                     resultIndex++;
                 }
             }
@@ -135,10 +151,12 @@ export async function getDocumentsFromDB() {
         const previewPromises = docs.map(d => getFromDB<DBs.PREVIEWS>(DBs.PREVIEWS, d.id));
         Promise.all(previewPromises).then(results => {
             resolve(docs.map((d, index) => {
-                const previewImage = results[index];
-                const canvas = new OffscreenCanvas(previewImage.width, previewImage.height);
+                const {width: pWidth, height: pHeight} = getPreviewSize(d);
+                const blob = results[index];
+                const canvas = new OffscreenCanvas(pWidth, pHeight);
                 const ctx = canvas.getContext('2d');
-                ctx?.putImageData(previewImage, 0, 0);
+                if (ctx)
+                    drawBlobOnOffscreenCanvas(blob, ctx);
                 return {...d, preview: canvas};
             }))
         });

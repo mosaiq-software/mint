@@ -4,7 +4,7 @@
     import ui from "../scripts/ui.svelte";
     import type { DocumentID } from "../scripts/docs.svelte";
     import {importImageAsNewDoc} from "../scripts/importImage";
-    import {getDocumentsFromDB} from "../scripts/persistence";
+    import {getDocumentsFromDB} from "../scripts/persistence.svelte";
     let creatingDocument = $state(false);
 
     let name = $state("");
