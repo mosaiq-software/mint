@@ -3,7 +3,7 @@
     import { Slider } from "../ui";
     import { draw } from "../../scripts/tools";
     import ui from "../../scripts/ui.svelte";
-    import { colorToCSS, getSelectedDoc, type Color } from "../../scripts/docs.svelte";
+    import docs, { colorToCSS, type Color } from "../../scripts/docs.svelte";
 
     const gradientId = $derived(`brush-gradient-${Math.random()}`);
     const colors: {
@@ -13,9 +13,8 @@
         if (!ui.selectedDocument) return ui;
         const selectedLayers = ui.selectedLayers[ui.selectedDocument];
         if (selectedLayers.length === 1) {
-            const doc = getSelectedDoc()
-            if (!doc) return ui;
-            return doc.layers.find((l) => l.id === selectedLayers[0]) || ui;
+            if (!docs.selected) return ui;
+            return docs.selected.layers.find((l) => l.id === selectedLayers[0]) || ui;
         }
         return ui;
     });

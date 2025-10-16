@@ -1,8 +1,9 @@
 import type { Tool } from '.';
-import { getSelectedDoc } from '../docs.svelte';
+import docs from '../docs.svelte';
 import ui from '../ui.svelte';
 import { createLayer, type LayerID, type TextProperties } from '../layer';
 import { focusAndSelect } from '../../components/overlays/TextEdit.svelte';
+import { postAction } from '../action';
 
 const resizeHitboxSize = 5;
 
@@ -21,14 +22,13 @@ const text = $state({
 });
 
 export function getSelectedTextLayer() {
-    const doc = getSelectedDoc();
-    if (!doc) return null;
+    if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[doc.id]
+    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
     if (selectedLayerIds.length !== 1) return null;
     const selectedLayerId = selectedLayerIds[0];
 
-    const layer = doc.layers.find(l => l.id === selectedLayerId);
+    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
     if (layer?.type !== 'text') return null;
     
     return layer;
@@ -39,24 +39,29 @@ export const textTool: Tool = {
     onPointerDown: (data) => {
         text.dragging = true;
 
-        const doc = getSelectedDoc();
-        if (!doc) return;
+        if (!docs.selected) return;
 
         // check if a text layer is already selected
         const selectedTextLayer = getSelectedTextLayer();
-        if (selectedTextLayer) return;
+        if (!selectedTextLayer) {
+            // create a new text layer
+            const layer = createLayer('text', 'Text');
+            layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
+            docs.selected.layers.push(layer);
+            ui.selectedLayers[docs.selected.id] = [layer.id];
 
-        // create a new text layer
-        const layer = createLayer('text', 'Text');
-        layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
-        doc.layers.push(layer);
-        ui.selectedLayers[doc.id] = [layer.id];
+            postAction({
+                type: "create",
+                layer,
+                position: docs.selected.layers.length - 1
+            });
 
-        // focus the textarea after a short delay to ensure it's in the DOM
-        // also select the text
-        setTimeout(() => {
-            focusAndSelect();
-        }, 50);
+            // focus the textarea after a short delay to ensure it's in the DOM
+            // also select the text
+            setTimeout(() => {
+                focusAndSelect();
+            }, 50);
+        }
     },
     onPointerMove: (data) => {
         if (!data.l) return;
@@ -92,8 +97,18 @@ export const textTool: Tool = {
             }
         }
     },
-    onPointerUp: (data) => {
+    onPointerUp: () => {
         text.dragging = false;
+
+        const layer = getSelectedTextLayer();
+        if (layer && text.action === "resize") {
+            if (!docs.selected) return;
+            postAction({
+                type: "update",
+                layerID: layer.id,
+                newLayer: { width: layer.width, height: layer.height },
+            });
+        }
     }
 }
 

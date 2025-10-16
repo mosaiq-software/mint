@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import type { LayerID } from "../../scripts/layer";
     import { text } from "../../scripts/tools";
 
-    const doc = $derived(getSelectedDoc());
     const textLayers = $derived.by(() => {
-        if (!doc) return [];
-        return doc.layers.filter(l => l.type === 'text');
+        if (!docs.selected) return [];
+        return docs.selected.layers.filter(l => l.type === 'text');
     });
 
     // ensure text areas are cleaned up when layers are deleted

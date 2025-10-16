@@ -1,8 +1,9 @@
 import type { Tool } from ".";
-import { getSelectedDoc } from "../docs.svelte";
+import docs from "../docs.svelte";
 import type { Point } from ".";
 import ui from "../ui.svelte";
 import {translateLayerBy, type Layer } from "../layer";
+import { postAction } from "../action";
 
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -39,18 +40,17 @@ export const selectTool: Tool = {
     onPointerDown: (data) => {
         select.dragging = true;
 
-        const doc = getSelectedDoc();
-        if (!doc) return;
+        if (!docs.selected) return;
 
-        const selectedLayers = ui.selectedLayers[doc.id];
+        const selectedLayers = ui.selectedLayers[docs.selected.id];
         const firstSelectedLayer = selectedLayers.length > 0 ?
-            doc.layers.find(l => l.id === selectedLayers[0]) : null;
+            docs.selected.layers.find(l => l.id === selectedLayers[0]) : null;
 
         if (select.action.type === 'select') {
             // traverse layers from top to bottom to find the first shape under the cursor
             let found = false;
-            for (let i = doc.layers.length - 1; i >= 0; i--) {
-                const layer = doc.layers[i];
+            for (let i = docs.selected.layers.length - 1; i >= 0; i--) {
+                const layer = docs.selected.layers[i];
                 if (layer.type === 'canvas' && layer.visible) {
                     // sample canvas pixel at data.c, transformed to layer space
                     const ctx = layer.canvas.getContext('2d');
@@ -62,7 +62,7 @@ export const selectTool: Tool = {
 
                     // if pixel is not transparent, select this layer
                     if (pixel[3] > 0) {
-                        ui.selectedLayers[doc.id] = [layer.id];
+                        ui.selectedLayers[docs.selected.id] = [layer.id];
                         found = true;
                         select.action = { type: 'move' };
                         break;
@@ -75,7 +75,7 @@ export const selectTool: Tool = {
                     // check if point is within text bounding box
                     if (point.x >= 0 && point.x <= layer.width &&
                         point.y >= 0 && point.y <= layer.height) {
-                        ui.selectedLayers[doc.id] = [layer.id];
+                        ui.selectedLayers[docs.selected.id] = [layer.id];
                         found = true;
                         select.action = { type: 'move' };
                         break;
@@ -84,7 +84,7 @@ export const selectTool: Tool = {
             }
 
             // if no layer found, clear selection and prepare to move layer
-            if (!found) ui.selectedLayers[doc.id] = [];
+            if (!found) ui.selectedLayers[docs.selected.id] = [];
         } else if (select.action.type === 'scale') {
             if (firstSelectedLayer) {
                 select.initial.pivot = getScalePivotPoint(select.action.direction, firstSelectedLayer);
@@ -100,13 +100,10 @@ export const selectTool: Tool = {
     },
     onPointerMove: (data) => {
         if (select.dragging) {
-            // todo: handle dragging based on select.action
-
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            if (!docs.selected) return;
 
             if (select.action.type === 'move') {
-                const selectedLayers = ui.selectedLayers[doc.id];
+                const selectedLayers = ui.selectedLayers[docs.selected.id];
                 if (selectedLayers.length === 0) return;
 
                 // move all selected layers by the delta
@@ -114,7 +111,7 @@ export const selectTool: Tool = {
                 let deltaY = data.c.y - select.previous.c.y;
 
                 for (const layerId of selectedLayers) {
-                    const layer = doc.layers.find(l => l.id === layerId);
+                    const layer = docs.selected.layers.find(l => l.id === layerId);
                     if (layer) {
                         // map screen delta into the layer's local (non-translated) space
                         // so translation is not affected by the layer's scale/rotation.
@@ -143,9 +140,9 @@ export const selectTool: Tool = {
                 const dir = select.action.direction;
 
                 // find the selected layer
-                const selectedLayers = ui.selectedLayers[doc.id];
+                const selectedLayers = ui.selectedLayers[docs.selected.id];
                 if (selectedLayers.length !== 1) return;
-                const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+                const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
                 if (!layer) return;
                 if (!data.l) return;
 
@@ -178,9 +175,9 @@ export const selectTool: Tool = {
                     .translate(-px, -py);
             } else if (select.action.type === 'rotate') {
                 // find the selected layer
-                const selectedLayers = ui.selectedLayers[doc.id];
+                const selectedLayers = ui.selectedLayers[docs.selected.id];
                 if (selectedLayers.length !== 1) return;
-                const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+                const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
                 if (!layer) return;
                 if (!data.l) return;
 
@@ -224,25 +221,51 @@ export const selectTool: Tool = {
     onPointerUp: (data) => {
         select.dragging = false;
 
+        // if action is scale/move/rotate, record post-action state
+        if (docs.selected) {
+            const selectedLayers = ui.selectedLayers[docs.selected.id];
+            const firstSelectedLayer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
+            if (firstSelectedLayer) {
+                if (select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate') {
+                    postAction({
+                        type: "transform",
+                        layerID: firstSelectedLayer.id,
+                        newMatrix: firstSelectedLayer.transform.matrix,
+                    });
+                }
+            }
+        }
+
         // after mouse up, determine action based on mouse position
         setAction(data.c, data.l);
     },
     onKeyDown: (e) => {
         if (e.key === 'Backspace' || e.key === 'Delete') {
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            if (!docs.selected) return;
 
-            const selectedLayers = ui.selectedLayers[doc.id];
+            const selectedLayers = ui.selectedLayers[docs.selected.id];
             if (selectedLayers.length === 0) return;
 
             // remove selected layers from the document
-            doc.layers = doc.layers.filter(l => !selectedLayers.includes(l.id));
-            ui.selectedLayers[doc.id] = [];
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            for (const layerId of selectedLayers) {
+                const layerIndex = docs.selected.layers.findIndex(l => l.id === layerId);
+                if (layerIndex !== -1) {
+                    const layer = docs.selected.layers[layerIndex];
+                    docs.selected.layers.splice(layerIndex, 1);
 
-            const selectedLayers = ui.selectedLayers[doc.id];
+                    postAction({
+                        type: "delete",
+                        layer: layer,
+                        position: layerIndex,
+                    });
+                }
+            }
+            
+            ui.selectedLayers[docs.selected.id] = [];
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            if (!docs.selected) return;
+
+            const selectedLayers = ui.selectedLayers[docs.selected.id];
             if (selectedLayers.length === 0) return;
 
             const delta = e.shiftKey ? 10 : 1;
@@ -254,9 +277,14 @@ export const selectTool: Tool = {
             else if (e.key === 'ArrowRight') dx = delta;
 
             for (const layerId of selectedLayers) {
-                const layer = doc.layers.find(l => l.id === layerId);
+                const layer = docs.selected.layers.find(l => l.id === layerId);
                 if (layer) {
                     translateLayerBy(layer, dx, dy);
+                    postAction({
+                        type: "transform",
+                        layerID: layer.id,
+                        newMatrix: layer.transform.matrix,
+                    })
                 }
             }         
         }
@@ -265,12 +293,11 @@ export const selectTool: Tool = {
 
 function setAction(c: Point, l: Point | null) {
     // grab scale of selected layer
-    const doc = getSelectedDoc();
-    if (!doc) return;
+    if (!docs.selected) return;
 
-    const selectedLayers = ui.selectedLayers[doc.id];
+    const selectedLayers = ui.selectedLayers[docs.selected.id];
     if (selectedLayers.length === 1) {
-        const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+        const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
         if (!layer) return;
 
         const handlePositions = getScaleHandlePositions(layer.transform.matrix, layer);

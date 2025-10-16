@@ -1,5 +1,5 @@
 import type { UUID, Transform, Color } from "./docs.svelte";
-import { getSelectedDoc } from "./docs.svelte";
+import docs from "./docs.svelte";
 import ui from "./ui.svelte";
 import text from "./tools/text.svelte";
 
@@ -40,8 +40,7 @@ export type TextLayer = BaseLayer & TextProperties & {
 export type Layer = CanvasLayer | TextLayer;
 
 export function createLayer(type: 'canvas' | 'text', name: string): Layer {
-    const doc = getSelectedDoc();
-    if (!doc) throw new Error("No document selected");
+    if (!docs.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
     const base: BaseLayer = {
@@ -60,7 +59,7 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
         return {
             ...base,
             type: 'canvas',
-            canvas: new OffscreenCanvas(doc.width, doc.height)
+            canvas: new OffscreenCanvas(docs.selected.width, docs.selected.height)
         };
     } else {
         return {

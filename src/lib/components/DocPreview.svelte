@@ -1,12 +1,11 @@
 <script lang="ts">
-    import docs, {type Document} from '../scripts/docs.svelte';
+    import docs, {type Document, selectDocument} from '../scripts/docs.svelte';
     import {
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
         deleteDocumentFromDB
     } from "../scripts/persistence.svelte";
-    import ui from "../scripts/ui.svelte";
     import IconButtonVisual from './ui/IconButtonVisual.svelte';
     import { Ellipsis } from '@lucide/svelte';
     import { Popover } from "melt/builders";
@@ -28,8 +27,7 @@
 
     async function selectDoc() {
         docs[doc.id] = await getDocumentFromDB(doc.id);
-        ui.selectedLayers[doc.id] = [];
-        ui.selectedDocument = doc.id;
+        selectDocument(doc.id);
     }
 
     const popover = new Popover();

@@ -1,43 +1,84 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
     import { Plus, X, Eye, EyeOff, Type, Image } from "@lucide/svelte";
     import { createLayer, type LayerID, type Layer } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
     import Input from "../ui/Input.svelte";
-
-    const doc = $derived(getSelectedDoc());
+    import { postAction } from "../../scripts/action";
 
     function addLayer() {
-        if (!doc) return;
+        if (!docs.selected) return;
 
-        const newLayer = createLayer("canvas", `Layer ${doc.layers.length + 1}`);
-        doc.layers = [...doc.layers, newLayer];
+        const newLayer = createLayer("canvas", `Layer ${docs.selected.layers.length + 1}`);
+        docs.selected.layers = [...docs.selected.layers, newLayer];
+
+        postAction({
+            type: "create",
+            layer: newLayer,
+            position: docs.selected.layers.length - 1
+        })
     }
 
     function removeLayer(layerId: LayerID) {
-        if (!doc) return;
-        doc.layers = doc.layers.filter(layer => layer.id !== layerId);
-        if (ui.selectedLayers[doc.id].includes(layerId)) {
-            ui.selectedLayers[doc.id] = ui.selectedLayers[doc.id].filter(id => id !== layerId);
+        if (!docs.selected) return;
+        const layer = docs.selected.layers.find(layer => layer.id === layerId);
+        if (!layer) return;
+
+        const layerPosition = docs.selected.layers.findIndex(layer => layer.id === layerId);
+
+        docs.selected.layers = docs.selected.layers.filter(layer => layer.id !== layerId);
+        if (ui.selectedLayers[docs.selected.id].includes(layerId)) {
+            ui.selectedLayers[docs.selected.id] = ui.selectedLayers[docs.selected.id].filter(id => id !== layerId);
         }
+
+        postAction({
+            type: "delete",
+            layer: layer,
+            position: layerPosition
+        });
     }
 
     function selectLayer(layerId: LayerID) {
-        if (!doc) return;
-        ui.selectedLayers[doc.id] = [layerId];
+        if (!docs.selected) return;
+        ui.selectedLayers[docs.selected.id] = [layerId];
     }
 
     let layerBeingRenamed: LayerID | null = $state(null);
+    let startingIndex: number = -1;
 
     function renameLayer(layerId: LayerID) {
         layerBeingRenamed = layerId;
     }
 
+    function handleRenameBlur() {
+        if (!layerBeingRenamed || !docs.selected) return;
+        const layer = docs.selected.layers.find(l => l.id === layerBeingRenamed);
+        if (!layer) return;
+
+        layerBeingRenamed = null;
+
+        if (layer.name.trim() === "") {
+            layer.name = "Layer";
+        }
+
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { name: layer.name }
+        });
+    }
+
     function toggleLayerVisibility(layer: Layer) {
         layer.visible = !layer.visible;
+
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { visible: layer.visible }
+        });
     }
 
     function handleDragover(event: DragEvent) {
@@ -51,12 +92,22 @@
     }
 
     function updateLayerOrder() {
-        if (doc)
-            doc.layers = layerDisplayList;
+        if (docs.selected) docs.selected.layers = layerDisplayList;
     }
 
     function handleDragEnd() {
         window.clearInterval(updateLayerInterval);
+
+        if (docs.selected) {
+            const newLayerPosition = layerDisplayList.findIndex(l => l.id === layerBeingDragged?.id);
+            postAction({
+                type: 'reorder',
+                layerID: layerBeingDragged!.id,
+                oldPosition: startingIndex,
+                newPosition: newLayerPosition
+            });
+        }
+
         updateLayerOrder();
         layerBeingDragged = null;
         shadowLayerIndex = null;
@@ -78,13 +129,14 @@
         if (layer1Rect && layer2Rect)
             interLayerDiff = layer2Rect.top - layer1Rect.top;
         updateLayerInterval = window.setInterval(updateLayerOrder, 50);
+        startingIndex = index;
     }
 
     let layerDisplayList = $derived.by(() => {
-        if (!doc) return [];
-        if (!layerBeingDragged || shadowLayerIndex === null) return doc.layers;
+        if (!docs.selected) return [];
+        if (!layerBeingDragged || shadowLayerIndex === null) return docs.selected.layers;
         const draggedId = layerBeingDragged.id;
-        const allButDragged = doc.layers.filter(l => l.id !== draggedId);
+        const allButDragged = docs.selected.layers.filter(l => l.id !== draggedId);
         return [
             ...allButDragged.slice(0, shadowLayerIndex),
             layerBeingDragged,
@@ -99,15 +151,15 @@
          ondrop={(e) => e.preventDefault()}
          role="application"
     >
-        {#if !doc}
+        {#if !docs.selected}
             <div>No document selected</div>
         {:else}
             {#each layerDisplayList as layer, index}
                 <div
                     class="layer"
                     style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
-                    class:selected={ui.selectedLayers[doc.id]?.includes(layer.id)}
-                    draggable={doc?.layers.length >= 2 && layer.id !== layerBeingRenamed ? 'true' : undefined}
+                    class:selected={ui.selectedLayers[docs.selected.id]?.includes(layer.id)}
+                    draggable={docs.selected?.layers.length >= 2 && layer.id !== layerBeingRenamed ? 'true' : undefined}
                     ondragstart={(event) => handleDragStart(event, layer, index)}
                     ondragend={handleDragEnd}
                     role="application"
@@ -127,7 +179,7 @@
                                     placeholder="Layer name"
                                     name="layer-name"
                                     bind:value={layer.name}
-                                    onBlur={() => layerBeingRenamed = null}
+                                    onBlur={handleRenameBlur}
                             ><div></div></Input>
                         {:else}
                             <div class="name">{layer.name}</div>
@@ -151,8 +203,8 @@
             {/each}
         {/if}
         <div id="add">
-            <button id="add-layer" disabled={!doc} onclick={addLayer}>
-                <ButtonVisual size="small" style="subtle" width="full" disabled={!doc}>
+            <button id="add-layer" disabled={!docs.selected} onclick={addLayer}>
+                <ButtonVisual size="small" style="subtle" width="full" disabled={!docs.selected}>
                     <Plus />
                 </ButtonVisual>
             </button>

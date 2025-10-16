@@ -1,9 +1,7 @@
 <script lang="ts">
     import { ButtonVisual, Input } from "./ui";
-    import docs from "../scripts/docs.svelte";
-    import ui from "../scripts/ui.svelte";
-    import type { DocumentID } from "../scripts/docs.svelte";
-    import {importImageAsNewDoc} from "../scripts/importImage";
+    import { createDocument } from "../scripts/docs.svelte";
+    import { importImageAsNewDoc } from "../scripts/importImage";
     import {getDocumentsFromDB} from "../scripts/persistence.svelte";
     import DocPreview from './DocPreview.svelte';
     let creatingDocument = $state(false);
@@ -15,7 +13,7 @@
     });
     let creationError: string | null = $state(null);
 
-    function createDocument() {
+    function handleCreateDocument() {
         const width = parseInt(size.width);
         const height = parseInt(size.height);
 
@@ -29,16 +27,8 @@
             return;
         }
 
+        createDocument(name.trim(), width, height);
         creationError = null;
-
-        const id = 'document-' + crypto.randomUUID() as DocumentID;
-        docs[id] = {
-            id, name, width, height, layers: []
-        };
-
-        ui.selectedDocument = id;
-        ui.selectedLayers[id] = [];
-        
         creatingDocument = false;
     }
 
@@ -94,7 +84,7 @@
         {#if creationError}
             <p class="error" style="color: var(--c-fb-err)">{creationError}</p>
         {/if}
-        <button onclick={createDocument}>
+        <button onclick={handleCreateDocument}>
             <ButtonVisual size="large" color="accent" style="solid">
                 Create
             </ButtonVisual>

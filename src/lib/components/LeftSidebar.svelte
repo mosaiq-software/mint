@@ -4,25 +4,24 @@
     import { RadioGroup, Popover } from "melt/builders";
     import ui, { modes } from "../scripts/ui.svelte";
     import type { Mode } from "../scripts/ui.svelte";
-    import { getSelectedDoc, type Color } from "../scripts/docs.svelte";
+    import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
     import ColorPicker from "./overlays/ColorPicker.svelte";
+    import { onMount, onDestroy } from "svelte";
 
     const modesGroup = new RadioGroup({
         value: modes[0],
         onValueChange: (val) => (ui.mode = val as Mode),
     });
 
-    const doc = $derived(getSelectedDoc());
-
     const source: {
         foregroundColor: Color;
         backgroundColor: Color;
     } = $derived.by(() => {
-        if (!doc || !ui.selectedDocument) return ui;
+        if (!docs.selected || !ui.selectedDocument) return ui;
         const selectedLayers = ui.selectedLayers[ui.selectedDocument];
         if (selectedLayers.length === 1)
-            return doc.layers.find((l) => l.id === selectedLayers[0]) || ui;
+            return docs.selected.layers.find((l) => l.id === selectedLayers[0]) || ui;
         return ui;
     });
 
@@ -32,7 +31,8 @@
             computePosition: {
                 placement: "right-end"
             }
-        }
+        },
+        closeOnOutsideClick: false
     });
 
     function swapColors() {
@@ -40,6 +40,28 @@
         source.foregroundColor = { ...source.backgroundColor };
         source.backgroundColor = fg;
     }
+
+    onMount(() => {
+        function handleMouseDown(event: MouseEvent) {
+            const contentEl = document.getElementById(editColorPopover.ids.content);
+            const containsContent = contentEl?.contains(event.target as Node);
+
+            const triggerEls = document.querySelectorAll(`.popover-trigger`);
+            const containsTrigger = Array.from(triggerEls).some(el =>
+                el.contains(event.target as Node)
+            );
+
+            if (
+                editColorPopover.open &&
+                !containsContent &&
+                !containsTrigger
+            ) editColorPopover.open = false;
+        }
+        document.addEventListener("mousedown", handleMouseDown);
+        onDestroy(() => {
+            document.removeEventListener("mousedown", handleMouseDown);
+        });
+    });
 </script>
 
 
@@ -85,22 +107,28 @@
     <div id="colors">
         <button
             {...editColorPopover.trigger}
+            class="popover-trigger"
             id="color-background"
             title="Background Color"
             style:border-color={colorToCSS(source.backgroundColor)}
             onclick={(e) => {
+                e.preventDefault();
+                if (!editColorPopover.open || editingColor == "background")
+                    editColorPopover.trigger.onclick(e);
                 editingColor = "background";
-                editColorPopover.trigger.onclick(e);
             }}
         ></button>
         <button
             {...editColorPopover.trigger}
+            class="popover-trigger"
             id="color-foreground"
             title="Foreground Color"
             style:background-color={colorToCSS(source.foregroundColor)}
             onclick={(e) => {
+                e.preventDefault();
+                if (!editColorPopover.open || editingColor == "foreground")
+                    editColorPopover.trigger.onclick(e);
                 editingColor = "foreground";
-                editColorPopover.trigger.onclick(e);
             }}
         ></button>
         <button id="swap-colors" title="Swap Colors" onclick={swapColors}>

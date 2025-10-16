@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getSelectedDoc } from "../scripts/docs.svelte";
+    import docs from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
@@ -10,15 +10,15 @@
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
-
-    let doc = $derived(getSelectedDoc());
+    import { handleShortcuts } from "../scripts/shortcut";
+;
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     let pointerPosition = $state({ x: 0, y: 0 });
     let selectedLayer = $derived.by(() => {
-        if (!doc) return null;
-        const layerId = ui.selectedLayers[doc.id]?.[0];
-        return doc.layers.find(l => l.id === layerId) || null;
+        if (!docs.selected) return null;
+        const layerId = ui.selectedLayers[docs.selected.id]?.[0];
+        return docs.selected.layers.find(l => l.id === layerId) || null;
     });
 
     const cursorMap: Record<ScaleDirection, string> = {
@@ -63,22 +63,22 @@
     });
     
     $effect(() => {
-        if (canvas && doc) {
-            canvas.width = doc.width;
-            canvas.height = doc.height;
+        if (canvas && docs.selected) {
+            canvas.width = docs.selected.width;
+            canvas.height = docs.selected.height;
 
-            canvas.style.width = doc.width + 'px';
-            canvas.style.height = doc.height + 'px';
+            canvas.style.width = docs.selected.width + 'px';
+            canvas.style.height = docs.selected.height + 'px';
         }
     });
 
     $effect(() => {
-        if (canvas && doc) render(canvas, doc);
+        if (canvas && docs.selected) render(canvas, docs.selected);
     });
 
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
-        if (!doc) return null;
-        const layer = doc.layers.find(l => l.id === layerId);
+        if (!docs.selected) return null;
+        const layer = docs.selected.layers.find(l => l.id === layerId);
         if (!layer) return null;
         
         const invMatrix = layer.transform.matrix.inverse();
@@ -132,6 +132,7 @@
     function handleKeyDown(e: KeyboardEvent) {
         if (e.target && (e.target as HTMLElement).tagName !== 'INPUT') {
             tool.onKeyDown?.(e);
+            handleShortcuts(e);
         }
     }
 
@@ -156,7 +157,6 @@
         const margin = e.target && (e.target as HTMLElement).closest('.drop-margin');
         if (margin) {
             const side = margin.classList.item(1) || undefined;
-            console.log(side);
             handleImageDrop(e, side);
         } else {
             handleImageDrop(e);

@@ -1,4 +1,4 @@
-import { type Document } from './docs.svelte';
+import docs, { type Document } from './docs.svelte';
 import { text } from './tools';
 import { colorToCSS } from './docs.svelte';
 
