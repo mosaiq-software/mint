@@ -50,6 +50,25 @@ async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
     })
 }
 
+async function getSeveralFromDB<type extends DBs>(name: DBs, keys: string[]) {
+    const db = await workOnDatabase(name);
+    return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
+        const tx = db.transaction(name, 'readonly');
+        const succeededs = Object.fromEntries(keys.map(key => [key, false]));
+        const reqs = keys.map(key => {
+            const req = tx.objectStore(name).get(key);
+            req.onsuccess = () => {
+                succeededs[key] = true;
+                if (Object.values(succeededs).every(s => s)) {
+                    resolve(reqs.map(r => r.result));
+                }
+            };
+            req.onerror = () => reject(req.error);
+            return req;
+        });
+    })
+}
+
 async function deleteFromDB(name: DBs, key: IDBValidKey) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
@@ -132,30 +151,32 @@ export async function saveDocumentToDB(document: Document) {
 
 // for an actual document -- metadata + layers
 export async function getDocumentFromDB(docId: DocumentID) {
-    const doc: Document = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
+    const doc = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
+
+    const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
+
+    const layerIDs = canvasLayers.map(l => l.id);
+    const layers = await getSeveralFromDB<DBs.LAYERS>(DBs.LAYERS, layerIDs);
+
+    const canvasBlobPs: Promise<null>[] = [];
+
+    let canvasLayerIndex = 0;
+    for (let i = 0; i < doc.layers.length; i++) {
+        const l = doc.layers[i];
+        if (l.type === 'canvas') {
+            const blob = layers[canvasLayerIndex];
+            l.canvas = new OffscreenCanvas(doc.width, doc.height);
+            const ctx = l.canvas.getContext('2d');
+            if (ctx)
+                canvasBlobPs.push(drawBlobOnOffscreenCanvas(blob, ctx));
+            canvasLayerIndex++;
+        }
+    }
+
+    await Promise.all(canvasBlobPs);
 
     return new Promise<Document>((resolve, reject) => {
-
-        const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
-        const layerPromises = canvasLayers.map(l =>
-            getFromDB<DBs.LAYERS>(DBs.LAYERS, l.id)
-        );
-
-        Promise.all(layerPromises).then(results => {
-            let resultIndex = 0;
-            for (let i = 0; i < doc.layers.length; i++) {
-                const l = doc.layers[i];
-                if (l.type === 'canvas') {
-                    const blob = results[resultIndex];
-                    l.canvas = new OffscreenCanvas(doc.width, doc.height);
-                    const ctx = l.canvas.getContext('2d');
-                    if (ctx)
-                        drawBlobOnOffscreenCanvas(blob, ctx);
-                    resultIndex++;
-                }
-            }
-            resolve(doc);
-        });
+        resolve(doc);
     });
 }
 
@@ -172,7 +193,7 @@ export async function getDocumentsFromDB() {
         const canvas = new OffscreenCanvas(pWidth, pHeight);
         const ctx = canvas.getContext('2d');
         if (ctx) {
-            const blobDrawn = await drawBlobOnOffscreenCanvas(blob, ctx);
+            await drawBlobOnOffscreenCanvas(blob, ctx);
         }
         return {...d, preview: canvas};
     });
