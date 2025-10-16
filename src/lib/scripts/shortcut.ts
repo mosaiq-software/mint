@@ -1,5 +1,6 @@
 import { undoAction, redoAction } from "./action";
 import docs from "./docs.svelte";
+import { deepCopyLayer } from "./action";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -30,10 +31,10 @@ function handleUndo() {
         const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
         if (layerIndex !== -1) {
             // update existing layer
-            docs.selected.layers[layerIndex] = action.oldLayer;
+            docs.selected.layers[layerIndex] = deepCopyLayer(action.oldLayer);
         } else {
             // add layer back to document
-            docs.selected.layers.push(action.oldLayer);
+            docs.selected.layers.push(deepCopyLayer(action.oldLayer));
         }
     }
 }
@@ -52,10 +53,10 @@ function handleRedo() {
         const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
         if (layerIndex !== -1) {
             // update existing layer
-            docs.selected.layers[layerIndex] = action.newLayer;
+            docs.selected.layers[layerIndex] = deepCopyLayer(action.newLayer);
         } else {
             // add layer back to ducment
-            docs.selected.layers.push(action.newLayer);
+            docs.selected.layers.push(deepCopyLayer(action.newLayer));
         }
     }
 }

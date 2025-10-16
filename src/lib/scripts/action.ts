@@ -46,8 +46,9 @@ export function postAction(layerID: LayerID, newLayer: Layer | null) {
         newLayer: newLayerCopy
     });
     currentActionIndex[documentId]++;
+
+    // limit the number of actions to 50
     if (currentActionIndex[documentId] >= 50) {
-        // limit the number of actions to 50
         actions[documentId].shift();
         currentActionIndex[documentId]--;
     }
@@ -62,17 +63,15 @@ export function postAction(layerID: LayerID, newLayer: Layer | null) {
  * @param layer 
  * @returns 
  */
-function deepCopyLayer(layer: Layer): Layer {
-    const layerCopy = { ...layer };
+export function deepCopyLayer(layer: Layer): Layer {
+    const layerCopy: Layer = { ...layer};
 
-    if (layer.type === 'canvas') {
+    if (layerCopy.type === 'canvas' && layer.type === 'canvas') {
         // create a new OffscreenCanvas and copy the contents
         const canvasCopy = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
         const ctx = canvasCopy.getContext('2d');
-        if (ctx) {
-            ctx.drawImage(layer.canvas, 0, 0);
-        }
-        layer.canvas = canvasCopy;
+        if (ctx) ctx.drawImage(layer.canvas, 0, 0);
+        layerCopy.canvas = canvasCopy;
     }
 
     // copy the layer transform
@@ -84,24 +83,27 @@ function deepCopyLayer(layer: Layer): Layer {
 
 export function undoAction(documentId: DocumentID): Action | null {
     const a = actions[documentId];
-    const index = currentActionIndex[documentId];
+    let index = currentActionIndex[documentId];
 
-    // make sure there is an action to undo
     if (a && index >= 0) {
-        currentActionIndex[documentId]--;
-        return a[index];
+        const action = a[index];
+        snapshots[action.layerID] = action.oldLayer ? deepCopyLayer(action.oldLayer) : null;
+        currentActionIndex[documentId] = index - 1;
+        return action;
     }
     return null;
 }
 
 export function redoAction(documentId: DocumentID): Action | null {
     const a = actions[documentId];
-    const index = currentActionIndex[documentId];
+    let index = currentActionIndex[documentId];
 
-    // make sure there is an action to redo
     if (a && index < a.length - 1) {
-        currentActionIndex[documentId]++;
-        return a[index+1];
+        index = index + 1;
+        const action = a[index];
+        snapshots[action.layerID] = action.newLayer ? deepCopyLayer(action.newLayer) : null;
+        currentActionIndex[documentId] = index;
+        return action;
     }
     return null;
 }
