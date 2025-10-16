@@ -4,6 +4,7 @@
     import ui from "../scripts/ui.svelte";
     import type { DocumentID } from "../scripts/docs.svelte";
     import {importImageAsNewDoc} from "../scripts/importImage";
+    import {getDocumentsFromDB} from "../scripts/persistence";
     let creatingDocument = $state(false);
 
     let name = $state("");
@@ -107,10 +108,31 @@
             </ButtonVisual>
         </button>
         <p>(or drag to import)</p>
+        {#await getDocumentsFromDB()}
+            <div class="db-message">Loading your documents...</div>
+        {:then documents}
+            {#if documents.length > 0}
+                <!--componentize this later-->
+                {#each documents as doc}
+                    <div>
+                        {doc.name}
+                    </div>
+                {/each}
+            {:else}
+                <div class="db-message">No documents found.</div>
+            {/if}
+        {:catch error}
+            <div class="db-message">Error loading your documents: {error}.</div>
+        {/await}
     </div>
 {/if}
 
 <style>
+    .db-message {
+        opacity: 0.8;
+        font-style: italic;
+    }
+
     #welcome {
         display: flex;
         flex-direction: column;
