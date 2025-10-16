@@ -1,7 +1,8 @@
 import type { Tool, Point } from ".";
-import { getSelectedDoc } from "../docs.svelte";
+import docs from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
+import { postAction } from "../action";
 
 export const draw = $state({
     drawing: false,
@@ -92,21 +93,26 @@ export const drawTool: Tool = {
 
         if (!data.l) {
             const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            if (!docs.selected) return;
 
-            doc.layers = [...doc.layers, newLayer];
-            ui.selectedLayers[doc.id] = [newLayer.id];
+            // add new layer to document and select it
+            docs.selected.layers = [...docs.selected.layers, newLayer];
+            ui.selectedLayers[docs.selected.id] = [newLayer.id];
+
+            postAction({
+                type: 'create',
+                layer: newLayer,
+                position: docs.selected.layers.length - 1
+            });
         } else {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
             const selectedLayers = ui.selectedLayers[ui.selectedDocument || ''];
             if (selectedLayers.length === 0) return;
 
-            const doc = getSelectedDoc();
-            if (!doc) return;
+            if (!docs.selected) return;
 
-            const layer = doc.layers.find(l => l.id === selectedLayers[0]);
+            const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') return;
         }
 
@@ -168,9 +174,8 @@ export const drawTool: Tool = {
         drawStamp(data.l);
         stroke.current = data.l;
 
-        const doc = getSelectedDoc();
-        if (!doc) return;
-        doc.layers = [...doc.layers];
+        if (!docs.selected) return;
+        docs.selected.layers = [...docs.selected.layers];
     },
     onPointerUp: (data) => {
         if (!draw.drawing || !data.l || !drawLayer) return;
@@ -188,21 +193,27 @@ export const drawTool: Tool = {
         layerSnapshot = null;
 
         // force update
-        const doc = getSelectedDoc();
-        if (!doc) return;
-        doc.layers = [...doc.layers];
+        if (!docs.selected) return;
+        
+        if (drawLayer) postAction({
+            type: "content",
+            layerID: drawLayer.id,
+            newContent: drawLayer.canvas
+                .getContext('2d')!
+                .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
+        });
+        docs.selected.layers = [...docs.selected.layers];
     }
 }
 
 export function getSelectedDrawLayer() {
-    const doc = getSelectedDoc();
-    if (!doc) return null;
+    if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[doc.id]
+    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
     if (selectedLayerIds.length !== 1) return null;
     const selectedLayerId = selectedLayerIds[0];
 
-    const layer = doc.layers.find(l => l.id === selectedLayerId);
+    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
     if (layer?.type !== 'canvas') return null;
     
     return layer;

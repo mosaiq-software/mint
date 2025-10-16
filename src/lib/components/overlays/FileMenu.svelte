@@ -1,21 +1,18 @@
 <script lang="ts">
     import Input from '../ui/Input.svelte';
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
 
-    const doc = $derived(getSelectedDoc());
-
-    let widthStr: string = $derived(doc ? doc.width.toString() : '');
-    let heightStr: string = $derived(doc ? doc.height.toString() : '');
+    let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
+    let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
 
     function handleCanvasSizeBlur(type: 'width' | 'height', dimStr: string) {
-        let doc = getSelectedDoc();
-        if (!doc) return dimStr;
+        if (!docs.selected) return dimStr;
 
         let dim = parseInt(dimStr);
         if (isNaN(dim) || dim <= 0) {
-            return `${doc[type]}`;
+            return `${docs.selected[type]}`;
         } else {
-            doc[type] = dim;
+            docs.selected[type] = dim;
             return dimStr;
         }
     }

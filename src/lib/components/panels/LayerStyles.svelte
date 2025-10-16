@@ -2,13 +2,13 @@
     import Panel from "./Panel.svelte";
     import Slider from "../ui/Slider.svelte";
     import {Input} from "../ui";
-    import {getSelectedDoc} from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
+    import { postAction } from "../../scripts/action";
 
-    const doc = $derived(getSelectedDoc());
     const selectedLayer = $derived.by(() => {
-        if (!doc) return null;
-        return doc.layers.find((l) => ui.selectedLayers[doc.id].includes(l.id));
+        if (!docs.selected) return null;
+        return docs.selected.layers.find((l) => ui.selectedLayers[docs.selected!.id].includes(l.id));
     });
     const selectedLayerId = $derived(selectedLayer?.id);
 
@@ -21,7 +21,7 @@
     }
 
     function updateLayer() {
-        const layer = getSelectedDoc()?.layers.find((l) => l.id === selectedLayerId);
+        const layer = docs.selected?.layers.find((l) => l.id === selectedLayerId);
         if (layer) {
             layer.opacity = opacity;
         }
@@ -34,6 +34,16 @@
             updateLayer();
             debounceTimeout = null;
         }, 8);
+    }
+
+    function addOpacityAction() {
+        if (selectedLayerId) {
+            postAction({
+                type: "update",
+                layerID: selectedLayerId!,
+                newLayer: { opacity }
+            });
+        }
     }
 </script>
 
@@ -49,6 +59,7 @@
                 opacity = safeParseFloat(opacityStr, selectedLayer?.opacity, 0, 1);
                 opacityStr = opacity.toFixed(2);
                 updateLayer();
+                addOpacityAction();
             }}
         >
             <div></div>
@@ -57,6 +68,7 @@
             min={0} max={1} step={0.01}
             bind:value={opacity}
             onValueChange={debouncedUpdateLayer}
+            onBlur={addOpacityAction}
         />
     </div>
 </Panel>

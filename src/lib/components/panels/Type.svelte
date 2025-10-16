@@ -7,6 +7,7 @@
     import type { TextProperties } from "../../scripts/layer";
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { Bold, Italic } from "@lucide/svelte";
+    import { postAction } from "../../scripts/action";
 
     const textLayer = $derived(getSelectedTextLayer());
     const p: TextProperties = $derived(textLayer ? textLayer : text.properties);
@@ -20,13 +21,30 @@
         return brightness < 128 ? "var(--c-txt)" : "var(--c-bg)";
     });
 
+    function handleFontFamilyChange() {
+        if (textLayer) {
+            postAction({
+                type: "update",
+                layerID: textLayer.id,
+                newLayer: { fontFamily: p.fontFamily }
+            });
+        }
+    }
+
     let fontSize = $derived(p.fontSize.toString());
     function handleFontSizeChange() {
         const value = parseInt(fontSize);
         if (isNaN(value)) return;
 
         p.fontSize = value;
-        if (textLayer) textLayer.fontSize = value;
+        if (textLayer) {
+            textLayer.fontSize = value;
+            postAction({
+                type: "update",
+                layerID: textLayer.id,
+                newLayer: { fontSize: value }
+            });
+        }
     }
 
     let lineHeight = $derived(p.lineHeight.toString());
@@ -35,7 +53,33 @@
         if (isNaN(value)) return;
 
         p.lineHeight = value;
-        if (textLayer) textLayer.lineHeight = value;
+        if (textLayer) {
+            postAction({
+                type: "update",
+                layerID: textLayer.id,
+                newLayer: { lineHeight: value }
+            });
+        }
+    }
+
+    function handleBoldToggle() {
+        if (textLayer) {
+            postAction({
+                type: "update",
+                layerID: textLayer.id,
+                newLayer: { bold: p.bold }
+            });
+        }
+    }
+
+    function handleItalicToggle() {
+        if (textLayer) {
+            postAction({
+                type: "update",
+                layerID: textLayer.id,
+                newLayer: { italic: p.italic }
+            });
+        }
     }
 
 </script>
@@ -49,6 +93,7 @@
                     bind:value={p.fontFamily}
                     placeholder="Font Family"
                     labelPosition="side"
+                    onBlur={handleFontFamilyChange}
                 ><div class="preview-label">Family</div></Input>
                 <Input
                     name="Size"
@@ -81,10 +126,12 @@
                 <IconToggle
                     label="Bold"
                     bind:value={p.bold}
+                    onValueChange={handleBoldToggle}
                 ><Bold size={16}/></IconToggle>
                 <IconToggle
                     label="Italic"
                     bind:value={p.italic}
+                    onValueChange={handleItalicToggle}
                 ><Italic size={16}/></IconToggle>
             </div>
         </div>

@@ -34,12 +34,12 @@ export type Document = {
     layers: Layer[];
 };
 
-/* Functions */
-export function getSelectedDoc(): Document | null {
-    if (!ui.selectedDocument) return null;
-    return docs[ui.selectedDocument] || null;
-}
+/* State */
+const docs: Record<DocumentID, Document> & {selected: Document | null} = $state({
+    selected: null
+});
 
+/* Functions */
 export function matrixToTransformComponents(matrix: DOMMatrix): TransformComponents {
     const { a, b, c, d, e, f } = matrix;
     const scaleX = Math.sqrt(a * a + b * b);
@@ -56,6 +56,17 @@ export function colorToCSS(color: Color): string {
     return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
 }
 
-/* State */
-const docs: Record<DocumentID, Document> = $state({});
+export function createDocument(name: string, width: number, height: number): DocumentID {
+    const id: DocumentID = `document-${crypto.randomUUID()}`;
+    docs[id] = {
+        id, name, width, height, layers: []
+    };
+
+    ui.selectedDocument = id;
+    ui.selectedLayers[id] = [];
+    docs.selected = docs[id];
+
+    return id;
+}
+
 export default docs;

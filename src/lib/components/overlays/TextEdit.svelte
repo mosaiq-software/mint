@@ -11,8 +11,9 @@
 
 <script lang="ts">
     import type { TextLayer } from "../../scripts/layer";
-    import { getSelectedDoc } from "../../scripts/docs.svelte";
+    import docs from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
+    import { postAction } from "../../scripts/action";
 
     interface Props {
         layer: TextLayer;
@@ -20,20 +21,26 @@
 
     let { layer = $bindable() }: Props = $props();
 
-    const doc = $derived(getSelectedDoc());
-
     const text = $derived(layer.text);
     const m = $derived(layer.transform.matrix);
 
     function handleInput(event: Event) {
         const target = event.target as HTMLTextAreaElement;
         layer.text = target.value;
-        if (doc) doc.layers = [...doc.layers]; // trigger reactivity
+        if (docs.selected) docs.selected.layers = [...docs.selected.layers]; // trigger reactivity
 
         // Reset scroll after the browser's automatic scroll
         requestAnimationFrame(() => {
             target.scrollTop = 0;
             target.scrollLeft = 0;
+        });
+    }
+
+    function handleBlur() {
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { text: layer.text },
         });
     }
 </script>
@@ -48,6 +55,7 @@
         bind:this={textarea}
         value={text}
         oninput={handleInput}
+        onblur={handleBlur}
         style:font-family={layer.fontFamily}
         style:font-size={layer.fontSize + 'px'}
         style:line-height={layer.lineHeight}

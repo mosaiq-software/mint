@@ -4,7 +4,7 @@
     import { RadioGroup, Popover } from "melt/builders";
     import ui, { modes } from "../scripts/ui.svelte";
     import type { Mode } from "../scripts/ui.svelte";
-    import { getSelectedDoc, type Color } from "../scripts/docs.svelte";
+    import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
     import ColorPicker from "./overlays/ColorPicker.svelte";
     import { onMount, onDestroy } from "svelte";
@@ -14,16 +14,14 @@
         onValueChange: (val) => (ui.mode = val as Mode),
     });
 
-    const doc = $derived(getSelectedDoc());
-
     const source: {
         foregroundColor: Color;
         backgroundColor: Color;
     } = $derived.by(() => {
-        if (!doc || !ui.selectedDocument) return ui;
+        if (!docs.selected || !ui.selectedDocument) return ui;
         const selectedLayers = ui.selectedLayers[ui.selectedDocument];
         if (selectedLayers.length === 1)
-            return doc.layers.find((l) => l.id === selectedLayers[0]) || ui;
+            return docs.selected.layers.find((l) => l.id === selectedLayers[0]) || ui;
         return ui;
     });
 
