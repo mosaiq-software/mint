@@ -2,6 +2,7 @@
     import Input from '../ui/Input.svelte';
     import docs from "../../scripts/docs.svelte";
     import {saveDocumentToDB} from "../../scripts/persistence.svelte";
+    import {handleSave} from "../../scripts/shortcut";
 
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
@@ -15,12 +16,6 @@
         } else {
             docs.selected[type] = dim;
             return dimStr;
-        }
-    }
-
-    function handleSave() {
-        if (docs.selected) {
-            saveDocumentToDB(docs.selected);
         }
     }
 </script>

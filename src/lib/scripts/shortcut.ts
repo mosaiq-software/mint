@@ -1,6 +1,7 @@
 import { undoAction, redoAction } from "./action";
 import docs from "./docs.svelte";
 import { deepCopyLayer } from "./action";
+import {saveDocumentToDB} from "./persistence.svelte";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -13,8 +14,20 @@ export function handleShortcuts(event: KeyboardEvent) {
                 event.preventDefault();
                 handleRedo();
                 break;
+            case 's':
+                event.preventDefault();
+                handleSave();
+                break;
         }
     }
+}
+
+export function handleSave() {
+    if (!docs.selected) return;
+
+    saveDocumentToDB(docs.selected).then(r => {
+        console.log('saved');
+    });
 }
 
 function handleUndo() {
