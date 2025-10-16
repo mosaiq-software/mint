@@ -293,3 +293,13 @@ function updateSnapshot(action: Action, type: 'undo' | 'redo') {
         }
     }
 }
+
+/**
+ * Populates the snapshots object with deep copies of the given layers.
+ * @param layers 
+ */
+export function populateSnapshots(layers: Layer[]) {
+    for (const layer of layers) {
+        snapshots[layer.id] = deepCopyLayer(layer);
+    }
+}

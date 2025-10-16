@@ -73,7 +73,7 @@
     });
 
     $effect(() => {
-        if (canvas && docs.selected) render(canvas);
+        if (canvas && docs.selected) render(canvas, docs.selected);
     });
 
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {

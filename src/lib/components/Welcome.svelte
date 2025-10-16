@@ -2,6 +2,8 @@
     import { ButtonVisual, Input } from "./ui";
     import { createDocument } from "../scripts/docs.svelte";
     import { importImageAsNewDoc } from "../scripts/importImage";
+    import {getDocumentsFromDB} from "../scripts/persistence.svelte";
+    import DocPreview from './DocPreview.svelte';
     let creatingDocument = $state(false);
 
     let name = $state("");
@@ -41,6 +43,16 @@
             }
         }
         input.click();
+    }
+
+    let DBDocuments = $state(getDocumentsFromDB());
+
+    function rerenderDocs() {
+        DBDocuments = getDocumentsFromDB();
+    }
+
+    function sortByLastModified(documents: Document[] & {lastModified: Date}) {
+        return [...documents].sort((a, b) => a.lastModified < b.lastModified);
     }
 </script>
 
@@ -97,10 +109,32 @@
             </ButtonVisual>
         </button>
         <p>(or drag to import)</p>
+        {#await DBDocuments}
+            <div></div>
+        {:then documents}
+            {#if documents.length > 0}
+                <div class="docs">
+                    {#each sortByLastModified(documents) as doc}
+                        <DocPreview doc={doc} rerenderDocs={rerenderDocs} />
+                    {/each}
+                </div>
+            {:else}
+                <div></div>
+            {/if}
+        {:catch error}
+            <div class="db-message">Error loading your documents: {error}.</div>
+        {/await}
     </div>
 {/if}
 
 <style>
+    .docs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s-md);
+        justify-content: center;
+    }
+
     #welcome {
         display: flex;
         flex-direction: column;
