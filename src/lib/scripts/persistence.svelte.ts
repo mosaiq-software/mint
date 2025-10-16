@@ -50,6 +50,16 @@ async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
     })
 }
 
+async function deleteFromDB(name: DBs, key: IDBValidKey) {
+    const db = await workOnDatabase(name);
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(name, 'readwrite');
+        const req = tx.objectStore(name).delete(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
 async function getAllFromDB<type extends DBs>(name: DBs) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
@@ -162,4 +172,15 @@ export async function getDocumentsFromDB() {
             }))
         });
     });
+}
+
+export async function deleteDocumentFromDB(doc: Document) {
+    const metadataP = deleteFromDB(DBs.METADATA, doc.id);
+    const previewsP = deleteFromDB(DBs.PREVIEWS, doc.id);
+    const layersPs = doc.layers.map(l => deleteFromDB(DBs.LAYERS, l.id));
+    return new Promise((resolve, reject) => {
+        Promise.all([metadataP, previewsP, ...layersPs]).then(() => {
+            resolve(null);
+        })
+    })
 }

@@ -54,6 +54,12 @@
         }
         input.click();
     }
+
+    let DBDocuments = $state(getDocumentsFromDB());
+
+    function rerenderDocs() {
+        DBDocuments = getDocumentsFromDB();
+    }
 </script>
 
 {#if creatingDocument}
@@ -109,13 +115,13 @@
             </ButtonVisual>
         </button>
         <p>(or drag to import)</p>
-        {#await getDocumentsFromDB()}
+        {#await DBDocuments}
             <div class="db-message">Loading your documents...</div>
         {:then documents}
             {#if documents.length > 0}
                 <div class="docs">
                     {#each documents as doc}
-                        <DocPreview doc={doc} />
+                        <DocPreview doc={doc} rerenderDocs={rerenderDocs} />
                     {/each}
                 </div>
             {:else}
