@@ -1,5 +1,6 @@
 import {type Document, type DocumentID} from './docs.svelte';
 import {render} from "./render";
+import type {TextLayer, CanvasLayer} from "./layer";
 
 enum DBs {
     METADATA = 'metadata',
@@ -8,7 +9,7 @@ enum DBs {
 }
 
 interface DatabaseTypes {
-    [DBs.METADATA]: Document,
+    [DBs.METADATA]: Document & {layers: (TextLayer | (Omit<CanvasLayer, 'canvas'> & {canvasDimensions: {width: number, height: number}}) )[]},
     [DBs.LAYERS]: Blob,
     [DBs.PREVIEWS]: Blob
 }
@@ -132,7 +133,20 @@ export async function saveDocumentToDB(document: Document) {
     const metadataP = putInDB(DBs.METADATA, docId, {
         ...document,
         layers: document.layers.map(l => {
-            return {...l, canvas: undefined}
+            return {
+                ...l,
+                ...(
+                    l.type === 'canvas'
+                        ? {
+                            canvas: undefined,
+                            canvasDimensions: {
+                                width: l.canvas.width,
+                                height: l.canvas.height
+                            }
+                        }
+                        : {}
+                )
+            };
         })
     });
 
@@ -163,9 +177,14 @@ export async function getDocumentFromDB(docId: DocumentID) {
     let canvasLayerIndex = 0;
     for (let i = 0; i < doc.layers.length; i++) {
         const l = doc.layers[i];
+        const m = l.transform.matrix;
+        l.transform.matrix = new DOMMatrix(
+            [m.a, m.b, m.c, m.d, m.e, m.f]
+        );
         if (l.type === 'canvas') {
+            const {width, height} = l.canvasDimensions;
             const blob = layers[canvasLayerIndex];
-            l.canvas = new OffscreenCanvas(doc.width, doc.height);
+            l.canvas = new OffscreenCanvas(width, height);
             const ctx = l.canvas.getContext('2d');
             if (ctx)
                 canvasBlobPs.push(drawBlobOnOffscreenCanvas(blob, ctx));
