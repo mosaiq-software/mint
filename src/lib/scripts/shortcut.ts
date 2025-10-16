@@ -57,6 +57,13 @@ function handleUndo() {
                 Object.assign(layer, action.oldLayer);
             }
         }
+    } else if (action.type === 'reorder') {
+        // layer was reordered, so move it back to oldPosition
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const [layer] = docs.selected.layers.splice(layerIndex, 1);
+            docs.selected.layers.splice(action.oldPosition, 0, layer);
+        }
     }
 
     // force re-render
@@ -102,6 +109,13 @@ function handleRedo() {
             if (layer) {
                 Object.assign(layer, action.newLayer);
             }
+        }
+    } else if (action.type === 'reorder') {
+        // layer was reordered, so move it to newPosition
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const [layer] = docs.selected.layers.splice(layerIndex, 1);
+            docs.selected.layers.splice(action.newPosition, 0, layer);
         }
     }
 

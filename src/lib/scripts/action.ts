@@ -35,6 +35,13 @@ type UpdateAction = {
     newLayer: Partial<Layer>;
 }
 
+type ReorderAction = {
+    type: 'reorder';
+    layerID: LayerID;
+    oldPosition: number;
+    newPosition: number;
+}
+
 /**
  * An action represents a change made to a layer. It stores
  * the old state and new state of the layer. Used for undo/redo
@@ -44,7 +51,8 @@ export type Action = CreateAction
     | DeleteAction
     | TransformAction
     | ContentAction
-    | UpdateAction;
+    | UpdateAction
+    | ReorderAction;
 
 type CreatePostAction = CreateAction;
 
@@ -68,6 +76,8 @@ type UpdatePostAction = {
     newLayer: Partial<Layer>;
 }
 
+type ReorderPostAction = ReorderAction;
+
 /**
  * A PostAction is similar to an Action, but only stores the new state of the layer.
  * Used for creating new actions, as the old state is captured via snapshots.
@@ -76,7 +86,8 @@ export type PostAction = CreatePostAction
     | DeletePostAction
     | TransformPostAction
     | ContentPostAction
-    | UpdatePostAction;
+    | UpdatePostAction
+    | ReorderPostAction;
 
 const actions: Record<DocumentID, Action[]> = {};
 const snapshots: Record<LayerID, Layer | null> = {};
@@ -149,6 +160,13 @@ export function postAction(postAction: PostAction) {
             oldLayer: oldLayer as Partial<Layer>,
             newLayer: postAction.newLayer
         }
+    } else if (postAction.type === 'reorder') {
+        action = {
+            type: 'reorder',
+            layerID: postAction.layerID,
+            oldPosition: postAction.oldPosition,
+            newPosition: postAction.newPosition
+        };
     } else {
         console.warn('Unknown postAction type:', postAction);
         return;

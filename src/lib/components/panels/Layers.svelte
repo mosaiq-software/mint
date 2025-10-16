@@ -7,20 +7,38 @@
     import { createLayer, type LayerID, type Layer } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
     import Input from "../ui/Input.svelte";
+    import { postAction } from "../../scripts/action";
 
     function addLayer() {
         if (!docs.selected) return;
 
         const newLayer = createLayer("canvas", `Layer ${docs.selected.layers.length + 1}`);
         docs.selected.layers = [...docs.selected.layers, newLayer];
+
+        postAction({
+            type: "create",
+            layer: newLayer,
+            position: docs.selected.layers.length - 1
+        })
     }
 
     function removeLayer(layerId: LayerID) {
         if (!docs.selected) return;
+        const layer = docs.selected.layers.find(layer => layer.id === layerId);
+        if (!layer) return;
+
+        const layerPosition = docs.selected.layers.findIndex(layer => layer.id === layerId);
+
         docs.selected.layers = docs.selected.layers.filter(layer => layer.id !== layerId);
         if (ui.selectedLayers[docs.selected.id].includes(layerId)) {
             ui.selectedLayers[docs.selected.id] = ui.selectedLayers[docs.selected.id].filter(id => id !== layerId);
         }
+
+        postAction({
+            type: "delete",
+            layer: layer,
+            position: layerPosition
+        });
     }
 
     function selectLayer(layerId: LayerID) {
@@ -29,13 +47,38 @@
     }
 
     let layerBeingRenamed: LayerID | null = $state(null);
+    let startingIndex: number = -1;
 
     function renameLayer(layerId: LayerID) {
         layerBeingRenamed = layerId;
     }
 
+    function handleRenameBlur() {
+        if (!layerBeingRenamed || !docs.selected) return;
+        const layer = docs.selected.layers.find(l => l.id === layerBeingRenamed);
+        if (!layer) return;
+
+        layerBeingRenamed = null;
+
+        if (layer.name.trim() === "") {
+            layer.name = "Layer";
+        }
+
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { name: layer.name }
+        });
+    }
+
     function toggleLayerVisibility(layer: Layer) {
         layer.visible = !layer.visible;
+
+        postAction({
+            type: "update",
+            layerID: layer.id,
+            newLayer: { visible: layer.visible }
+        });
     }
 
     function handleDragover(event: DragEvent) {
@@ -54,6 +97,17 @@
 
     function handleDragEnd() {
         window.clearInterval(updateLayerInterval);
+
+        if (docs.selected) {
+            const newLayerPosition = layerDisplayList.findIndex(l => l.id === layerBeingDragged?.id);
+            postAction({
+                type: 'reorder',
+                layerID: layerBeingDragged!.id,
+                oldPosition: startingIndex,
+                newPosition: newLayerPosition
+            });
+        }
+
         updateLayerOrder();
         layerBeingDragged = null;
         shadowLayerIndex = null;
@@ -75,6 +129,7 @@
         if (layer1Rect && layer2Rect)
             interLayerDiff = layer2Rect.top - layer1Rect.top;
         updateLayerInterval = window.setInterval(updateLayerOrder, 50);
+        startingIndex = index;
     }
 
     let layerDisplayList = $derived.by(() => {
@@ -124,7 +179,7 @@
                                     placeholder="Layer name"
                                     name="layer-name"
                                     bind:value={layer.name}
-                                    onBlur={() => layerBeingRenamed = null}
+                                    onBlur={handleRenameBlur}
                             ><div></div></Input>
                         {:else}
                             <div class="name">{layer.name}</div>
