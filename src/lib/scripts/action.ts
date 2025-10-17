@@ -49,8 +49,8 @@ type DocumentAction = {
 }
 
 type CompoundAction = {
-    type: 'compound';
-    actions: Action[];
+    type: 'compound',
+    actions: (Action | null)[]
 }
 
 /**
@@ -94,9 +94,9 @@ type ReorderPostAction = ReorderAction;
 type DocumentPostAction = DocumentAction;
 
 type CompoundPostAction = {
-    type: 'compound';
-    actions: PostAction[];
-};
+    type: 'compound',
+    actions: PostAction[]
+}
 
 /**
  * A PostAction is similar to an Action, but only stores the new state of the layer.
@@ -180,8 +180,8 @@ function postActionToAction(postAction: PostAction): Action | null {
     } else if (postAction.type === 'compound') {
         action = {
             type: 'compound',
-            actions: postAction.actions.map(postActionToAction).filter(a => !!a)
-        };
+            actions: postAction.actions.map(postActionToAction)
+        }
     } else {
         console.warn('Unknown postAction type:', postAction);
         return null;
@@ -310,6 +310,11 @@ function updateSnapshot(action: Action, type: 'undo' | 'redo') {
             layer.transform.matrix = type === 'undo'
                 ? action.oldMatrix
                 : action.newMatrix;
+            if (docs.selected?.layers.find(l => l.id === action.layerID)) {
+                (docs.selected.layers.find(l => l.id === action.layerID) as Layer).transform.matrix = type === 'undo'
+                    ? action.oldMatrix
+                    : action.newMatrix;
+            }
         }
     } else if (action.type === 'content') {
         const layer = snapshots[action.layerID];
@@ -332,15 +337,13 @@ function updateSnapshot(action: Action, type: 'undo' | 'redo') {
         }
     } else if (action.type === 'document') {
         const id = action.oldDocument.id;
-        const doc = type === 'undo'
-            ? {...docs[id], ...action.oldDocument}
-            : {...docs[id], ...action.newDocument};
-        docs[id] = doc;
-        if (id === docs.selected?.id) {
-            docs.selected = doc;
-        }
+        const changes = type === 'undo' ? action.oldDocument : action.newDocument;
+        Object.assign(docs[id], changes);
     } else if (action.type === 'compound') {
-        action.actions.forEach(ac => updateSnapshot(ac, type));
+        action.actions.forEach((a, i) => {
+            if (a)
+                updateSnapshot(a, type);
+        });
     }
 }
 

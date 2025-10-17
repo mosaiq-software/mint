@@ -1,5 +1,6 @@
 import { type CanvasLayer, createLayer, translateLayerBy } from "./layer";
 import docs, { createDocument } from "./docs.svelte";
+import {postAction, type PostAction} from "./action";
 
 export function handleImageDrop(event: DragEvent, marginSide: string = '') {
     event.preventDefault();
@@ -19,9 +20,28 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                         const scale = layer.canvas.height / img.height;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
                         const imgWidth = Math.floor(img.width * scale);
-                        docs.selected.width += imgWidth;
+                        const actions: PostAction[] = [];
+                        actions.push({
+                            type: 'document',
+                            oldDocument: {id: docs.selected.id, width: docs.selected.width},
+                            newDocument: {id: docs.selected.id, width: docs.selected.width + imgWidth}
+                        });
                         docs.selected.layers.forEach(oldLayer => {
                             translateLayerBy(oldLayer, imgWidth, 0);
+                            actions.push({
+                                type: 'transform',
+                                layerID: oldLayer.id,
+                                newMatrix: oldLayer.transform.matrix
+                            });
+                        });
+                        postAction({
+                            type: 'compound',
+                            actions
+                        });
+                        postAction({
+                            type: 'create',
+                            layer,
+                            position: docs.selected.layers.length
                         });
                         break;
                     }
@@ -29,28 +49,72 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                         const scale = layer.canvas.width / img.width;
                         layer.transform.matrix = layer.transform.matrix.scale(scale, scale);
                         const imgHeight = Math.floor(img.height * scale);
-                        docs.selected.height += imgHeight;
+                        const actions: PostAction[] = [];
+                        actions.push({
+                            type: 'document',
+                            oldDocument: {id: docs.selected.id, height: docs.selected.height},
+                            newDocument: {id: docs.selected.id, height: docs.selected.height + imgHeight}
+                        });
                         docs.selected.layers.forEach(oldLayer => {
                             translateLayerBy(oldLayer, 0, imgHeight);
+                            actions.push({
+                                type: 'transform',
+                                layerID: oldLayer.id,
+                                newMatrix: oldLayer.transform.matrix
+                            });
+                        });
+                        postAction({
+                            type: 'compound',
+                            actions
+                        });
+                        postAction({
+                            type: 'create',
+                            layer,
+                            position: docs.selected.layers.length
                         });
                         break;
                     }
                     case 'right': {
                         const scale = layer.canvas.height / img.height;
                         layer.transform.matrix = layer.transform.matrix.translate(docs.selected.width, 0).scale(scale, scale);
-                        docs.selected.width += Math.floor(img.width * scale);
+                        const widthDiff = Math.floor(img.width * scale);
+                        postAction({
+                            type: 'document',
+                            oldDocument: {id: docs.selected.id, width: docs.selected.width},
+                            newDocument: {id: docs.selected.id, width: docs.selected.width + widthDiff}
+                        });
+                        postAction({
+                            type: 'create',
+                            layer,
+                            position: docs.selected.layers.length
+                        });
                         break;
                     }
                     case 'bottom': {
                         const scale = layer.canvas.width / img.width;
                         layer.transform.matrix = layer.transform.matrix.translate(0, docs.selected.height).scale(scale, scale);
-                        docs.selected.height += Math.floor(img.height * scale);
+                        const heightDiff = Math.floor(img.height * scale);
+                        postAction({
+                            type: 'document',
+                            oldDocument: {id: docs.selected.id, height: docs.selected.height},
+                            newDocument: {id: docs.selected.id, height: docs.selected.height + heightDiff}
+                        });
+                        postAction({
+                            type: 'create',
+                            layer,
+                            position: docs.selected.layers.length
+                        });
                         break;
                     }
                     default: {
                         const layerX = event.offsetX - img.width / 2;
                         const layerY = event.offsetY - img.height / 2;
                         layer.transform.matrix = layer.transform.matrix.translate(layerX, layerY);
+                        postAction({
+                            type: 'create',
+                            layer,
+                            position: docs.selected.layers.length
+                        });
                         break;
                     }
                 }
