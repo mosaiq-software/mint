@@ -3,6 +3,7 @@
     import docs from "../../scripts/docs.svelte";
     import {saveDocumentToDB} from "../../scripts/persistence.svelte";
     import {handleSave} from "../../scripts/shortcut";
+    import {postAction} from "../../scripts/action";
 
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
@@ -11,9 +12,14 @@
         if (!docs.selected) return dimStr;
 
         let dim = parseInt(dimStr);
-        if (isNaN(dim) || dim <= 0) {
+        if (isNaN(dim) || dim <= 0 || dim === docs.selected[type]) {
             return `${docs.selected[type]}`;
         } else {
+            postAction({
+                type: 'document',
+                oldDocument: {id: docs.selected.id, [type]: docs.selected[type]},
+                newDocument: {id: docs.selected.id, [type]: dim}
+            });
             docs.selected[type] = dim;
             return dimStr;
         }
