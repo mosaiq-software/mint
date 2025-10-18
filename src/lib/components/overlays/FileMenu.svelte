@@ -1,8 +1,10 @@
 <script lang="ts">
     import Input from '../ui/Input.svelte';
     import docs from "../../scripts/docs.svelte";
-    import {saveDocumentToDB} from "../../scripts/persistence.svelte";
     import {handleSave} from "../../scripts/shortcut";
+    import {Popover} from 'melt/builders';
+    import {ChevronRight} from '@lucide/svelte';
+    import {render} from '../../scripts/render';
 
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
@@ -18,9 +20,28 @@
             return dimStr;
         }
     }
+
+    const exportsPopover = new Popover({floatingConfig: {computePosition: {placement: 'right-start'}}});
+
+    function handleExport(filetype: 'png' | 'jpg' | 'webp') {
+        if (!docs.selected) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = docs.selected.width;
+        canvas.height = docs.selected.height;
+        render(canvas, docs.selected);
+        const dataURL = {
+            'png': () => canvas.toDataURL('image/png'),
+            'jpg': () => canvas.toDataURL('image/jpeg', 0.9),
+            'webp': () => canvas.toDataURL('image/webp', 0.9),
+        }[filetype]();
+        const a = document.createElement('a');
+        a.download = `${docs.selected.name}.${filetype}`;
+        a.href = dataURL;
+        a.click();
+    }
 </script>
 
-<div id="file-menu">
+<div class="file-menu menu">
     {#if docs.selected}
         <h2>Canvas Size</h2>
         <div id="canvas-size">
@@ -45,18 +66,48 @@
         </div>
         <h2>File</h2>
         <button onclick={handleSave}>Save</button>
+        <button {...exportsPopover.trigger} class="arrowed">
+            <span>Export as...</span>
+            <ChevronRight style="opacity: 0.5" size={16} />
+        </button>
     {:else}
         <div>Open a doc to get started.</div>
     {/if}
+    <div {...exportsPopover.content} class="context-menu">
+        <div {...exportsPopover.arrow}></div>
+        <div class="menu">
+            <button onclick={() => handleExport('png')}>.PNG</button>
+            <button onclick={() => handleExport('jpg')}>.JPG</button>
+            <button onclick={() => handleExport('webp')}>.WEBP</button>
+        </div>
+    </div>
 </div>
 
 <style>
-    #file-menu {
+    .arrowed {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .context-menu {
+        background: var(--c-mid);
+        border: none;
+        padding: var(--s-sm);
+        border-radius: var(--s-sm);
+        box-shadow: 0px 0px 10px 0px var(--c-bg);
+        margin-left: var(--s-xs);
+    }
+
+    .menu {
         display: flex;
         gap: var(--s-sm);
         align-items: stretch;
-        width: 20em;
         flex-direction: column;
+    }
+
+    .file-menu {
+        width: 20em;
     }
 
     #canvas-size {
