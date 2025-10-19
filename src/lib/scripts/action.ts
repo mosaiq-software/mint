@@ -254,14 +254,13 @@ export function deepCopyLayer(layer: Layer): Layer {
  * @param documentId 
  * @returns The action to be undone, or null if no action to undo.
  */
-export function undoAction(documentId: DocumentID): Action | null {
+export function getUndoAction(documentId: DocumentID): Action | null {
     const a = actions[documentId];
     let index = currentActionIndex[documentId];
 
     if (a && index >= 0) {
         const action = a[index];
         currentActionIndex[documentId] = index - 1;
-        updateSnapshot(action, 'undo');
         return action;
     }
     return null;
@@ -272,7 +271,7 @@ export function undoAction(documentId: DocumentID): Action | null {
  * @param documentId 
  * @returns The action to be redone, or null if no action to redo.
  */
-export function redoAction(documentId: DocumentID): Action | null {
+export function getRedoAction(documentId: DocumentID): Action | null {
     const a = actions[documentId];
     let index = currentActionIndex[documentId];
 
@@ -280,7 +279,6 @@ export function redoAction(documentId: DocumentID): Action | null {
         index = index + 1;
         const action = a[index];
         currentActionIndex[documentId] = index;
-        updateSnapshot(action, 'redo');
         return action;
     }
     return null;
@@ -291,7 +289,7 @@ export function redoAction(documentId: DocumentID): Action | null {
  * @param action 
  * @param type 
  */
-function updateSnapshot(action: Action, type: 'undo' | 'redo') {
+export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     if (action.type === 'create') {
         if (type === 'undo') {
             delete snapshots[action.layer.id];
@@ -345,6 +343,106 @@ function updateSnapshot(action: Action, type: 'undo' | 'redo') {
                 updateSnapshot(a, type);
         });
     }
+}
+
+export function applyUndoAction(action: Action) {
+    if (!docs.selected) return;
+    
+    if (action.type === 'create') {
+        // layer was created, so remove it from document
+        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
+    } else if (action.type === 'delete') {
+        // layer was deleted, so add it back to document at action.position
+        if (action.position !== undefined) {
+            docs.selected.layers.splice(action.position, 0, deepCopyLayer(action.layer));
+        } else {
+            docs.selected.layers.push(deepCopyLayer(action.layer));
+        }
+    } else if (action.type === 'transform') {
+        // layer was transformed, so revert to oldLayer state
+        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        if (layer) {
+            layer.transform.matrix = action.oldMatrix;
+        }
+    } else if (action.type === 'content') {
+        // layer content was changed, so revert to oldContent
+        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        if (layer && layer.type === 'canvas') {
+            const ctx = layer.canvas.getContext('2d');
+            if (ctx) {
+                ctx.putImageData(action.oldContent, 0, 0);
+            }
+        }
+    } else if (action.type === 'update') {
+        // layer was updated, so revert to oldLayer state
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const layer = docs.selected.layers[layerIndex];
+            if (layer) {
+                Object.assign(layer, action.oldLayer);
+            }
+        }
+    } else if (action.type === 'reorder') {
+        // layer was reordered, so move it back to oldPosition
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const [layer] = docs.selected.layers.splice(layerIndex, 1);
+            docs.selected.layers.splice(action.oldPosition, 0, layer);
+        }
+    }
+
+    // force re-render
+    docs.selected.layers = [...docs.selected.layers];
+}
+
+export function applyRedoAction(action: Action) {
+    if (!docs.selected) return;
+
+    if (action.type === 'create') {
+        // layer was created, so add it back to document at action.position
+        if (action.position !== undefined) {
+            docs.selected.layers.splice(action.position, 0, deepCopyLayer(action.layer));
+        } else {
+            docs.selected.layers.push(deepCopyLayer(action.layer));
+        }
+    } else if (action.type === 'delete') {
+        // layer was deleted, so remove it from document
+        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
+    } else if (action.type === 'transform') {
+        // layer was transformed, so apply newLayer state
+        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        if (layer) {
+            layer.transform.matrix = action.newMatrix;
+        }
+    } else if (action.type === 'content') {
+        // layer content was changed, so apply newContent
+        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        if (layer && layer.type === 'canvas') {
+            const ctx = layer.canvas.getContext('2d');
+            if (ctx) {
+                ctx.putImageData(action.newContent, 0, 0);
+            }
+        }
+    } else if (action.type === 'update') {
+        // layer was updated, so apply newLayer state
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const layer = docs.selected.layers[layerIndex];
+            if (layer) {
+                Object.assign(layer, action.newLayer);
+            }
+        }
+    } else if (action.type === 'reorder') {
+        // layer was reordered, so move it to newPosition
+        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        if (layerIndex !== -1) {
+            const [layer] = docs.selected.layers.splice(layerIndex, 1);
+            docs.selected.layers.splice(action.newPosition, 0, layer);
+        }
+    }
+
+    // force re-render
+    docs.selected.layers = [...docs.selected.layers];
 }
 
 /**
