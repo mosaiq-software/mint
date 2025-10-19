@@ -341,8 +341,10 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
 }
 
 export function applyUndoAction(action: Action) {
+    console.log(docs.selected);
     if (!docs.selected) return;
-    
+    console.log(action);
+
     if (action.type === 'create') {
         // layer was created, so remove it from document
         docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
@@ -399,6 +401,7 @@ export function applyUndoAction(action: Action) {
 
 export function applyRedoAction(action: Action) {
     if (!docs.selected) return;
+    console.log(action);
 
     if (action.type === 'create') {
         // layer was created, so add it back to document at action.position

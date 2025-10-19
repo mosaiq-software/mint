@@ -34,15 +34,16 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                                 newMatrix: oldLayer.transform.matrix
                             });
                         });
-                        postAction({
-                            type: 'compound',
-                            actions
-                        });
-                        postAction({
+                        actions.push({
                             type: 'create',
                             layer,
                             position: docs.selected.layers.length
                         });
+                        postAction({
+                            type: 'compound',
+                            actions
+                        });
+                        docs.selected.width = docs.selected.width + imgWidth;
                         break;
                     }
                     case 'top': {
@@ -63,15 +64,16 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                                 newMatrix: oldLayer.transform.matrix
                             });
                         });
-                        postAction({
-                            type: 'compound',
-                            actions
-                        });
-                        postAction({
+                        actions.push({
                             type: 'create',
                             layer,
                             position: docs.selected.layers.length
                         });
+                        postAction({
+                            type: 'compound',
+                            actions
+                        });
+                        docs.selected.height = docs.selected.height + imgHeight;
                         break;
                     }
                     case 'right': {
@@ -79,15 +81,21 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                         layer.transform.matrix = layer.transform.matrix.translate(docs.selected.width, 0).scale(scale, scale);
                         const widthDiff = Math.floor(img.width * scale);
                         postAction({
-                            type: 'document',
-                            oldDocument: {id: docs.selected.id, width: docs.selected.width},
-                            newDocument: {id: docs.selected.id, width: docs.selected.width + widthDiff}
+                            type: 'compound',
+                            actions: [
+                                {
+                                    type: 'document',
+                                    oldDocument: {id: docs.selected.id, width: docs.selected.width},
+                                    newDocument: {id: docs.selected.id, width: docs.selected.width + widthDiff}
+                                },
+                                {
+                                    type: 'create',
+                                    layer,
+                                    position: docs.selected.layers.length
+                                }
+                            ]
                         });
-                        postAction({
-                            type: 'create',
-                            layer,
-                            position: docs.selected.layers.length
-                        });
+                        docs.selected.width = docs.selected.width + widthDiff;
                         break;
                     }
                     case 'bottom': {
@@ -95,15 +103,21 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                         layer.transform.matrix = layer.transform.matrix.translate(0, docs.selected.height).scale(scale, scale);
                         const heightDiff = Math.floor(img.height * scale);
                         postAction({
-                            type: 'document',
-                            oldDocument: {id: docs.selected.id, height: docs.selected.height},
-                            newDocument: {id: docs.selected.id, height: docs.selected.height + heightDiff}
+                            type: 'compound',
+                            actions: [
+                                {
+                                    type: 'document',
+                                    oldDocument: {id: docs.selected.id, height: docs.selected.height},
+                                    newDocument: {id: docs.selected.id, height: docs.selected.height + heightDiff}
+                                },
+                                {
+                                    type: 'create',
+                                    layer,
+                                    position: docs.selected.layers.length
+                                }
+                            ]
                         });
-                        postAction({
-                            type: 'create',
-                            layer,
-                            position: docs.selected.layers.length
-                        });
+                        docs.selected.height = docs.selected.height + heightDiff;
                         break;
                     }
                     default: {
