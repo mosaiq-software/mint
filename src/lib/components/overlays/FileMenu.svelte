@@ -2,6 +2,7 @@
     import Input from '../ui/Input.svelte';
     import docs from "../../scripts/docs.svelte";
     import {handleSave} from "../../scripts/shortcut";
+    import {postAction} from "../../scripts/action";
     import {Popover} from 'melt/builders';
     import {ChevronRight} from '@lucide/svelte';
     import {render} from '../../scripts/render';
@@ -13,9 +14,14 @@
         if (!docs.selected) return dimStr;
 
         let dim = parseInt(dimStr);
-        if (isNaN(dim) || dim <= 0) {
+        if (isNaN(dim) || dim <= 0 || dim === docs.selected[type]) {
             return `${docs.selected[type]}`;
         } else {
+            postAction({
+                type: 'document',
+                oldDocument: {id: docs.selected.id, [type]: docs.selected[type]},
+                newDocument: {id: docs.selected.id, [type]: dim}
+            });
             docs.selected[type] = dim;
             return dimStr;
         }
