@@ -250,7 +250,7 @@ export function deepCopyLayer(layer: Layer): Layer {
 }
 
 /**
- * Updates internal state to reflect an undo action.
+ * Returns the next action to be undone, if it exists.
  * @param documentId 
  * @returns The action to be undone, or null if no action to undo.
  */
@@ -267,7 +267,7 @@ export function getUndoAction(documentId: DocumentID): Action | null {
 }
 
 /**
- * Updates internal state to reflect a redo action.
+ * Returns the next action to be redone, if it exists.
  * @param documentId 
  * @returns The action to be redone, or null if no action to redo.
  */
@@ -340,6 +340,11 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     }
 }
 
+/**
+ * Applies an undo action to the document.
+ * @param action 
+ * @returns 
+ */
 export function applyUndoAction(action: Action) {
     console.log(docs.selected);
     if (!docs.selected) return;
@@ -399,6 +404,11 @@ export function applyUndoAction(action: Action) {
     docs.selected.layers = [...docs.selected.layers];
 }
 
+/**
+ * Applies a redo action to the document.
+ * @param action 
+ * @returns 
+ */
 export function applyRedoAction(action: Action) {
     if (!docs.selected) return;
     console.log(action);
