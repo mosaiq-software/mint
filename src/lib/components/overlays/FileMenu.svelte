@@ -34,7 +34,14 @@
         const canvas = document.createElement('canvas');
         canvas.width = docs.selected.width;
         canvas.height = docs.selected.height;
-        render(canvas, docs.selected);
+        if (filetype === 'jpg') { // add off-white bg for opaque files
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.fillStyle = '#E5E5E5';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        render(canvas, docs.selected, false);
         const dataURL = {
             'png': () => canvas.toDataURL('image/png'),
             'jpg': () => canvas.toDataURL('image/jpeg', 0.9),
