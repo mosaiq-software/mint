@@ -333,14 +333,9 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
             const changes = type === 'undo' ? action.oldLayer : action.newLayer;
             Object.assign(layer, changes);
         }
-    } else if (action.type === 'document') {
-        const id = action.oldDocument.id;
-        const changes = type === 'undo' ? action.oldDocument : action.newDocument;
-        Object.assign(docs[id], changes);
     } else if (action.type === 'compound') {
-        action.actions.forEach((a, i) => {
-            if (a)
-                updateSnapshot(a, type);
+        action.actions.forEach(a => {
+            if (a) updateSnapshot(a, type);
         });
     }
 }
@@ -389,6 +384,13 @@ export function applyUndoAction(action: Action) {
             const [layer] = docs.selected.layers.splice(layerIndex, 1);
             docs.selected.layers.splice(action.oldPosition, 0, layer);
         }
+    } else if (action.type === 'document') {
+        const id = action.oldDocument.id;
+        Object.assign(docs[id], action.oldDocument);
+    } else if (action.type === 'compound') {
+        action.actions.forEach(a => {
+            if (a) applyUndoAction(a);
+        });
     }
 
     // force re-render
@@ -439,6 +441,13 @@ export function applyRedoAction(action: Action) {
             const [layer] = docs.selected.layers.splice(layerIndex, 1);
             docs.selected.layers.splice(action.newPosition, 0, layer);
         }
+    } else if (action.type === 'document') {
+        const id = action.oldDocument.id;
+        Object.assign(docs[id], action.newDocument);
+    } else if (action.type === 'compound') {
+        action.actions.forEach(a => {
+            if (a) applyRedoAction(a);
+        });
     }
 
     // force re-render
