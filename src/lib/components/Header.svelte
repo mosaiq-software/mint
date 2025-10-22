@@ -11,7 +11,6 @@
     function handleTabClick(tab: Document | null) {
         docs.selected = tab;
         ui.selectedDocument = tab?.id ?? null;
-        ui.selectedLayers = {};
     }
 </script>
 
