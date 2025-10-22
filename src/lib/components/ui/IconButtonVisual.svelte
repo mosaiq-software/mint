@@ -6,17 +6,19 @@
         showLabel?: boolean;
         selected?: boolean;
         children?: Snippet;
+        paddingSMd?: boolean;
     }
 
     let {
         label,
         showLabel = false,
         selected = false,
-        children
+        children,
+        paddingSMd = false
     }: Props = $props();
 </script>
 
-<div class="icon-button" class:selected={selected} aria-label={label}>
+<div class="icon-button" class:selected={selected} class:padding-smd={paddingSMd} aria-label={label}>
     {#if children}
         {@render children()}
     {/if}
@@ -33,6 +35,10 @@
         flex-direction: column;
         align-items: center;
         cursor: pointer;
+    }
+
+    .icon-button.padding-smd {
+        padding: var(--s-md);
     }
 
     .icon-button:hover {
