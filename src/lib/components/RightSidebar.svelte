@@ -23,5 +23,6 @@
         flex-direction: column;
         gap: var(--s-md);
         height: 100%;
+        flex-shrink: 0;
     }
 </style>
