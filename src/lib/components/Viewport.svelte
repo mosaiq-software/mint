@@ -36,6 +36,7 @@
         background-color: var(--c-bg);
         height: 100%;
         width: 100%;
+        min-height: 0;
         flex: 1;
         display: flex;
         justify-content: center;
