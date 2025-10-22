@@ -13,12 +13,14 @@
 </script>
 
 <main ondragover={(e) => e.preventDefault()} ondrop={handleDrop}>
-    <Header />
-    <div id="center">
-        <LeftSidebar />
-        <Viewport />
-        <RightSidebar />
+    <LeftSidebar />
+    <div id="middle">
+        <Header />
+        <div id="viewport-wrapper">
+            <Viewport />
+        </div>
     </div>
+    <RightSidebar />
 </main>
 
 <style>
@@ -26,14 +28,15 @@
         width: 100%;
         height: 100%;
         display: flex;
+    }
+
+    #middle {
+        flex-grow: 1;
+        display: flex;
         flex-direction: column;
     }
 
-    #center {
-        display: flex;
-        flex-direction: row;
-        width: 100%;
-        height: 0;
-        flex: 1;
+    #viewport-wrapper {
+        flex-grow: 1;
     }
 </style>

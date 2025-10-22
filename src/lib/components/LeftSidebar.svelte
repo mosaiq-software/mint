@@ -170,7 +170,7 @@
     }
 
     #left-sidebar {
-        padding: 0 var(--s-sm);
+        padding: var(--s-sm);
         background-color: var(--c-sur);
         display: flex;
         flex-direction: column;

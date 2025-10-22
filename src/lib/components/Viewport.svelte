@@ -35,7 +35,7 @@
     #viewport {
         background-color: var(--c-bg);
         height: 100%;
-        width: 0;
+        width: 100%;
         flex: 1;
         display: flex;
         justify-content: center;
