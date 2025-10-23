@@ -3,6 +3,7 @@
     import { Plus, X } from '@lucide/svelte';
     import {IconButtonVisual} from "./ui";
     import ui from "../scripts/ui.svelte";
+    import saveStatus from "../scripts/saveStatus.svelte";
     const tabs = $derived.by(() => {
         const {selected, ...rest} = docs;
         return rest;
@@ -19,6 +20,7 @@
             ui.selectedDocument = null;
         }
         delete docs[tab.id];
+        delete saveStatus[tab.id];
     }
 </script>
 
@@ -29,12 +31,14 @@
                 <button onclick={() => handleTabClick(tab)} class="name">
                     <span>{tab.name}</span>
                 </button>
-                <button onclick={() => handleTabDelete(tab)}>
+                <button onclick={() => handleTabDelete(tab)} class="close">
                     <IconButtonVisual
                             label="Close"
                             paddingSMd={true}
                     >
-                        <X size={16} />
+                        <i class="x-wrapper" class:unsaved={saveStatus[tab.id] !== 0}>
+                            <X size={16} />
+                        </i>
                     </IconButtonVisual>
                 </button>
             </div>
@@ -52,6 +56,12 @@
 {/if}
 
 <style>
+    .close:not(:hover) .unsaved {
+        background: var(--c-txt);
+        border-radius: 50%;
+        transform: scale(0.5);
+    }
+
     div {
         background: var(--c-sur);
         flex-grow: 1;
