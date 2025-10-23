@@ -39,6 +39,8 @@
 
     .icon-button.padding-smd {
         padding: var(--s-md);
+        border-radius: 0;
+        border-top-right-radius: var(--r-md);
     }
 
     .icon-button:hover {

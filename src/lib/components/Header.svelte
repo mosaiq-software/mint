@@ -83,7 +83,7 @@
 
     span {
         display: inline-block;
-        max-width: 200px;
+        max-width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
