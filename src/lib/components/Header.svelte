@@ -62,8 +62,7 @@
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-        align-items: center;
-        gap: var(--s-md);
+        align-items: stretch;
     }
 
     button {
