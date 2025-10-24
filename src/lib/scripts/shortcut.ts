@@ -2,7 +2,7 @@ import { getUndoAction, getRedoAction, updateSnapshot, applyUndoAction, applyRed
 import docs from "./docs.svelte";
 import { deepCopyLayer } from "./action";
 import {saveDocumentToDB} from "./persistence.svelte";
-import saveStatus from "./saveStatus.svelte";
+import tabStatus from "./tabStatus.svelte.js";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -27,7 +27,7 @@ export function handleSave() {
     if (!docs.selected) return;
 
     saveDocumentToDB(docs.selected).then(r => {
-        saveStatus[r.id] = 0;
+        tabStatus[r.id].actionsSinceSave = 0;
         console.log('saved');
     });
 }

@@ -1,7 +1,7 @@
 import type { Layer, LayerID } from "./layer";
 import type { DocumentID, Document } from "./docs.svelte";
 import docs from "./docs.svelte";
-import saveStatus from "./saveStatus.svelte";
+import tabStatus from "./tabStatus.svelte.js";
 
 type CreateAction = {
     type: 'create';
@@ -226,7 +226,7 @@ export function postAction(postAction: PostAction) {
     updateSnapshot(action, 'redo');
 
     // indicate unsaved changes
-    saveStatus[documentId]++;
+    tabStatus[documentId].actionsSinceSave++;
 }
 
 /**
@@ -265,7 +265,7 @@ export function getUndoAction(documentId: DocumentID): Action | null {
     if (a && index >= 0) {
         const action = a[index];
         currentActionIndex[documentId] = index - 1;
-        saveStatus[documentId]--;
+        tabStatus[documentId].actionsSinceSave--;
         console.log(currentActionIndex[documentId]);
         return action;
     }
@@ -284,7 +284,7 @@ export function getRedoAction(documentId: DocumentID): Action | null {
     if (a && index < a.length - 1) {
         index = index + 1;
         const action = a[index];
-        saveStatus[documentId]++;
+        tabStatus[documentId].actionsSinceSave++;
         currentActionIndex[documentId] = index;
         return action;
     }

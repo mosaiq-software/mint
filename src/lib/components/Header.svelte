@@ -3,7 +3,7 @@
     import { Plus, X } from '@lucide/svelte';
     import {IconButtonVisual} from "./ui";
     import ui from "../scripts/ui.svelte";
-    import saveStatus from "../scripts/saveStatus.svelte";
+    import tabStatus from "../scripts/tabStatus.svelte.js";
     import {Popover} from "melt/builders";
 
     const tabs = $derived.by(() => {
@@ -49,7 +49,7 @@
                             label="Close"
                             paddingSMd={true}
                     >
-                        <div class="x-wrapper" class:unsaved={saveStatus[tab.id] !== 0}>
+                        <div class="x-wrapper" class:unsaved={tabStatus[tab.id].actionsSinceSave !== 0}>
                             <X size={16} />
                         </div>
                     </IconButtonVisual>
