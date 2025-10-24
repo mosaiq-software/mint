@@ -6,9 +6,11 @@
     import tabStatus from "../scripts/tabStatus.svelte.js";
     import {Popover} from "melt/builders";
 
-    const tabs = $derived.by(() => {
+    let tabs = $derived.by(() => {
         const {selected, ...rest} = docs;
-        return rest;
+        const values = Object.values(rest);
+        values.sort((a, b) => tabStatus[a.id].tabIndex - tabStatus[b.id].tabIndex);
+        return values;
     });
 
     function handleTabClick(tab: Document | null) {
@@ -22,23 +24,22 @@
             ui.selectedDocument = null;
         }
         delete docs[tab.id];
-        delete saveStatus[tab.id];
+        delete tabStatus[tab.id];
     }
 
     const deleteWarningPopover = new Popover();
     let docUpForDeletion = $state<null | Document>(null);
 </script>
 
-{#if Object.keys(tabs).length > 0}
+{#if tabs.length > 0}
     <header class="header">
-        {#each Object.values(tabs) as tab}
+        {#each tabs as tab (tab.id)}
             <div class="{docs.selected?.id === tab.id ? 'selected' : ''} tab">
                 <button onclick={() => handleTabClick(tab)} class="name">
                     <span>{tab.name}</span>
                 </button>
                 <button {...deleteWarningPopover.trigger} onclick={(e) => {
-                    console.log(saveStatus[tab.id]);
-                    if (saveStatus[tab.id] === 0) {
+                    if (tabStatus[tab.id].actionsSinceSave === 0) {
                         handleTabDelete(tab);
                     } else {
                         docUpForDeletion = tab;
