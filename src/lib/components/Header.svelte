@@ -58,7 +58,7 @@
             </div>
         {/each}
         <div id="new-tab"
-             class="{docs.selected === null ? 'selected' : ''}">
+             class="{docs.selected === null ? 'selected' : ''} tab">
             <button onclick={() => handleTabClick(null)}
                     title="New tab"
                     class="name"
