@@ -77,7 +77,7 @@
                             deleteWarningPopover.open = false;
                             handleTabDelete(docUpForDeletion);
                         }
-                    }}>Delete</button>
+                    }}>Close</button>
                 {/if}
             </div>
         </div>
