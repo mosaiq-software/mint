@@ -47,8 +47,8 @@
 
 <div
     id="text-edit-container"
-    style:width={layer.width * Math.hypot(m.a, m.b) + 2 + 'px'}
-    style:height={layer.height * Math.hypot(m.c, m.d) + 2 + 'px'}
+    style:width={layer.width * Math.hypot(m.a, m.b) + 'px'}
+    style:height={layer.height * Math.hypot(m.c, m.d) + 'px'}
     style:transform={`translate(${m.e}px, ${m.f}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
 >
     <textarea
@@ -71,11 +71,9 @@
 <style>
     #text-edit-container {
         position: absolute;
-        top: var(--s-xl);
-        left: var(--s-xl);
-        outline: 2px solid var(--c-acc);
-        outline-style: dashed;
-        box-sizing: border-box;
+        top: 0;
+        left: 0;
+        border: 2px dashed var(--c-acc);
         transform-origin: top left;
     }
 
@@ -103,8 +101,8 @@
         height: 10px;
         background: var(--c-txt);
         border: 1px solid var(--c-bg);
-        bottom: -3px;
-        right: -3px;
+        bottom: -6px;
+        right: -6px;
         pointer-events: none;
     }
 </style>

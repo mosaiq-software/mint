@@ -42,7 +42,7 @@
 <style>
     .transform-overlay {
         position: absolute;
-        inset: -1px;
+        inset: 0;
         pointer-events: none;
         box-sizing: border-box;
         border: 2px dashed var(--c-acc);
@@ -50,10 +50,9 @@
     }
 
     .transform-container {
-        /* this is probably not the best way to do this */
         position: absolute;
-        top: var(--s-xl);
-        left: var(--s-xl);
+        top: 0;
+        left: 0;
         pointer-events: none;
     }
 

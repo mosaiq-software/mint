@@ -102,7 +102,7 @@
         const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
         let l = layer ? getLayerSpacePoint(p, layer) : null;
 
-        // Get coalesced events for even smoother strokes
+        // handle multiple move events per frame
         const events = e.getCoalescedEvents();
         if (events.length > 0) {
             for (const event of events) {
@@ -178,40 +178,44 @@
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
 >
-    <div id="canvas-container"
+    <div id="interactive-area"
          role="application"
          ondragover={(e) => e.preventDefault()}
          ondrop={handleImageDropLocal}
     >
-        <canvas bind:this={canvas} aria-hidden="true"></canvas>
-        <div id="canvas-instructions" class="sr-only">
-            Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
+        <div id="canvas-area">
+            <canvas bind:this={canvas} aria-hidden="true"></canvas>
+            <div id="canvas-instructions" class="sr-only">
+                Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
+            </div>
+            <div id="overlay-area">
+                {#if tool.name === 'draw'}
+                    <div
+                        id="draw-cursor"
+                        style={`
+                            width: ${draw.brushSize}px;
+                            height: ${draw.brushSize}px;
+                            left: ${pointerPosition.x}px;
+                            top: ${pointerPosition.y}px;
+                        `}
+                    ></div>
+                {/if}
+                {#if dragOver}
+                    <DropMargin side="left" />
+                    <DropMargin side="top" />
+                    <DropMargin side="bottom" />
+                    <DropMargin side="right" />
+                {/if}
+                {#if tool.name === 'select' && selectedLayer}
+                    <Transform layer={selectedLayer} />
+                {/if}
+                {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+                    <TextEdit bind:layer={selectedLayer} />
+                {/if}
+            </div>
         </div>
-        {#if tool.name === 'draw'}
-            <div
-                id="draw-cursor"
-                style={`
-                    width: ${draw.brushSize}px;
-                    height: ${draw.brushSize}px;
-                    left: ${pointerPosition.x}px;
-                    top: ${pointerPosition.y}px;
-                `}
-            ></div>
-        {/if}
-        {#if dragOver}
-            <DropMargin side="left" />
-            <DropMargin side="top" />
-            <DropMargin side="bottom" />
-            <DropMargin side="right" />
-        {/if}
     </div>
     <TextMeasure />
-    {#if tool.name === 'select' && selectedLayer}
-        <Transform layer={selectedLayer} />
-    {/if}
-    {#if tool.name === 'text' && selectedLayer?.type === 'text'}
-        <TextEdit bind:layer={selectedLayer} />
-    {/if}
 </div>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -224,12 +228,16 @@
         position: relative;
     }
 
-    #canvas-container {
-        margin: var(--s-xl);
-        width: fit-content;
-        height: fit-content;
+    #interactive-area {
+        padding: var(--s-xl);
+        overflow: clip;
+    }
+
+    #canvas-area {
         background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='10' height='10' fill='%23ccc'/%3e%3crect x='10' y='10' width='10' height='10' fill='%23ccc'/%3e%3c/svg%3e");
         background-color: #fff;
+        width: fit-content;
+        height: fit-content;
         position: relative;
     }
 
