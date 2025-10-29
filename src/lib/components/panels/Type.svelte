@@ -12,7 +12,7 @@
     const textLayer = $derived(getSelectedTextLayer());
     const p: TextProperties = $derived(textLayer ? textLayer : text.properties);
     const foregroundColor = $derived(
-        textLayer ? textLayer.foregroundColor : ui.foregroundColor
+        textLayer ? textLayer.foregroundColor : ui.selected ? ui.selected.foregroundColor : { r: 0, g: 0, b: 0, a: 1 }
     );
     const previewBackgroundColor = $derived.by(() => {
         // calculate the avg. brightness of the foreground color

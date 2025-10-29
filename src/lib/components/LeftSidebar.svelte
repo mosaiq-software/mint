@@ -17,12 +17,11 @@
     const source: {
         foregroundColor: Color;
         backgroundColor: Color;
-    } = $derived.by(() => {
-        if (!docs.selected || !ui.selectedDocument) return ui;
-        const selectedLayers = ui.selectedLayers[ui.selectedDocument];
-        if (selectedLayers.length === 1)
-            return docs.selected.layers.find((l) => l.id === selectedLayers[0]) || ui;
-        return ui;
+    } | null = $derived.by(() => {
+        if (!docs.selected || !ui.selected) return null;
+        const selectedLayer = ui.selected.selectedLayers[0] ?? null;
+        if (selectedLayer) return docs.selected.layers.find((l) => l.id === selectedLayer) ?? ui.selected;
+        return ui.selected;
     });
 
     let editingColor: "foreground" | "background" | null = $state(null);
@@ -36,6 +35,8 @@
     });
 
     function swapColors() {
+        if (!source) return;
+
         const fg = { ...source.foregroundColor };
         source.foregroundColor = { ...source.backgroundColor };
         source.backgroundColor = fg;
@@ -104,13 +105,14 @@
             </IconButtonVisual>
         </div>
     </div>
-    <div id="colors">
+    <div id="colors" class:disabled={!source}>
         <button
             {...editColorPopover.trigger}
             class="popover-trigger"
+            disabled={!source}
             id="color-background"
             title="Background Color"
-            style:border-color={colorToCSS(source.backgroundColor)}
+            style:border-color={source ? colorToCSS(source.backgroundColor) : '#fff'}
             onclick={(e) => {
                 e.preventDefault();
                 if (!editColorPopover.open || editingColor == "background")
@@ -121,9 +123,10 @@
         <button
             {...editColorPopover.trigger}
             class="popover-trigger"
+            disabled={!source}
             id="color-foreground"
             title="Foreground Color"
-            style:background-color={colorToCSS(source.foregroundColor)}
+            style:background-color={source ? colorToCSS(source.foregroundColor) : '#000'}
             onclick={(e) => {
                 e.preventDefault();
                 if (!editColorPopover.open || editingColor == "foreground")
@@ -134,14 +137,16 @@
         <button id="swap-colors" title="Swap Colors" onclick={swapColors}>
             <MoveHorizontal color="var(--c-txt)" size={16}/>
         </button>
-        <div {...editColorPopover.content} class="context-menu">
-            <div {...editColorPopover.arrow}></div>
-            {#if editingColor === "foreground"}
-                <ColorPicker bind:color={source.foregroundColor} />
-            {:else if editingColor === "background"}
-                <ColorPicker bind:color={source.backgroundColor} />
-            {/if}
-        </div>
+        {#if source}
+            <div {...editColorPopover.content} class="context-menu">
+                <div {...editColorPopover.arrow}></div>
+                {#if editingColor === "foreground"}
+                    <ColorPicker bind:color={source.foregroundColor} />
+                {:else if editingColor === "background"}
+                    <ColorPicker bind:color={source.backgroundColor} />
+                {/if}
+            </div>
+        {/if}
     </div>
 </div>
 
@@ -173,6 +178,11 @@
         flex-direction: column;
         align-items: center;
         margin-bottom: var(--s-xl);
+    }
+
+    #colors.disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 
     #color-foreground {

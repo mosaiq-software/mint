@@ -1,6 +1,7 @@
 import type { Layer, LayerID } from "./layer";
 import type { DocumentID, Document } from "./docs.svelte";
 import docs from "./docs.svelte";
+import ui from "./ui.svelte";
 
 type CreateAction = {
     type: 'create';
@@ -346,13 +347,12 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
  * @returns 
  */
 export function applyUndoAction(action: Action) {
-    console.log(docs.selected);
     if (!docs.selected) return;
-    console.log(action);
 
     if (action.type === 'create') {
         // layer was created, so remove it from document
         docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
+        if (ui.selected) ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== action.layer.id);
     } else if (action.type === 'delete') {
         // layer was deleted, so add it back to document at action.position
         if (action.position !== undefined) {
@@ -411,7 +411,6 @@ export function applyUndoAction(action: Action) {
  */
 export function applyRedoAction(action: Action) {
     if (!docs.selected) return;
-    console.log(action);
 
     if (action.type === 'create') {
         // layer was created, so add it back to document at action.position
@@ -423,6 +422,7 @@ export function applyRedoAction(action: Action) {
     } else if (action.type === 'delete') {
         // layer was deleted, so remove it from document
         docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
+        if (ui.selected) ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== action.layer.id);
     } else if (action.type === 'transform') {
         // layer was transformed, so apply newLayer state
         const layer = docs.selected.layers.find(l => l.id === action.layerID);

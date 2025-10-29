@@ -63,16 +63,28 @@ export function createDocument(name: string, width: number, height: number): Doc
         id, name, width, height, layers: []
     };
 
+    ui[id] = {
+        selectedLayers: [],
+        foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+        backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+        pan: { x: 0, y: 0 },
+        zoom: 1
+    }
+
     selectDocument(id);
 
     return id;
 }
 
 export function selectDocument(id: DocumentID) {
+    console.log('selecting document', id);
     ui.selectedDocument = id;
-    ui.selectedLayers[id] = [];
+
+    // populate selected UI and document for easy access
+    ui.selected = ui[id];
     docs.selected = docs[id];
-    if (docs.selected) populateSnapshots(docs.selected.layers);
+
+    populateSnapshots(docs[id].layers);
 }
 
 export default docs;

@@ -25,9 +25,7 @@ export function handleShortcuts(event: KeyboardEvent) {
 export function handleSave() {
     if (!docs.selected) return;
 
-    saveDocumentToDB(docs.selected).then(r => {
-        console.log('saved');
-    });
+    saveDocumentToDB(docs.selected);
 }
 
 function handleUndo() {

@@ -3,20 +3,17 @@
     import { Slider } from "../ui";
     import { draw } from "../../scripts/tools";
     import ui from "../../scripts/ui.svelte";
-    import docs, { colorToCSS, type Color } from "../../scripts/docs.svelte";
+    import { colorToCSS, type Color } from "../../scripts/docs.svelte";
 
     const gradientId = $derived(`brush-gradient-${Math.random()}`);
     const colors: {
         foregroundColor: Color;
         backgroundColor: Color;
     } = $derived.by(() => {
-        if (!ui.selectedDocument) return ui;
-        const selectedLayers = ui.selectedLayers[ui.selectedDocument];
-        if (selectedLayers.length === 1) {
-            if (!docs.selected) return ui;
-            return docs.selected.layers.find((l) => l.id === selectedLayers[0]) || ui;
-        }
-        return ui;
+        return ui.selected ?? {
+            foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+            backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
+        };
     });
 </script>
 

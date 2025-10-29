@@ -30,7 +30,7 @@ function drawStamp(p: Point) {
     const ctx = strokeCanvas.getContext('2d');
     if (!ctx) return;
 
-    const color = drawLayer ? drawLayer.foregroundColor : ui.foregroundColor;
+    const color = drawLayer ? drawLayer.foregroundColor : { r: 0, g: 0, b: 0, a: 1 };
 
     // Draw line from stroke.start to p using stamp
     // adding rgb, but taking the max of alphas
@@ -93,11 +93,11 @@ export const drawTool: Tool = {
 
         if (!data.l) {
             const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
-            if (!docs.selected) return;
+            if (!docs.selected || !ui.selected) return;
 
             // add new layer to document and select it
             docs.selected.layers = [...docs.selected.layers, newLayer];
-            ui.selectedLayers[docs.selected.id] = [newLayer.id];
+            ui.selected.selectedLayers = [newLayer.id];
 
             postAction({
                 type: 'create',
@@ -107,7 +107,7 @@ export const drawTool: Tool = {
         } else {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
-            const selectedLayers = ui.selectedLayers[ui.selectedDocument || ''];
+            const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
             if (!docs.selected) return;
@@ -209,7 +209,7 @@ export const drawTool: Tool = {
 export function getSelectedDrawLayer() {
     if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
+    const selectedLayerIds = ui.selected?.selectedLayers ?? [];
     if (selectedLayerIds.length !== 1) return null;
     const selectedLayerId = selectedLayerIds[0];
 

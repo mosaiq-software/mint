@@ -16,8 +16,8 @@
     let canvas: HTMLCanvasElement;
     let pointerPosition = $state({ x: 0, y: 0 });
     let selectedLayer = $derived.by(() => {
-        if (!docs.selected) return null;
-        const layerId = ui.selectedLayers[docs.selected.id]?.[0];
+        if (!docs.selected || !ui.selected) return null;
+        const layerId = ui.selected.selectedLayers[0];
         return docs.selected.layers.find(l => l.id === layerId) || null;
     });
 
@@ -90,7 +90,7 @@
         const rect = canvas.getBoundingClientRect();
         const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
 
-        let layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
+        let layer = selectedLayer?.id || null;
         let l = layer ? getLayerSpacePoint(p, layer) : null;
 
         tool.onPointerDown?.({ c: p, l, e });
@@ -99,7 +99,7 @@
     function handlePointerMove(e: PointerEvent) {
         const rect = canvas.getBoundingClientRect();
         const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
+        let layer = selectedLayer?.id || null;
         let l = layer ? getLayerSpacePoint(p, layer) : null;
 
         // handle multiple move events per frame
@@ -123,7 +123,7 @@
     function handlePointerUp(e: PointerEvent) {
         const rect = canvas.getBoundingClientRect();
         const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
+        let layer = selectedLayer?.id || null;
         let l = layer ? getLayerSpacePoint(p, layer) : null;
 
         tool.onPointerUp?.({ c: p, l, e });
@@ -179,9 +179,9 @@
     ondragleave={handleDragLeave}
 >
     <div id="interactive-area"
-         role="application"
-         ondragover={(e) => e.preventDefault()}
-         ondrop={handleImageDropLocal}
+        role="application"
+        ondragover={(e) => e.preventDefault()}
+        ondrop={handleImageDropLocal}
     >
         <div id="canvas-area">
             <canvas bind:this={canvas} aria-hidden="true"></canvas>

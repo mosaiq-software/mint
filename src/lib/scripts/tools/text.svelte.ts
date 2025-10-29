@@ -24,9 +24,9 @@ const text = $state({
 export function getSelectedTextLayer() {
     if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
-    if (selectedLayerIds.length !== 1) return null;
-    const selectedLayerId = selectedLayerIds[0];
+    const selectedLayers = ui.selected?.selectedLayers ?? [];
+    if (selectedLayers.length !== 1) return null;
+    const selectedLayerId = selectedLayers[0];
 
     const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
     if (layer?.type !== 'text') return null;
@@ -48,7 +48,7 @@ export const textTool: Tool = {
             const layer = createLayer('text', 'Text');
             layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
             docs.selected.layers.push(layer);
-            ui.selectedLayers[docs.selected.id] = [layer.id];
+            if (ui.selected) ui.selected.selectedLayers = [layer.id];
 
             postAction({
                 type: "create",
