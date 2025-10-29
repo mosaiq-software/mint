@@ -14,6 +14,7 @@
 ;
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
+    let scrollContainer: HTMLDivElement;
     let pointerPosition = $state({ x: 0, y: 0 });
     let selectedLayer = $derived.by(() => {
         if (!docs.selected || !ui.selected) return null;
@@ -75,6 +76,13 @@
     $effect(() => {
         if (canvas && docs.selected) render(canvas, docs.selected);
     });
+
+    $effect(() => {
+        if (scrollContainer && ui.selected) {
+            scrollContainer.scrollLeft = ui.selected.pan.x;
+            scrollContainer.scrollTop = ui.selected.pan.y;
+        }
+    })
 
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
         if (!docs.selected) return null;
@@ -162,6 +170,15 @@
             handleImageDrop(e);
         }
     }
+
+    function handleScroll() {
+        if (ui.selected && scrollContainer) {
+            ui.selected.pan = {
+                x: scrollContainer.scrollLeft,
+                y: scrollContainer.scrollTop
+            };
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -171,12 +188,14 @@
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
     style="cursor: {cursor};"
+    bind:this={scrollContainer}
     onkeydown={handleKeyDown}
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
+    onscroll={handleScroll}
 >
     <div id="interactive-area"
         role="application"
@@ -229,8 +248,9 @@
     }
 
     #interactive-area {
-        padding: var(--s-xl);
-        overflow: clip;
+        margin: var(--s-xl);
+        width: fit-content;
+        height: fit-content;
     }
 
     #canvas-area {

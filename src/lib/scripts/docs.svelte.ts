@@ -70,16 +70,21 @@ export function createDocument(name: string, width: number, height: number): Doc
     return id;
 }
 
-export function selectDocument(id: DocumentID) {
+export function selectDocument(id: DocumentID | null) {
     ui.selectedDocument = id;
 
-    // populate selected UI and document for easy access
-    ui.selected = ui[id];
-    docs.selected = docs[id];
+    if (id === null) {
+        ui.selected = null;
+        docs.selected = null;
+    } else {
+        // populate selected UI and document for easy access
+        ui.selected = ui[id];
+        docs.selected = docs[id];
 
-    populateSnapshots(docs[id].layers);
-    if (!(id in tabStatus)) {
-        initializeTab(id);
+        populateSnapshots(docs[id].layers);
+        if (!(id in tabStatus)) {
+            initializeTab(id);
+        }
     }
 }
 
