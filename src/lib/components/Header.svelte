@@ -66,7 +66,7 @@
                 <Plus size={16} />
             </button>
         </div>
-        <div {...deleteWarningPopover.content} class="warning-menu">
+        <div {...deleteWarningPopover.content} class="popover">
             <div {...deleteWarningPopover.arrow}></div>
             <div>
                 {#if docUpForDeletion}
@@ -85,26 +85,13 @@
 {/if}
 
 <style>
+    .popover p {
+        cursor: default;
+    }
+
     .warn {
         color: var(--c-fb-err);
-        text-align: left;
-        padding: 0 var(--s-sm);
-        cursor: pointer;
-        width: 100%;
         text-align: center;
-    }
-
-    .warn:hover {
-        background: var(--c-sur);
-    }
-
-    .warning-menu {
-        background: var(--c-mid);
-        border: none;
-        padding: var(--s-sm);
-        border-radius: var(--s-sm);
-        box-shadow: 0px 0px 10px 0px var(--c-bg);
-        margin-left: var(--s-xs);
     }
 
     .close:not(:hover) .unsaved {

@@ -78,7 +78,7 @@
                 <Ellipsis />
             </IconButtonVisual>
         </button>
-        <div {...fileMenuPopover.content} class="context-menu">
+        <div {...fileMenuPopover.content} class="popover">
             <div {...fileMenuPopover.arrow}></div>
             <FileMenu />
         </div>
@@ -149,7 +149,7 @@
         <button id="swap-colors" title="Swap Colors" onclick={swapColors}>
             <MoveHorizontal color="var(--c-txt)" size={16}/>
         </button>
-        <div {...editColorPopover.content} class="context-menu">
+        <div {...editColorPopover.content} class="popover">
             <div {...editColorPopover.arrow}></div>
             {#if editingColor === "foreground"}
                 <ColorPicker bind:color={source.foregroundColor} />
@@ -161,14 +161,6 @@
 </div>
 
 <style>
-    .context-menu {
-        background: var(--c-mid);
-        border: none;
-        padding: var(--s-sm);
-        border-radius: var(--s-sm);
-        box-shadow: 0px 0px 10px 0px var(--c-bg);
-    }
-
     #left-sidebar {
         padding: var(--s-sm);
         background-color: var(--c-sur);
