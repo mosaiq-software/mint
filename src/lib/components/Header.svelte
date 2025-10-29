@@ -1,5 +1,5 @@
 <script lang="ts">
-    import docs, {type Document} from '../scripts/docs.svelte';
+    import docs, {type Document, type DocumentID} from '../scripts/docs.svelte';
     import { Plus, X } from '@lucide/svelte';
     import {ButtonVisual, IconButtonVisual} from "./ui";
     import ui from "../scripts/ui.svelte";
@@ -18,10 +18,30 @@
         ui.selectedDocument = tab?.id ?? null;
     }
 
+    function findClosestDocumentIDByTabIndex(tab: Document, above: boolean): DocumentID | null {
+        const selectedTabIndex = tabStatus[tab.id].tabIndex;
+        let closestTabIndex = Number.NEGATIVE_INFINITY, closestTabId = tab.id;
+        Object.entries(tabStatus).forEach(([id, {tabIndex, ...rest}]) => {
+            if (tabIndex === selectedTabIndex) return;
+            if (above && tabIndex > selectedTabIndex) return;
+            if (!above && tabIndex < selectedTabIndex) return;
+            const closestDiff = Math.abs(selectedTabIndex - closestTabIndex);
+            const currentDiff = Math.abs(selectedTabIndex - tabIndex);
+            if (currentDiff < closestDiff) {
+                closestTabIndex = tabIndex;
+                closestTabId = id as DocumentID;
+            }
+        });
+        if (closestTabId === tab.id) return null;
+        return closestTabId;
+    }
+
     function handleTabDelete(tab: Document) {
         if (docs.selected?.id === tab.id) {
-            docs.selected = null;
-            ui.selectedDocument = null;
+            const closestDocID = findClosestDocumentIDByTabIndex(tab, false) ?? findClosestDocumentIDByTabIndex(tab, true);
+            console.log(closestDocID);
+            docs.selected = closestDocID ? docs[closestDocID] : closestDocID;
+            ui.selectedDocument = closestDocID;
         }
         delete docs[tab.id];
         delete tabStatus[tab.id];
