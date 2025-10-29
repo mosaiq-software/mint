@@ -1,7 +1,7 @@
 <script lang="ts">
     import docs, {type Document} from '../scripts/docs.svelte';
     import { Plus, X } from '@lucide/svelte';
-    import {IconButtonVisual} from "./ui";
+    import {ButtonVisual, IconButtonVisual} from "./ui";
     import ui from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte.js";
     import {Popover} from "melt/builders";
@@ -72,12 +72,14 @@
                 {#if docUpForDeletion}
                     <p>Are you sure you want to close <b>{docUpForDeletion.name}</b>?</p>
                     <p>This document may have unsaved changes.</p>
-                    <button class="warn" onclick={() => {
+                    <button class="warning-button" onclick={() => {
                         if (docUpForDeletion) {
                             deleteWarningPopover.open = false;
                             handleTabDelete(docUpForDeletion);
                         }
-                    }}>Close</button>
+                    }}>
+                        <ButtonVisual color="danger">Close</ButtonVisual>
+                    </button>
                 {/if}
             </div>
         </div>
@@ -87,11 +89,6 @@
 <style>
     .popover p {
         cursor: default;
-    }
-
-    .warn {
-        color: var(--c-fb-err);
-        text-align: center;
     }
 
     .close:not(:hover) .unsaved {
