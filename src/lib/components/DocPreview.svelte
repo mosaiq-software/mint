@@ -4,11 +4,13 @@
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
-        deleteDocumentFromDB
+        deleteDocumentFromDB,
+        saveDocumentToDB, updateDocumentMetadata
     } from "../scripts/persistence.svelte";
     import IconButtonVisual from './ui/IconButtonVisual.svelte';
     import { Ellipsis } from '@lucide/svelte';
     import { Popover } from "melt/builders";
+    import Input from "./ui/Input.svelte";
 
     const {doc, rerenderDocs}: {
         doc: Document & { preview: OffscreenCanvas, lastModified: Date },
@@ -49,6 +51,17 @@
         await deleteDocumentFromDB(doc);
         rerenderDocs();
     }
+
+    let name = $derived(doc.name);
+    async function handleDocNameBlur() {
+        if (name.length > 0) {
+            doc.name = name;
+            if (docs[doc.id])
+                docs[doc.id].name = name;
+            await updateDocumentMetadata({id: doc.id, name: doc.name});
+            rerenderDocs();
+        } else name = doc.name;
+    }
 </script>
 
 <div class="wrapper">
@@ -67,6 +80,13 @@
     </button>
     <div {...popover.content} class="popover">
         <div {...popover.arrow}></div>
+        <Input
+                type="text"
+                name="doc-name"
+                placeholder="Name"
+                bind:value={name}
+                onBlur={() => handleDocNameBlur()}
+        >Name:</Input>
         <button class="warn" onclick={deleteDoc}>Delete</button>
     </div>
 </div>
