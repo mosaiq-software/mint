@@ -187,6 +187,13 @@
             };
         }
     }
+
+    function handleWheel(e: WheelEvent) {
+        if (e.ctrlKey && ui.selected) {
+            e.preventDefault();
+            ui.selected.zoom /= 1 + e.deltaY / 100;
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -204,6 +211,7 @@
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
     onscroll={handleScroll}
+    onwheel={handleWheel}
 >
     <div id="interactive-area"
         role="application"
@@ -214,8 +222,8 @@
     >
         <div
             id="canvas-area"
-            style:width={docs.selected ? docs.selected.width + 'px' : '800px'}
-            style:height={docs.selected ? docs.selected.height + 'px' : '600px'}
+            style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
+            style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
         >
             <canvas
                 bind:this={canvas}
