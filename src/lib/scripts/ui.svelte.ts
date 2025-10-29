@@ -24,4 +24,14 @@ const ui: UI = $state({
     selected: null
 });
 
+export function initializeUIForDocument(id: DocumentID) {
+    ui[id] = {
+        selectedLayers: [],
+        foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+        backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+        pan: { x: 0, y: 0 },
+        zoom: 1
+    }
+}
+
 export default ui;

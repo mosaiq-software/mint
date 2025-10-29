@@ -1,4 +1,4 @@
-import ui from './ui.svelte';
+import ui, { initializeUIForDocument } from './ui.svelte';
 import type { Layer } from './layer';
 import type { Point } from './tools';
 import { populateSnapshots } from './action';
@@ -63,21 +63,13 @@ export function createDocument(name: string, width: number, height: number): Doc
         id, name, width, height, layers: []
     };
 
-    ui[id] = {
-        selectedLayers: [],
-        foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-        backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
-        pan: { x: 0, y: 0 },
-        zoom: 1
-    }
-
+    initializeUIForDocument(id);
     selectDocument(id);
 
     return id;
 }
 
 export function selectDocument(id: DocumentID) {
-    console.log('selecting document', id);
     ui.selectedDocument = id;
 
     // populate selected UI and document for easy access
