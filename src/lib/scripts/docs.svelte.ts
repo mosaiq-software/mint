@@ -2,6 +2,7 @@ import ui, { initializeUIForDocument } from './ui.svelte';
 import type { Layer } from './layer';
 import type { Point } from './tools';
 import { populateSnapshots } from './action';
+import tabStatus, {initializeTab} from "./tabStatus.svelte.js";
 
 /* IDs */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
@@ -77,6 +78,9 @@ export function selectDocument(id: DocumentID) {
     docs.selected = docs[id];
 
     populateSnapshots(docs[id].layers);
+    if (!(id in tabStatus)) {
+        initializeTab(id);
+    }
 }
 
 export default docs;

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { ButtonVisual, Input } from "./ui";
-    import { createDocument } from "../scripts/docs.svelte";
+    import { createDocument, type Document } from "../scripts/docs.svelte";
     import { importImageAsNewDoc } from "../scripts/importImage";
     import {getDocumentsFromDB} from "../scripts/persistence.svelte";
     import DocPreview from './DocPreview.svelte';
@@ -51,8 +51,8 @@
         DBDocuments = getDocumentsFromDB();
     }
 
-    function sortByLastModified(documents: Document[] & {lastModified: Date}) {
-        return [...documents].sort((a, b) => a.lastModified < b.lastModified);
+    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: Date})[]) {
+        return [...documents].sort((a, b) => a.lastModified - b.lastModified);
     }
 </script>
 

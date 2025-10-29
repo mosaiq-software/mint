@@ -68,7 +68,7 @@
             <Ellipsis />
         </IconButtonVisual>
     </button>
-    <div {...popover.content} class="context-menu">
+    <div {...popover.content} class="popover">
         <div {...popover.arrow}></div>
         <button class="warn" onclick={deleteDoc}>Delete</button>
     </div>
@@ -77,24 +77,6 @@
 <style>
     .warn {
         color: var(--c-fb-err);
-    }
-
-    .context-menu button {
-        text-align: left;
-        padding: 0 var(--s-sm);
-        cursor: pointer;
-    }
-
-    .context-menu button:hover {
-        background: var(--c-sur);
-    }
-
-    .context-menu {
-        background: var(--c-mid);
-        border: none;
-        padding: var(--s-sm);
-        border-radius: var(--s-sm);
-        box-shadow: 0px 0px 10px 0px var(--c-bg);
     }
 
     .ellipsis {

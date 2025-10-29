@@ -86,7 +86,7 @@
     {:else}
         <div>Open a doc to get started.</div>
     {/if}
-    <div {...exportsPopover.content} class="context-menu">
+    <div {...exportsPopover.content} class="popover">
         <div {...exportsPopover.arrow}></div>
         <div class="menu">
             <button onclick={() => handleExport('png')}>.PNG</button>
@@ -103,22 +103,6 @@
         align-items: center;
     }
 
-    .context-menu {
-        background: var(--c-mid);
-        border: none;
-        padding: var(--s-sm);
-        border-radius: var(--s-sm);
-        box-shadow: 0px 0px 10px 0px var(--c-bg);
-        margin-left: var(--s-xs);
-    }
-
-    .menu {
-        display: flex;
-        gap: var(--s-sm);
-        align-items: stretch;
-        flex-direction: column;
-    }
-
     .file-menu {
         width: 20em;
     }
@@ -129,13 +113,8 @@
         width: 100%;
     }
 
-    button {
-        text-align: left;
-        padding: 0 var(--s-sm);
-        cursor: pointer;
+    h2 {
+        cursor: default;
     }
 
-    button:hover {
-        background: var(--c-sur);
-    }
 </style>
