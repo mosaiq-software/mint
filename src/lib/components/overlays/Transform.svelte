@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Layer } from "../../scripts/layer";
     import { matrixToTransformComponents } from "../../scripts/docs.svelte";
+    import ui from "../../scripts/ui.svelte";
     interface Props {
         layer: Layer;
     }
@@ -14,13 +15,13 @@
 <div
     class="transform-container"
     style="
-        width: {layerWidth * t.scale.x + 'px'};
-        height: {layerHeight * t.scale.y + 'px'};
+        width: {layerWidth * t.scale.x * (ui.selected?.zoom ?? 1) + 'px'};
+        height: {layerHeight * t.scale.y * (ui.selected?.zoom ?? 1) + 'px'};
     "
 >
     <div class="transform-overlay" style="
         transform: 
-            translate({t.translate.x}px, {t.translate.y}px)
+            translate({t.translate.x * (ui.selected?.zoom ?? 1)}px, {t.translate.y * (ui.selected?.zoom ?? 1)}px)
             rotate({t.rotate}deg)
     ">
         <div class="transform-rotate-container">

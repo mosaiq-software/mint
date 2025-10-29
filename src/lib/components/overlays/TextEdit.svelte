@@ -14,6 +14,7 @@
     import docs from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { postAction } from "../../scripts/action";
+    import ui from "../../scripts/ui.svelte";
 
     interface Props {
         layer: TextLayer;
@@ -47,9 +48,9 @@
 
 <div
     id="text-edit-container"
-    style:width={layer.width * Math.hypot(m.a, m.b) + 'px'}
-    style:height={layer.height * Math.hypot(m.c, m.d) + 'px'}
-    style:transform={`translate(${m.e}px, ${m.f}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
+    style:width={layer.width * Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:height={layer.height * Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:transform={`translate(${m.e * (ui.selected?.zoom ?? 1)}px, ${m.f * (ui.selected?.zoom ?? 1)}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
 >
     <textarea
         bind:this={textarea}
@@ -63,7 +64,7 @@
         style:height={layer.height + 'px'}
         spellcheck="false"
         style:caret-color={colorToCSS(layer.foregroundColor)}
-        style:transform={`scale(${Math.hypot(m.a, m.b)}, ${Math.hypot(m.c, m.d)})`}
+        style:transform={`scale(${Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1)}, ${Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1)})`}
     ></textarea>
     <div class="resize-handle"></div>
 </div>
@@ -83,9 +84,6 @@
         border: none;
         outline: none;
         padding: 0;
-        top: 1px;
-        left: 1px;
-        margin-top: -4px;
         background: transparent;
         overflow: hidden;
         white-space: pre-wrap;

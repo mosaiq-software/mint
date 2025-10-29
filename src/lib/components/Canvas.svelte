@@ -82,7 +82,18 @@
             scrollContainer.scrollLeft = ui.selected.pan.x;
             scrollContainer.scrollTop = ui.selected.pan.y;
         }
-    })
+    });
+
+    function getViewportPoint(e: PointerEvent): Point {
+        const rect = canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function getCanvasPoint(v: Point): Point {
+        if (!docs.selected || !ui.selected) return v;
+        const zoom = ui.selected.zoom;
+        return { x: v.x / zoom, y: v.y / zoom };
+    }
 
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
         if (!docs.selected) return null;
@@ -95,46 +106,43 @@
     }
 
     function handlePointerDown(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        let layer = selectedLayer?.id || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
-
-        tool.onPointerDown?.({ c: p, l, e });
+        tool.onPointerDown?.({ c, l, e });
     }
 
     function handlePointerMove(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        let layer = selectedLayer?.id || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        // handle multiple move events per frame
-        const events = e.getCoalescedEvents();
-        if (events.length > 0) {
-            for (const event of events) {
-                const coalescedP = { 
-                    x: event.clientX - rect.left, 
-                    y: event.clientY - rect.top 
-                };
-                const coalescedL = layer ? getLayerSpacePoint(coalescedP, layer) : null;
-                tool.onPointerMove?.({ c: coalescedP, l: coalescedL, e: event });
-            }
-        } else {
-            tool.onPointerMove?.({ c: p, l, e });
-        }
+        // // handle multiple move events per frame
+        // const events = e.getCoalescedEvents();
+        // if (events.length > 0) {
+        //     for (const event of events) {
+        //         const coalescedP = { 
+        //             x: event.clientX - rect.left, 
+        //             y: event.clientY - rect.top 
+        //         };
+        //         const coalescedL = layer ? getLayerSpacePoint(coalescedP, layer) : null;
+        //         tool.onPointerMove?.({ c: coalescedP, l: coalescedL, e: event });
+        //     }
+        // } else {
+        //     tool.onPointerMove?.({ c: p, l, e });
+        // }
 
-        pointerPosition = p;
+        tool.onPointerMove?.({ c, l, e });
+        pointerPosition = c;
     }
 
     function handlePointerUp(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        let layer = selectedLayer?.id || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        tool.onPointerUp?.({ c: p, l, e });
+        tool.onPointerUp?.({ c, l, e });
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -201,9 +209,19 @@
         role="application"
         ondragover={(e) => e.preventDefault()}
         ondrop={handleImageDropLocal}
+        style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
+        style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
     >
-        <div id="canvas-area">
-            <canvas bind:this={canvas} aria-hidden="true"></canvas>
+        <div
+            id="canvas-area"
+            style:width={docs.selected ? docs.selected.width + 'px' : '800px'}
+            style:height={docs.selected ? docs.selected.height + 'px' : '600px'}
+        >
+            <canvas
+                bind:this={canvas}
+                aria-hidden="true"
+                style:transform={ui.selected ? `scale(${ui.selected.zoom})` : 'scale(1)'}
+            ></canvas>
             <div id="canvas-instructions" class="sr-only">
                 Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
             </div>
@@ -249,16 +267,22 @@
 
     #interactive-area {
         margin: var(--s-xl);
-        width: fit-content;
-        height: fit-content;
     }
 
     #canvas-area {
+        position: relative;
+    }
+
+    #overlay-area {
+        position: absolute;
+        inset: 0;
+    }
+
+    canvas {
         background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='10' height='10' fill='%23ccc'/%3e%3crect x='10' y='10' width='10' height='10' fill='%23ccc'/%3e%3c/svg%3e");
         background-color: #fff;
-        width: fit-content;
-        height: fit-content;
         position: relative;
+        transform-origin: top left;
     }
 
     #draw-cursor {
