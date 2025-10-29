@@ -1,6 +1,7 @@
 import type { Layer, LayerID } from "./layer";
 import type { DocumentID, Document } from "./docs.svelte";
 import docs from "./docs.svelte";
+import tabStatus from "./tabStatus.svelte.js";
 
 type CreateAction = {
     type: 'create';
@@ -223,6 +224,9 @@ export function postAction(postAction: PostAction) {
 
     // update the snapshot for the layer
     updateSnapshot(action, 'redo');
+
+    // indicate unsaved changes
+    tabStatus[documentId].actionsSinceSave++;
 }
 
 /**
@@ -261,6 +265,8 @@ export function getUndoAction(documentId: DocumentID): Action | null {
     if (a && index >= 0) {
         const action = a[index];
         currentActionIndex[documentId] = index - 1;
+        tabStatus[documentId].actionsSinceSave--;
+        console.log(currentActionIndex[documentId]);
         return action;
     }
     return null;
@@ -278,6 +284,7 @@ export function getRedoAction(documentId: DocumentID): Action | null {
     if (a && index < a.length - 1) {
         index = index + 1;
         const action = a[index];
+        tabStatus[documentId].actionsSinceSave++;
         currentActionIndex[documentId] = index;
         return action;
     }

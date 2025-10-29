@@ -18,10 +18,11 @@
     div {
         background-color: var(--c-sur);
         width: 250px;
-        padding: 0 var(--s-md);
+        padding: var(--s-md);
         display: flex;
         flex-direction: column;
         gap: var(--s-md);
         height: 100%;
+        flex-shrink: 0;
     }
 </style>
