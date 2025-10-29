@@ -267,7 +267,6 @@ export function getUndoAction(documentId: DocumentID): Action | null {
         const action = a[index];
         currentActionIndex[documentId] = index - 1;
         tabStatus[documentId].actionsSinceSave--;
-        console.log(currentActionIndex[documentId]);
         return action;
     }
     return null;
