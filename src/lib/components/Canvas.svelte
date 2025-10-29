@@ -110,7 +110,7 @@
         const c = getCanvasPoint(v);
         const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        tool.onPointerDown?.({ c, l, e });
+        tool.onPointerDown?.({ v, c, l, e });
     }
 
     function handlePointerMove(e: PointerEvent) {
@@ -133,7 +133,7 @@
         //     tool.onPointerMove?.({ c: p, l, e });
         // }
 
-        tool.onPointerMove?.({ c, l, e });
+        tool.onPointerMove?.({ v, c, l, e });
         pointerPosition = c;
     }
 
@@ -142,7 +142,7 @@
         const c = getCanvasPoint(v);
         const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        tool.onPointerUp?.({ c, l, e });
+        tool.onPointerUp?.({ v, c, l, e });
     }
 
     function handleKeyDown(e: KeyboardEvent) {

@@ -213,7 +213,7 @@ export const selectTool: Tool = {
             }
         } else {
             // determine action based on mouse position
-            setAction(data.c, data.l);
+            setAction(data.v, data.l);
         }
 
         select.previous.c = data.c;
@@ -295,7 +295,7 @@ export const selectTool: Tool = {
     }
 }
 
-function setAction(c: Point, l: Point | null) {
+function setAction(v: Point, l: Point | null) {
     // grab scale of selected layer
     if (!docs.selected) return;
 
@@ -310,7 +310,9 @@ function setAction(c: Point, l: Point | null) {
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
             const pos = handlePositions[dir as ScaleDirection];
-            const dist = Math.hypot(c.x - pos.x, c.y - pos.y);
+            const zoom = ui.selected?.zoom ?? 1;
+            const vPos = new DOMPoint(pos.x * zoom, pos.y * zoom);
+            const dist = Math.hypot(v.x - vPos.x, v.y - vPos.y);
             if (dist < scaleHandleHitboxSize) {
                 overScaleHandle = dir as ScaleDirection;
                 break;
@@ -324,7 +326,7 @@ function setAction(c: Point, l: Point | null) {
 
         // check if mouse is over rotate handle
         const rotateHandle = getRotateHandlePosition(layer.transform.matrix, layer);
-        const dist = Math.hypot(c.x - rotateHandle.x, c.y - rotateHandle.y);
+        const dist = Math.hypot(v.x - rotateHandle.x, v.y - rotateHandle.y);
         if (dist < rotateHandleHitboxSize) {
             select.action = { type: 'rotate' };
             return;
@@ -389,9 +391,10 @@ function getRotateHandlePosition(
     }
 
     // position the rotate handle some distance along this vector
+    const zoom = ui.selected?.zoom ?? 1;
     return {
-        x: topCenter.x + vx * rotateHandleOffset,
-        y: topCenter.y + vy * rotateHandleOffset,
+        x: topCenter.x * zoom + vx * rotateHandleOffset,
+        y: topCenter.y * zoom + vy * rotateHandleOffset,
     };
 }
 

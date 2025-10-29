@@ -78,9 +78,12 @@ export const textTool: Tool = {
             // determine if cursor is near the bottom right corner for resizing
             let point = new DOMPoint(layer.width, layer.height);
             point = layer.transform.matrix.transformPoint(point);
+            const zoom = ui.selected?.zoom ?? 1;
+            point.x *= zoom;
+            point.y *= zoom;
 
-            const dx = data.c.x - point.x;
-            const dy = data.c.y - point.y;
+            const dx = data.v.x - point.x;
+            const dy = data.v.y - point.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= resizeHitboxSize) {
