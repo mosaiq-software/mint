@@ -52,30 +52,53 @@
         a.href = dataURL;
         a.click();
     }
+
+    let name = $derived(docs.selected ? docs.selected.name : '');
+
+    function handleDocNameBlur() {
+        if (!docs.selected) return;
+        if (name.length > 0) {
+            postAction({
+                type: 'document',
+                oldDocument: {id: docs.selected.id, name: docs.selected.name},
+                newDocument: {id: docs.selected.id, name}
+            });
+            docs.selected.name = name;
+        } else name = docs.selected.name;
+    }
 </script>
 
 <div class="file-menu menu">
     {#if docs.selected}
-        <h2>Canvas Size</h2>
-        <div id="canvas-size">
+        <h2>Document Properties</h2>
+        <div class="indented">
             <Input
-                type="number"
-                name="canvas-width"
-                placeholder="Width"
-                bind:value={widthStr}
-                onBlur={() => {
-                    widthStr = handleCanvasSizeBlur('width', widthStr)
-                }}
-            >Width:</Input>
-            <Input
-                type="number"
-                name="canvas-height"
-                placeholder="Height"
-                bind:value={heightStr}
-                onBlur={() => {
-                    heightStr = handleCanvasSizeBlur('height', heightStr)
-                }}
-            >Height:</Input>
+                type="text"
+                name="doc-name"
+                placeholder="Name"
+                bind:value={name}
+                onBlur={() => handleDocNameBlur()}
+            >Name:</Input>
+            <div id="canvas-size">
+                <Input
+                    type="number"
+                    name="canvas-width"
+                    placeholder="Width"
+                    bind:value={widthStr}
+                    onBlur={() => {
+                        widthStr = handleCanvasSizeBlur('width', widthStr)
+                    }}
+                >Width:</Input>
+                <Input
+                    type="number"
+                    name="canvas-height"
+                    placeholder="Height"
+                    bind:value={heightStr}
+                    onBlur={() => {
+                        heightStr = handleCanvasSizeBlur('height', heightStr)
+                    }}
+                >Height:</Input>
+            </div>
         </div>
         <h2>File</h2>
         <button onclick={handleSave}>Save</button>
@@ -97,6 +120,10 @@
 </div>
 
 <style>
+    .indented {
+        padding: 0 var(--s-sm);
+    }
+
     .arrowed {
         display: flex;
         justify-content: space-between;
