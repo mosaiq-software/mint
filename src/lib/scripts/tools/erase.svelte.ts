@@ -1,9 +1,9 @@
 import type { Tool, Point } from ".";
 import docs from "../docs.svelte";
 import ui from "../ui.svelte";
-import { createLayer, type CanvasLayer } from "../layer";
 import { postAction } from "../action";
 import draw from "./draw.svelte";
+import { getSelectedDrawLayer, createStamp, interpolateStrokePoints, takeLayerSnapshot } from "./utils/brush";
 
 export const erase = $state({
     erasing: false,
@@ -35,12 +35,10 @@ function eraseStamp(p: Point) {
     // adding rgb, but taking the max of alphas
     if (!stroke.stamp) return;
 
-    const dist = Math.hypot(p.x - stroke.current.x, p.y - stroke.current.y);
-    const steps = Math.max(Math.ceil(dist / (draw.brushSize / 24)), 1);
-    for (let i = 1; i <= steps; i++) {
-        const t = i / steps;
-        const x = stroke.current.x + (p.x - stroke.current.x) * t;
-        const y = stroke.current.y + (p.y - stroke.current.y) * t;
+    const points = interpolateStrokePoints(stroke.current, p, draw.brushSize);
+    for (const point of points) {
+        const x = point.x;
+        const y = point.y;
 
         const radius = draw.brushSize / 2;
 
@@ -94,20 +92,7 @@ export const eraseTool: Tool = {
     onPointerDown: (data) => {
         draw.drawing = true;
 
-        if (!data.l) {
-            const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
-            if (!docs.selected || !ui.selected) return;
-
-            // add new layer to document and select it
-            docs.selected.layers = [...docs.selected.layers, newLayer];
-            ui.selected.selectedLayers = [newLayer.id];
-
-            postAction({
-                type: 'create',
-                layer: newLayer,
-                position: docs.selected.layers.length - 1
-            });
-        } else {
+        if (data.l) {
             // if a layer is selected, ensure it's a canvas layer
             if (!ui.selectedDocument) return;
             const selectedLayers = ui.selected?.selectedLayers ?? [];
@@ -125,47 +110,8 @@ export const eraseTool: Tool = {
         );
         const stampCtx = stampCanvas.getContext('2d');
 
-        // pre-draw the stamp
-        if (stampCtx) {
-            const radius = draw.brushSize / 2;
-            const feather = draw.brushFeather;
-            const gradient = stampCtx.createRadialGradient(
-                radius, radius, 0,
-                radius, radius, radius
-            );
-
-            if (feather === 0) {
-                // add ~2px of feathering for basic anti-aliasing
-                const antiAliasSize = draw.brushSize < 3 ? 1 : 2 / draw.brushSize;
-                gradient.addColorStop(1 - antiAliasSize, `rgba(0, 0, 0, 1)`);
-                gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
-            } else {
-                gradient.addColorStop(1 - feather, `rgba(0, 0, 0, 1)`);
-                gradient.addColorStop(1, `rgba(0, 0, 0, 0)`);
-            }
-
-            stampCtx.fillStyle = gradient;
-            stampCtx.fillRect(
-                0, 0,
-                draw.brushSize, draw.brushSize
-            );
-            stroke.stamp = stampCtx.getImageData(
-                0, 0,
-                draw.brushSize, draw.brushSize
-            );
-        }
-
-        // take a snapshot of the layer
-        if (drawLayer && !layerSnapshot) {
-            const ctx = drawLayer.canvas.getContext('2d');
-            if (ctx) {
-                layerSnapshot = ctx.getImageData(
-                    0, 0,
-                    drawLayer.canvas.width,
-                    drawLayer.canvas.height
-                );
-            }
-        }
+        stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
+        layerSnapshot = takeLayerSnapshot(drawLayer);
 
         stroke.start = data.l ?? data.c;
         stroke.current = data.l ?? data.c;
@@ -207,19 +153,6 @@ export const eraseTool: Tool = {
         });
         docs.selected.layers = [...docs.selected.layers];
     }
-}
-
-export function getSelectedDrawLayer() {
-    if (!docs.selected) return null;
-
-    const selectedLayerIds = ui.selected?.selectedLayers ?? [];
-    if (selectedLayerIds.length !== 1) return null;
-    const selectedLayerId = selectedLayerIds[0];
-
-    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
-    if (layer?.type !== 'canvas') return null;
-    
-    return layer;
 }
 
 export default draw;
