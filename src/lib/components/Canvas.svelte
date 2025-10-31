@@ -134,7 +134,7 @@
         // }
 
         tool.onPointerMove?.({ v, c, l, e });
-        pointerPosition = c;
+        pointerPosition = v;
     }
 
     function handlePointerUp(e: PointerEvent) {
@@ -181,6 +181,11 @@
 
     function handleScroll() {
         if (ui.selected && scrollContainer) {
+            pointerPosition = {
+                x: pointerPosition.x + scrollContainer.scrollLeft - ui.selected.pan.x,
+                y: pointerPosition.y + scrollContainer.scrollTop - ui.selected.pan.y
+            };
+            
             ui.selected.pan = {
                 x: scrollContainer.scrollLeft,
                 y: scrollContainer.scrollTop
@@ -234,12 +239,12 @@
                 Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
             </div>
             <div id="overlay-area">
-                {#if tool.name === 'draw'}
+                {#if tool.name === 'draw' || tool.name === 'erase'}
                     <div
                         id="draw-cursor"
                         style={`
-                            width: ${draw.brushSize}px;
-                            height: ${draw.brushSize}px;
+                            width: ${draw.brushSize * (ui.selected?.zoom ?? 1)}px;
+                            height: ${draw.brushSize * (ui.selected?.zoom ?? 1)}px;
                             left: ${pointerPosition.x}px;
                             top: ${pointerPosition.y}px;
                         `}
