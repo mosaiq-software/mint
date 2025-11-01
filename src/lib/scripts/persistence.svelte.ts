@@ -243,3 +243,9 @@ export async function deleteDocumentFromDB(doc: Document) {
         })
     })
 }
+
+export async function updateDocumentMetadata(doc: Partial<Document> & {id: DocumentID}) {
+    const metadata = await getFromDB<DBs.METADATA>(DBs.METADATA, doc.id);
+    const newMetadata = {...metadata, ...doc};
+    return putInDB(DBs.METADATA, doc.id, newMetadata);
+}

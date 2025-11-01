@@ -4,11 +4,14 @@
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
-        deleteDocumentFromDB
+        deleteDocumentFromDB,
+        saveDocumentToDB, updateDocumentMetadata
     } from "../scripts/persistence.svelte";
     import IconButtonVisual from './ui/IconButtonVisual.svelte';
     import { Ellipsis } from '@lucide/svelte';
     import { Popover } from "melt/builders";
+    import Input from "./ui/Input.svelte";
+    import {ButtonVisual} from "./ui";
 
     const {doc, rerenderDocs}: {
         doc: Document & { preview: OffscreenCanvas, lastModified: Date },
@@ -44,10 +47,22 @@
     }
 
     const popover = new Popover();
+    const warningPopover = new Popover();
 
     async function deleteDoc() {
         await deleteDocumentFromDB(doc);
         rerenderDocs();
+    }
+
+    let name = $derived(doc.name);
+    async function handleDocNameBlur() {
+        if (name.length > 0) {
+            doc.name = name;
+            if (docs[doc.id])
+                docs[doc.id].name = name;
+            await updateDocumentMetadata({id: doc.id, name: doc.name});
+            rerenderDocs();
+        } else name = doc.name;
     }
 </script>
 
@@ -67,15 +82,27 @@
     </button>
     <div {...popover.content} class="popover">
         <div {...popover.arrow}></div>
-        <button class="warn" onclick={deleteDoc}>Delete</button>
+        <Input
+                type="text"
+                name="doc-name"
+                placeholder="Name"
+                bind:value={name}
+                onBlur={() => handleDocNameBlur()}
+        >Name:</Input>
+        <button {...warningPopover.trigger} class="warning-button">
+            <ButtonVisual color="danger">Delete</ButtonVisual>
+        </button>
+        <div {...warningPopover.content} class="popover">
+            <div {...warningPopover.arrow}></div>
+            <p>Are you sure you want to delete <b>{doc.name}</b>?</p>
+            <button onclick={deleteDoc} class="warning-button">
+                <ButtonVisual color="danger">Delete</ButtonVisual>
+            </button>
+        </div>
     </div>
 </div>
 
 <style>
-    .warn {
-        color: var(--c-fb-err);
-    }
-
     .ellipsis {
         position: absolute;
         top: var(--s-sm);
@@ -107,7 +134,7 @@
         overflow: hidden;
     }
 
-    .button:hover {
+    .button:not(.warn-button):hover {
         background: var(--c-mid);
     }
 

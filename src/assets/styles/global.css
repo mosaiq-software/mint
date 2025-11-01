@@ -103,17 +103,22 @@ canvas {
     border-radius: var(--s-sm);
     box-shadow: 0px 0px 10px 0px var(--c-bg);
     margin: var(--s-xs);
+    max-height: 50dvh;
 }
 
-.popover button {
+.popover button:not(.warning-button) {
     text-align: left;
     padding: 0 var(--s-sm);
     cursor: pointer;
     width: 100%;
 }
 
-.popover button:hover {
+.popover button:not(.warning-button):hover {
     background: var(--c-sur);
+}
+
+.warning-button {
+    margin-top: var(--s-sm);
 }
 
 input::-webkit-outer-spin-button,
