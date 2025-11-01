@@ -28,7 +28,6 @@ export function handleSave() {
 
     saveDocumentToDB(docs.selected).then(r => {
         tabStatus[r.id].actionsSinceSave = 0;
-        console.log('saved');
     });
 }
 

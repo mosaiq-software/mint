@@ -11,6 +11,7 @@ export interface Point {
 }
 
 export interface PointerEventData {
+    v: Point;
     c: Point;
     l: Point | null;
     e: MouseEvent;

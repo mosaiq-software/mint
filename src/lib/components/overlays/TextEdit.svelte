@@ -14,6 +14,7 @@
     import docs from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { postAction } from "../../scripts/action";
+    import ui from "../../scripts/ui.svelte";
 
     interface Props {
         layer: TextLayer;
@@ -47,9 +48,9 @@
 
 <div
     id="text-edit-container"
-    style:width={layer.width * Math.hypot(m.a, m.b) + 2 + 'px'}
-    style:height={layer.height * Math.hypot(m.c, m.d) + 2 + 'px'}
-    style:transform={`translate(${m.e}px, ${m.f}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
+    style:width={layer.width * Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:height={layer.height * Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:transform={`translate(${m.e * (ui.selected?.zoom ?? 1)}px, ${m.f * (ui.selected?.zoom ?? 1)}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
 >
     <textarea
         bind:this={textarea}
@@ -63,7 +64,7 @@
         style:height={layer.height + 'px'}
         spellcheck="false"
         style:caret-color={colorToCSS(layer.foregroundColor)}
-        style:transform={`scale(${Math.hypot(m.a, m.b)}, ${Math.hypot(m.c, m.d)})`}
+        style:transform={`scale(${Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1)}, ${Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1)})`}
     ></textarea>
     <div class="resize-handle"></div>
 </div>
@@ -71,11 +72,9 @@
 <style>
     #text-edit-container {
         position: absolute;
-        top: var(--s-xl);
-        left: var(--s-xl);
-        outline: 2px solid var(--c-acc);
-        outline-style: dashed;
-        box-sizing: border-box;
+        top: 0;
+        left: 0;
+        border: 2px dashed var(--c-acc);
         transform-origin: top left;
     }
 
@@ -85,9 +84,6 @@
         border: none;
         outline: none;
         padding: 0;
-        top: 1px;
-        left: 1px;
-        margin-top: -4px;
         background: transparent;
         overflow: hidden;
         white-space: pre-wrap;
@@ -103,8 +99,8 @@
         height: 10px;
         background: var(--c-txt);
         border: 1px solid var(--c-bg);
-        bottom: -3px;
-        right: -3px;
+        bottom: -6px;
+        right: -6px;
         pointer-events: none;
     }
 </style>

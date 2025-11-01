@@ -8,7 +8,7 @@
 
     const selectedLayer = $derived.by(() => {
         if (!docs.selected) return null;
-        return docs.selected.layers.find((l) => ui.selectedLayers[docs.selected!.id].includes(l.id));
+        return docs.selected.layers.find((l) => ui.selected?.selectedLayers.includes(l.id));
     });
     const selectedLayerId = $derived(selectedLayer?.id);
 

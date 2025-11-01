@@ -40,7 +40,7 @@ export type TextLayer = BaseLayer & TextProperties & {
 export type Layer = CanvasLayer | TextLayer;
 
 export function createLayer(type: 'canvas' | 'text', name: string): Layer {
-    if (!docs.selected) throw new Error("No document selected");
+    if (!docs.selected || !ui.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
     const base: BaseLayer = {
@@ -51,8 +51,8 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
         transform: {
             matrix: new DOMMatrix()
         },
-        foregroundColor: ui.foregroundColor,
-        backgroundColor: ui.backgroundColor
+        foregroundColor: ui.selected.foregroundColor,
+        backgroundColor: ui.selected.backgroundColor
     };
 
     if (type === 'canvas') {

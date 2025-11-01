@@ -42,7 +42,7 @@ export const selectTool: Tool = {
 
         if (!docs.selected) return;
 
-        const selectedLayers = ui.selectedLayers[docs.selected.id];
+        const selectedLayers = ui.selected?.selectedLayers ?? [];
         const firstSelectedLayer = selectedLayers.length > 0 ?
             docs.selected.layers.find(l => l.id === selectedLayers[0]) : null;
 
@@ -62,7 +62,7 @@ export const selectTool: Tool = {
 
                     // if pixel is not transparent, select this layer
                     if (pixel[3] > 0) {
-                        ui.selectedLayers[docs.selected.id] = [layer.id];
+                        if (ui.selected) ui.selected.selectedLayers = [layer.id];
                         found = true;
                         select.action = { type: 'move' };
                         break;
@@ -75,7 +75,7 @@ export const selectTool: Tool = {
                     // check if point is within text bounding box
                     if (point.x >= 0 && point.x <= layer.width &&
                         point.y >= 0 && point.y <= layer.height) {
-                        ui.selectedLayers[docs.selected.id] = [layer.id];
+                        if (ui.selected) ui.selected.selectedLayers = [layer.id];
                         found = true;
                         select.action = { type: 'move' };
                         break;
@@ -84,7 +84,7 @@ export const selectTool: Tool = {
             }
 
             // if no layer found, clear selection and prepare to move layer
-            if (!found) ui.selectedLayers[docs.selected.id] = [];
+            if (!found && ui.selected) ui.selected.selectedLayers = [];
         } else if (select.action.type === 'scale') {
             if (firstSelectedLayer) {
                 select.initial.pivot = getScalePivotPoint(select.action.direction, firstSelectedLayer);
@@ -103,7 +103,7 @@ export const selectTool: Tool = {
             if (!docs.selected) return;
 
             if (select.action.type === 'move') {
-                const selectedLayers = ui.selectedLayers[docs.selected.id];
+                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length === 0) return;
 
                 // move all selected layers by the delta
@@ -140,7 +140,7 @@ export const selectTool: Tool = {
                 const dir = select.action.direction;
 
                 // find the selected layer
-                const selectedLayers = ui.selectedLayers[docs.selected.id];
+                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length !== 1) return;
                 const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
                 if (!layer) return;
@@ -175,7 +175,7 @@ export const selectTool: Tool = {
                     .translate(-px, -py);
             } else if (select.action.type === 'rotate') {
                 // find the selected layer
-                const selectedLayers = ui.selectedLayers[docs.selected.id];
+                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length !== 1) return;
                 const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
                 if (!layer) return;
@@ -213,7 +213,7 @@ export const selectTool: Tool = {
             }
         } else {
             // determine action based on mouse position
-            setAction(data.c, data.l);
+            setAction(data.v, data.l);
         }
 
         select.previous.c = data.c;
@@ -223,7 +223,7 @@ export const selectTool: Tool = {
 
         // if action is scale/move/rotate, record post-action state
         if (docs.selected) {
-            const selectedLayers = ui.selectedLayers[docs.selected.id];
+            const selectedLayers = ui.selected?.selectedLayers ?? [];
             const firstSelectedLayer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (firstSelectedLayer) {
                 if (select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate') {
@@ -243,7 +243,7 @@ export const selectTool: Tool = {
         if (e.key === 'Backspace' || e.key === 'Delete') {
             if (!docs.selected) return;
 
-            const selectedLayers = ui.selectedLayers[docs.selected.id];
+            const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
             // remove selected layers from the document
@@ -261,11 +261,11 @@ export const selectTool: Tool = {
                 }
             }
             
-            ui.selectedLayers[docs.selected.id] = [];
+            if (ui.selected) ui.selected.selectedLayers = [];
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if (!docs.selected) return;
 
-            const selectedLayers = ui.selectedLayers[docs.selected.id];
+            const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
             const delta = e.shiftKey ? 10 : 1;
@@ -287,15 +287,19 @@ export const selectTool: Tool = {
                     })
                 }
             }         
+        } else if (e.key === '=') {
+            if (ui.selected) ui.selected.zoom *= 1.1;
+        } else if (e.key === '-') {
+            if (ui.selected) ui.selected.zoom /= 1.1;
         }
     }
 }
 
-function setAction(c: Point, l: Point | null) {
+function setAction(v: Point, l: Point | null) {
     // grab scale of selected layer
     if (!docs.selected) return;
 
-    const selectedLayers = ui.selectedLayers[docs.selected.id];
+    const selectedLayers = ui.selected?.selectedLayers ?? [];
     if (selectedLayers.length === 1) {
         const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
         if (!layer) return;
@@ -306,7 +310,9 @@ function setAction(c: Point, l: Point | null) {
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
             const pos = handlePositions[dir as ScaleDirection];
-            const dist = Math.hypot(c.x - pos.x, c.y - pos.y);
+            const zoom = ui.selected?.zoom ?? 1;
+            const vPos = new DOMPoint(pos.x * zoom, pos.y * zoom);
+            const dist = Math.hypot(v.x - vPos.x, v.y - vPos.y);
             if (dist < scaleHandleHitboxSize) {
                 overScaleHandle = dir as ScaleDirection;
                 break;
@@ -320,7 +326,7 @@ function setAction(c: Point, l: Point | null) {
 
         // check if mouse is over rotate handle
         const rotateHandle = getRotateHandlePosition(layer.transform.matrix, layer);
-        const dist = Math.hypot(c.x - rotateHandle.x, c.y - rotateHandle.y);
+        const dist = Math.hypot(v.x - rotateHandle.x, v.y - rotateHandle.y);
         if (dist < rotateHandleHitboxSize) {
             select.action = { type: 'rotate' };
             return;
@@ -385,9 +391,10 @@ function getRotateHandlePosition(
     }
 
     // position the rotate handle some distance along this vector
+    const zoom = ui.selected?.zoom ?? 1;
     return {
-        x: topCenter.x + vx * rotateHandleOffset,
-        y: topCenter.y + vy * rotateHandleOffset,
+        x: topCenter.x * zoom + vx * rotateHandleOffset,
+        y: topCenter.y * zoom + vy * rotateHandleOffset,
     };
 }
 
