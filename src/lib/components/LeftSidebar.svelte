@@ -24,7 +24,7 @@
     });
 
     const modesGroup = new RadioGroup({
-        value: modes[0],
+        value: () => ui.mode,
         onValueChange: (val) => (ui.mode = val as Mode),
     });
 
