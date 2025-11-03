@@ -10,7 +10,18 @@
     import { onMount, onDestroy } from "svelte";
     import FileMenu from "./overlays/FileMenu.svelte";
 
-    const fileMenuPopover = new Popover({floatingConfig: {computePosition: {placement: 'right-start'}}});
+    let popoverOpen = $state(false);
+    const getPopoverOpen = () => popoverOpen;
+
+    const fileMenuPopover = new Popover({
+        floatingConfig: {
+            computePosition: {
+                placement: 'right-start'
+            }
+        },
+        open: getPopoverOpen,
+        onOpenChange: (open) => popoverOpen = open,
+    });
 
     const modesGroup = new RadioGroup({
         value: modes[0],
@@ -81,7 +92,7 @@
         </button>
         <div {...fileMenuPopover.content} class="popover">
             <div {...fileMenuPopover.arrow}></div>
-            <FileMenu />
+            <FileMenu bind:open={popoverOpen} />
         </div>
         <div {...modesGroup.getItem("select").attrs}>
             <IconButtonVisual
