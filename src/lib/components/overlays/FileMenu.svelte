@@ -7,8 +7,15 @@
     import {ChevronRight} from '@lucide/svelte';
     import {render} from '../../scripts/render';
 
+    let { open = $bindable() } = $props<{ open: boolean }>();
+
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
+
+    function saveAndClose() {
+        handleSave();
+        open = false;
+    }
 
     function handleCanvasSizeBlur(type: 'width' | 'height', dimStr: string) {
         if (!docs.selected) return dimStr;
@@ -51,6 +58,8 @@
         a.download = `${docs.selected.name}.${filetype}`;
         a.href = dataURL;
         a.click();
+
+        open = false;
     }
 
     let name = $derived(docs.selected ? docs.selected.name : '');
@@ -101,7 +110,7 @@
             </div>
         </div>
         <h2>File</h2>
-        <button onclick={handleSave}>Save</button>
+        <button onclick={saveAndClose}>Save</button>
         <button {...exportsPopover.trigger} class="arrowed">
             <span>Export as...</span>
             <ChevronRight style="opacity: 0.5" size={16} />
