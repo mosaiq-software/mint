@@ -38,6 +38,32 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
             lines.forEach((line, index) => {
                 ctx.fillText(line, 0, index * lineHeight, layer.width);
             });
+        } else if (layer.type === 'rectangle') {
+            // draw rectangle
+            ctx.fillStyle = colorToCSS(layer.foregroundColor);
+            ctx.strokeStyle = colorToCSS(layer.backgroundColor);
+            ctx.lineWidth = layer.strokeWidth;
+
+            const w = layer.width;
+            const h = layer.height;
+            const r = Math.min(layer.cornerRadius, w / 2, h / 2);
+
+            ctx.beginPath();
+            ctx.moveTo(r, 0);
+            ctx.lineTo(w - r, 0);
+            ctx.quadraticCurveTo(w, 0, w, r);
+            ctx.lineTo(w, h - r);
+            ctx.quadraticCurveTo(w, h, w - r, h);
+            ctx.lineTo(r, h);
+            ctx.quadraticCurveTo(0, h, 0, h - r);
+            ctx.lineTo(0, r);
+            ctx.quadraticCurveTo(0, 0, r, 0);
+            ctx.closePath();
+
+            ctx.fill();
+            if (layer.strokeWidth > 0) {
+                ctx.stroke();
+            }
         }
         
         ctx.restore();

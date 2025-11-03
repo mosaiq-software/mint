@@ -56,7 +56,7 @@ export type EllipseLayer = ShapeLayer & {
 
 export type Layer = CanvasLayer | TextLayer | RectangleLayer | EllipseLayer;
 
-export function createLayer(type: 'canvas' | 'text', name: string): Layer {
+export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', name: string): Layer {
     if (!docs.selected || !ui.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
