@@ -44,8 +44,16 @@ const docs: Record<DocumentID, Document> & {selected: Document | null} = $state(
 /* Functions */
 export function matrixToTransformComponents(matrix: DOMMatrix): TransformComponents {
     const { a, b, c, d, e, f } = matrix;
-    const scaleX = Math.sqrt(a * a + b * b);
-    const scaleY = Math.sqrt(c * c + d * d);
+    const determinant = a * d - b * c;
+    let scaleX = Math.hypot(a, b);
+    let scaleY = Math.hypot(c, d);
+    if (determinant < 0) {
+        if (a * d < b * c) {
+            scaleX = -scaleX; // horizontal flip
+        } else {
+            scaleY = -scaleY; // vertical flip
+        }
+    }
     const rotate = Math.atan2(b, a) * (180 / Math.PI); // in degrees
     return {
         translate: { x: e, y: f },

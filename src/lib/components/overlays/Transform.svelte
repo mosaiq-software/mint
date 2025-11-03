@@ -8,6 +8,7 @@
 
     const { layer }: Props = $props();
     let t = $derived(matrixToTransformComponents(layer.transform.matrix));
+    $effect(() => {$inspect(matrixToTransformComponents(layer.transform.matrix))});
 
     let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : layer.width);
     let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : layer.height);
@@ -15,8 +16,8 @@
 <div
     class="transform-container"
     style="
-        width: {layerWidth * t.scale.x * (ui.selected?.zoom ?? 1) + 'px'};
-        height: {layerHeight * t.scale.y * (ui.selected?.zoom ?? 1) + 'px'};
+        width: {layerWidth * Math.abs(t.scale.x) * (ui.selected?.zoom ?? 1) + 'px'};
+        height: {layerHeight * Math.abs(t.scale.y) * (ui.selected?.zoom ?? 1) + 'px'};
     "
 >
     <div class="transform-overlay" style="
