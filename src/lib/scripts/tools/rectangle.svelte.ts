@@ -33,8 +33,6 @@ export const rectangleTool: Tool = {
         }
     },
     onPointerMove: (data) => {
-        console.log(rectangle.dragging);
-        console.log(rectangle.action);
         if (rectangle.dragging) {
             if (rectangle.action === 'create') {
                 if (!selected) return;
