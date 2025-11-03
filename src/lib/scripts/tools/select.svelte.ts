@@ -64,7 +64,7 @@ export const selectTool: Tool = {
                     if (pixel[3] > 0) {
                         if (ui.selected) ui.selected.selectedLayers = [layer.id];
                         found = true;
-                        select.action = { type: 'move' };
+                        data.l = { x: point.x, y: point.y };
                         break;
                     }
                 } else if (layer.type === "text" && layer.visible) {
@@ -76,15 +76,18 @@ export const selectTool: Tool = {
                     if (point.x >= 0 && point.x <= layer.width &&
                         point.y >= 0 && point.y <= layer.height) {
                         if (ui.selected) ui.selected.selectedLayers = [layer.id];
+                        data.l = { x: point.x, y: point.y };
                         found = true;
-                        select.action = { type: 'move' };
                         break;
                     }
                 }
             }
 
-            // if no layer found, clear selection and prepare to move layer
-            if (!found && ui.selected) ui.selected.selectedLayers = [];
+            if (found) {
+                setAction(data.v, data.l);
+            } else if (ui.selected) {
+                ui.selected.selectedLayers = [];
+            }
         } else if (select.action.type === 'scale') {
             if (firstSelectedLayer) {
                 select.initial.pivot = getScalePivotPoint(select.action.direction, firstSelectedLayer);
@@ -332,14 +335,12 @@ function setAction(v: Point, l: Point | null) {
             return;
         }
 
-        // check if mouse is over non-transparent pixel
-        const ctx = layer.type === 'canvas' ? layer.canvas.getContext('2d') : null;
-        if (ctx && l) {
-            const pixel = ctx.getImageData(l.x, l.y, 1, 1).data;
-            if (pixel[3] > 0) {
-                select.action = { type: 'move' };
-                return;
-            }
+        // check if mouse is within layer bounds
+        const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+        const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+        if (l && l.x >= 0 && l.x <= width && l.y >= 0 && l.y <= height) {
+            select.action = { type: 'move' };
+            return;
         }
     }
 
