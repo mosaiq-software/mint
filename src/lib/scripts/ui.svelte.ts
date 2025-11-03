@@ -4,20 +4,34 @@ import type { LayerID } from "./layer";
 export const modes = ['select', 'draw', 'erase', 'text'] as const;
 export type Mode = typeof modes[number];
 
-interface UI {
+type UIAttributes = {
+    selectedLayers: LayerID[];
+    foregroundColor: Color;
+    backgroundColor: Color;
+    pan: { x: number; y: number };
+    zoom: number;
+}
+
+type UI  = Record<DocumentID, UIAttributes> & {
     mode: Mode;
+    selected: UIAttributes | null;
     selectedDocument: DocumentID | null;
-    selectedLayers: Record<DocumentID, LayerID[]>;
-    foregroundColor: Color,
-    backgroundColor: Color,
 }
 
 const ui: UI = $state({
-    mode: modes[0],
+    mode: 'select',
     selectedDocument: null,
-    selectedLayers: {},
-    foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-    backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+    selected: null
 });
+
+export function initializeUIForDocument(id: DocumentID) {
+    ui[id] = {
+        selectedLayers: [],
+        foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+        backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+        pan: { x: 0, y: 0 },
+        zoom: 1
+    }
+}
 
 export default ui;

@@ -14,10 +14,11 @@
 ;
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
+    let scrollContainer: HTMLDivElement;
     let pointerPosition = $state({ x: 0, y: 0 });
     let selectedLayer = $derived.by(() => {
-        if (!docs.selected) return null;
-        const layerId = ui.selectedLayers[docs.selected.id]?.[0];
+        if (!docs.selected || !ui.selected) return null;
+        const layerId = ui.selected.selectedLayers[0];
         return docs.selected.layers.find(l => l.id === layerId) || null;
     });
 
@@ -76,6 +77,24 @@
         if (canvas && docs.selected) render(canvas, docs.selected);
     });
 
+    $effect(() => {
+        if (scrollContainer && ui.selected) {
+            scrollContainer.scrollLeft = ui.selected.pan.x;
+            scrollContainer.scrollTop = ui.selected.pan.y;
+        }
+    });
+
+    function getViewportPoint(e: PointerEvent): Point {
+        const rect = canvas.getBoundingClientRect();
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function getCanvasPoint(v: Point): Point {
+        if (!docs.selected || !ui.selected) return v;
+        const zoom = ui.selected.zoom;
+        return { x: v.x / zoom, y: v.y / zoom };
+    }
+
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
         if (!docs.selected) return null;
         const layer = docs.selected.layers.find(l => l.id === layerId);
@@ -87,46 +106,43 @@
     }
 
     function handlePointerDown(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        let layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
-
-        tool.onPointerDown?.({ c: p, l, e });
+        tool.onPointerDown?.({ v, c, l, e });
     }
 
     function handlePointerMove(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        // Get coalesced events for even smoother strokes
-        const events = e.getCoalescedEvents();
-        if (events.length > 0) {
-            for (const event of events) {
-                const coalescedP = { 
-                    x: event.clientX - rect.left, 
-                    y: event.clientY - rect.top 
-                };
-                const coalescedL = layer ? getLayerSpacePoint(coalescedP, layer) : null;
-                tool.onPointerMove?.({ c: coalescedP, l: coalescedL, e: event });
-            }
-        } else {
-            tool.onPointerMove?.({ c: p, l, e });
-        }
+        // // handle multiple move events per frame
+        // const events = e.getCoalescedEvents();
+        // if (events.length > 0) {
+        //     for (const event of events) {
+        //         const coalescedP = { 
+        //             x: event.clientX - rect.left, 
+        //             y: event.clientY - rect.top 
+        //         };
+        //         const coalescedL = layer ? getLayerSpacePoint(coalescedP, layer) : null;
+        //         tool.onPointerMove?.({ c: coalescedP, l: coalescedL, e: event });
+        //     }
+        // } else {
+        //     tool.onPointerMove?.({ c: p, l, e });
+        // }
 
-        pointerPosition = p;
+        tool.onPointerMove?.({ v, c, l, e });
+        pointerPosition = v;
     }
 
     function handlePointerUp(e: PointerEvent) {
-        const rect = canvas.getBoundingClientRect();
-        const p = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        const layer = ui.selectedLayers[ui.selectedDocument!]?.[0] || null;
-        let l = layer ? getLayerSpacePoint(p, layer) : null;
+        const v = getViewportPoint(e);
+        const c = getCanvasPoint(v);
+        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
 
-        tool.onPointerUp?.({ c: p, l, e });
+        tool.onPointerUp?.({ v, c, l, e });
     }
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -162,6 +178,27 @@
             handleImageDrop(e);
         }
     }
+
+    function handleScroll() {
+        if (ui.selected && scrollContainer) {
+            pointerPosition = {
+                x: pointerPosition.x + scrollContainer.scrollLeft - ui.selected.pan.x,
+                y: pointerPosition.y + scrollContainer.scrollTop - ui.selected.pan.y
+            };
+            
+            ui.selected.pan = {
+                x: scrollContainer.scrollLeft,
+                y: scrollContainer.scrollTop
+            };
+        }
+    }
+
+    function handleWheel(e: WheelEvent) {
+        if (e.ctrlKey && ui.selected) {
+            e.preventDefault();
+            ui.selected.zoom /= 1 + e.deltaY / 100;
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -171,47 +208,64 @@
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
     style="cursor: {cursor};"
+    bind:this={scrollContainer}
     onkeydown={handleKeyDown}
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
+    onscroll={handleScroll}
+    onwheel={handleWheel}
 >
-    <div id="canvas-container"
-         role="application"
-         ondragover={(e) => e.preventDefault()}
-         ondrop={handleImageDropLocal}
+    <div id="interactive-area"
+        role="application"
+        ondragover={(e) => e.preventDefault()}
+        ondrop={handleImageDropLocal}
+        style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
+        style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
     >
-        <canvas bind:this={canvas} aria-hidden="true"></canvas>
-        <div id="canvas-instructions" class="sr-only">
-            Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
+        <div
+            id="canvas-area"
+            style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
+            style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
+        >
+            <canvas
+                bind:this={canvas}
+                aria-hidden="true"
+                style:transform={ui.selected ? `scale(${ui.selected.zoom})` : 'scale(1)'}
+            ></canvas>
+            <div id="canvas-instructions" class="sr-only">
+                Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
+            </div>
+            <div id="overlay-area">
+                {#if tool.name === 'draw' || tool.name === 'erase'}
+                    <div
+                        id="draw-cursor"
+                        style={`
+                            width: ${draw.brushSize * (ui.selected?.zoom ?? 1)}px;
+                            height: ${draw.brushSize * (ui.selected?.zoom ?? 1)}px;
+                            left: ${pointerPosition.x}px;
+                            top: ${pointerPosition.y}px;
+                        `}
+                    ></div>
+                {/if}
+                {#if dragOver}
+                    <DropMargin side="left" />
+                    <DropMargin side="top" />
+                    <DropMargin side="bottom" />
+                    <DropMargin side="right" />
+                {/if}
+                {#if tool.name === 'select' && selectedLayer}
+                    <Transform layer={selectedLayer} />
+                {/if}
+                {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+                    <TextEdit bind:layer={selectedLayer} />
+                {/if}
+            </div>
         </div>
-        {#if tool.name === 'draw'}
-            <div
-                id="draw-cursor"
-                style={`
-                    width: ${draw.brushSize}px;
-                    height: ${draw.brushSize}px;
-                    left: ${pointerPosition.x}px;
-                    top: ${pointerPosition.y}px;
-                `}
-            ></div>
-        {/if}
-        {#if dragOver}
-            <DropMargin side="left" />
-            <DropMargin side="top" />
-            <DropMargin side="bottom" />
-            <DropMargin side="right" />
-        {/if}
     </div>
     <TextMeasure />
-    {#if tool.name === 'select' && selectedLayer}
-        <Transform layer={selectedLayer} />
-    {/if}
-    {#if tool.name === 'text' && selectedLayer?.type === 'text'}
-        <TextEdit bind:layer={selectedLayer} />
-    {/if}
 </div>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -224,13 +278,24 @@
         position: relative;
     }
 
-    #canvas-container {
+    #interactive-area {
         margin: var(--s-xl);
-        width: fit-content;
-        height: fit-content;
+    }
+
+    #canvas-area {
+        position: relative;
+    }
+
+    #overlay-area {
+        position: absolute;
+        inset: 0;
+    }
+
+    canvas {
         background-image: url("data:image/svg+xml,%3csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='10' height='10' fill='%23ccc'/%3e%3crect x='10' y='10' width='10' height='10' fill='%23ccc'/%3e%3c/svg%3e");
         background-color: #fff;
         position: relative;
+        transform-origin: top left;
     }
 
     #draw-cursor {

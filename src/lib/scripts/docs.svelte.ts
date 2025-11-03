@@ -1,4 +1,4 @@
-import ui from './ui.svelte';
+import ui, { initializeUIForDocument } from './ui.svelte';
 import type { Layer } from './layer';
 import type { Point } from './tools';
 import { populateSnapshots } from './action';
@@ -64,18 +64,27 @@ export function createDocument(name: string, width: number, height: number): Doc
         id, name, width, height, layers: []
     };
 
+    initializeUIForDocument(id);
     selectDocument(id);
 
     return id;
 }
 
-export function selectDocument(id: DocumentID) {
+export function selectDocument(id: DocumentID | null) {
     ui.selectedDocument = id;
-    ui.selectedLayers[id] = [];
-    docs.selected = docs[id];
-    if (docs.selected) populateSnapshots(docs.selected.layers);
-    if (!(id in tabStatus)) {
-        initializeTab(id);
+
+    if (id === null) {
+        ui.selected = null;
+        docs.selected = null;
+    } else {
+        // populate selected UI and document for easy access
+        ui.selected = ui[id];
+        docs.selected = docs[id];
+
+        populateSnapshots(docs[id].layers);
+        if (!(id in tabStatus)) {
+            initializeTab(id);
+        }
     }
 }
 

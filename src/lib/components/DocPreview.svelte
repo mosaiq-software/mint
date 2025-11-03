@@ -11,7 +11,8 @@
     import { Ellipsis } from '@lucide/svelte';
     import { Popover } from "melt/builders";
     import Input from "./ui/Input.svelte";
-    import {ButtonVisual} from "./ui";
+    import { ButtonVisual } from "./ui";
+    import { initializeUIForDocument } from "../scripts/ui.svelte";
 
     const {doc, rerenderDocs}: {
         doc: Document & { preview: OffscreenCanvas, lastModified: Date },
@@ -43,6 +44,8 @@
 
     async function selectDoc() {
         docs[doc.id] = await getDocumentFromDB(doc.id);
+
+        initializeUIForDocument(doc.id);
         selectDocument(doc.id);
     }
 

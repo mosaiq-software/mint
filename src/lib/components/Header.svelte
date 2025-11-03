@@ -5,6 +5,7 @@
     import ui from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte.js";
     import {Popover} from "melt/builders";
+    import { selectDocument } from '../scripts/docs.svelte';
 
     let tabs = $derived.by(() => {
         const {selected, ...rest} = docs;
@@ -14,8 +15,7 @@
     });
 
     function handleTabClick(tab: Document | null) {
-        docs.selected = tab;
-        ui.selectedDocument = tab?.id ?? null;
+        selectDocument(tab ? tab.id : null);
     }
 
     function findClosestDocumentIDByTabIndex(tab: Document, above: boolean): DocumentID | null {

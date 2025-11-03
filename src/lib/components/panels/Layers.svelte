@@ -30,8 +30,8 @@
         const layerPosition = docs.selected.layers.findIndex(layer => layer.id === layerId);
 
         docs.selected.layers = docs.selected.layers.filter(layer => layer.id !== layerId);
-        if (ui.selectedLayers[docs.selected.id].includes(layerId)) {
-            ui.selectedLayers[docs.selected.id] = ui.selectedLayers[docs.selected.id].filter(id => id !== layerId);
+        if (ui.selected?.selectedLayers.includes(layerId)) {
+            ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== layerId);
         }
 
         postAction({
@@ -42,8 +42,7 @@
     }
 
     function selectLayer(layerId: LayerID) {
-        if (!docs.selected) return;
-        ui.selectedLayers[docs.selected.id] = [layerId];
+        if (ui.selected) ui.selected.selectedLayers = [layerId];
     }
 
     let layerBeingRenamed: LayerID | null = $state(null);
@@ -158,7 +157,7 @@
                 <div
                     class="layer"
                     style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
-                    class:selected={ui.selectedLayers[docs.selected.id]?.includes(layer.id)}
+                    class:selected={ui.selected?.selectedLayers.includes(layer.id)}
                     draggable={docs.selected?.layers.length >= 2 && layer.id !== layerBeingRenamed ? 'true' : undefined}
                     ondragstart={(event) => handleDragStart(event, layer, index)}
                     ondragend={handleDragEnd}

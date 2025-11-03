@@ -24,9 +24,9 @@ const text = $state({
 export function getSelectedTextLayer() {
     if (!docs.selected) return null;
 
-    const selectedLayerIds = ui.selectedLayers[docs.selected.id]
-    if (selectedLayerIds.length !== 1) return null;
-    const selectedLayerId = selectedLayerIds[0];
+    const selectedLayers = ui.selected?.selectedLayers ?? [];
+    if (selectedLayers.length !== 1) return null;
+    const selectedLayerId = selectedLayers[0];
 
     const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
     if (layer?.type !== 'text') return null;
@@ -48,7 +48,7 @@ export const textTool: Tool = {
             const layer = createLayer('text', 'Text');
             layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
             docs.selected.layers.push(layer);
-            ui.selectedLayers[docs.selected.id] = [layer.id];
+            if (ui.selected) ui.selected.selectedLayers = [layer.id];
 
             postAction({
                 type: "create",
@@ -78,9 +78,12 @@ export const textTool: Tool = {
             // determine if cursor is near the bottom right corner for resizing
             let point = new DOMPoint(layer.width, layer.height);
             point = layer.transform.matrix.transformPoint(point);
+            const zoom = ui.selected?.zoom ?? 1;
+            point.x *= zoom;
+            point.y *= zoom;
 
-            const dx = data.c.x - point.x;
-            const dy = data.c.y - point.y;
+            const dx = data.v.x - point.x;
+            const dy = data.v.y - point.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= resizeHitboxSize) {
