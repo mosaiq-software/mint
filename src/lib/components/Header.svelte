@@ -1,7 +1,7 @@
 <script lang="ts">
-    import docs, {type Document} from '../scripts/docs.svelte';
+    import docs, {type Document, type DocumentID} from '../scripts/docs.svelte';
     import { Plus, X } from '@lucide/svelte';
-    import {IconButtonVisual} from "./ui";
+    import {ButtonVisual, IconButtonVisual} from "./ui";
     import ui from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte.js";
     import {Popover} from "melt/builders";
@@ -18,10 +18,30 @@
         selectDocument(tab ? tab.id : null);
     }
 
+    function findClosestDocumentIDByTabIndex(tab: Document, above: boolean): DocumentID | null {
+        const selectedTabIndex = tabStatus[tab.id].tabIndex;
+        let closestTabIndex = Number.NEGATIVE_INFINITY, closestTabId = tab.id;
+        Object.entries(tabStatus).forEach(([id, {tabIndex, ...rest}]) => {
+            if (tabIndex === selectedTabIndex) return;
+            if (above && tabIndex > selectedTabIndex) return;
+            if (!above && tabIndex < selectedTabIndex) return;
+            const closestDiff = Math.abs(selectedTabIndex - closestTabIndex);
+            const currentDiff = Math.abs(selectedTabIndex - tabIndex);
+            if (currentDiff < closestDiff) {
+                closestTabIndex = tabIndex;
+                closestTabId = id as DocumentID;
+            }
+        });
+        if (closestTabId === tab.id) return null;
+        return closestTabId;
+    }
+
     function handleTabDelete(tab: Document) {
         if (docs.selected?.id === tab.id) {
-            docs.selected = null;
-            ui.selectedDocument = null;
+            const closestDocID = findClosestDocumentIDByTabIndex(tab, false) ?? findClosestDocumentIDByTabIndex(tab, true);
+            console.log(closestDocID);
+            docs.selected = closestDocID ? docs[closestDocID] : closestDocID;
+            ui.selectedDocument = closestDocID;
         }
         delete docs[tab.id];
         delete tabStatus[tab.id];
@@ -72,12 +92,14 @@
                 {#if docUpForDeletion}
                     <p>Are you sure you want to close <b>{docUpForDeletion.name}</b>?</p>
                     <p>This document may have unsaved changes.</p>
-                    <button class="warn" onclick={() => {
+                    <button class="warning-button" onclick={() => {
                         if (docUpForDeletion) {
                             deleteWarningPopover.open = false;
                             handleTabDelete(docUpForDeletion);
                         }
-                    }}>Close</button>
+                    }}>
+                        <ButtonVisual color="danger">Close</ButtonVisual>
+                    </button>
                 {/if}
             </div>
         </div>
@@ -87,11 +109,6 @@
 <style>
     .popover p {
         cursor: default;
-    }
-
-    .warn {
-        color: var(--c-fb-err);
-        text-align: center;
     }
 
     .close:not(:hover) .unsaved {
