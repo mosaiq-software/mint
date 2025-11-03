@@ -8,7 +8,6 @@
 
     const { layer }: Props = $props();
     let t = $derived(matrixToTransformComponents(layer.transform.matrix));
-    $effect(() => {$inspect(matrixToTransformComponents(layer.transform.matrix))});
 
     let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : layer.width);
     let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : layer.height);
@@ -24,6 +23,7 @@
         transform: 
             translate({t.translate.x * (ui.selected?.zoom ?? 1)}px, {t.translate.y * (ui.selected?.zoom ?? 1)}px)
             rotate({t.rotate}deg)
+            {t.scale.y < 0 ? 'scaleY(-1)' : ''}
     ">
         <div class="transform-rotate-container">
             <div class="transform-rotate-handle"></div>
