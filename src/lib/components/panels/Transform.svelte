@@ -52,17 +52,19 @@
 
         const cos = Math.cos(r * Math.PI / 180);
         const sin = Math.sin(r * Math.PI / 180);
-        selectedLayers[0].transform.matrix = new DOMMatrix([
+        const matrix = new DOMMatrix([
             ws * cos, ws * sin,
             ms * -hs * sin, ms * hs * cos,
             xs, ys
         ]);
 
+        selectedLayers[0].transform.matrix = matrix;
+
         if (triggerPostAction) {
             postAction({
-                type: "update",
+                type: "transform",
                 layerID: selectedLayers[0].id,
-                newLayer: { transform: selectedLayers[0].transform }
+                newMatrix: matrix
             });
         }
     }
@@ -73,6 +75,34 @@
         debounceTimeout = setTimeout(() => {
             applyNewMatrix(false); debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
+    }
+
+    function flipH() {
+        if (!t) return;
+        m = !m;
+        r = (t.rotate + 360) % 360 - 180;
+        rs = r.toFixed(1);
+        const ws = t.scale.x * layerSize.width;
+        let xs = t.translate.x, ys = t.translate.y;
+        const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
+        xs -= ws * cos;
+        ys -= ws * sin;
+        x = xs.toFixed(2);
+        y = ys.toFixed(2);
+        applyNewMatrix(true);
+    }
+
+    function flipV() {
+        if (!t) return;
+        m = !m;
+        const hs = t.scale.y * layerSize.height;
+        let xs = t.translate.x, ys = t.translate.y;
+        const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
+        xs -= hs * sin;
+        ys += hs * cos;
+        x = xs.toFixed(2);
+        y = ys.toFixed(2);
+        applyNewMatrix(true);
     }
 
 </script>
@@ -131,12 +161,12 @@
             <Checkbox bind:checked={m} onChange={() => applyNewMatrix(true)} />
         </div>
         <div style="justify-content: flex-end">
-            <button onclick={() => {}}>
+            <button onclick={() => flipH()}>
                 <IconButtonVisual label="Flip horizontally">
                     <FlipHorizontal2 size={16} />
                 </IconButtonVisual>
             </button>
-            <button onclick={() => {}}>
+            <button onclick={() => flipV()}>
                 <IconButtonVisual label="Flip vertically">
                     <FlipVertical2 size={16} />
                 </IconButtonVisual>
