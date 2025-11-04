@@ -1,9 +1,10 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Slider, Input } from "../ui";
+    import {Slider, Input, Checkbox, IconButtonVisual} from "../ui";
     import docs, { matrixToTransformComponents } from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
     import { postAction } from "../../scripts/action";
+    import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
 
     const selectedLayers = $derived.by(() => {
         if (!docs.selected) return [];
@@ -28,10 +29,12 @@
     let y = $derived(t ? t.translate.y.toFixed(2) : "");
 
     let w = $derived(t ? (t.scale.x * layerSize.width).toFixed(2) : "");
-    let h = $derived(t ? (t.scale.y * layerSize.height).toFixed(2) : "");
+    let h = $derived(t ? (Math.abs(t.scale.y) * layerSize.height).toFixed(2) : "");
 
     let r = $derived(t ? t.rotate : 0);
     let rs = $derived(t ? t.rotate.toFixed(1) : "0");
+
+    let m = $derived(t ? t.scale.y < 0 : false);
 
     function safeParseFloat(val: string, fallback: number) {
         const parsed = parseFloat(val);
@@ -44,13 +47,14 @@
         const xs = safeParseFloat(x, t.translate.x);
         const ys = safeParseFloat(y, t.translate.y);
         const ws = safeParseFloat(w, t.scale.x * layerSize.width) / layerSize.width;
-        const hs = safeParseFloat(h, t.scale.y * layerSize.height) / layerSize.height;
+        const hs = safeParseFloat(h, Math.abs(t.scale.y) * layerSize.height) / layerSize.height;
+        const ms = m ? -1 : 1;
 
         const cos = Math.cos(r * Math.PI / 180);
         const sin = Math.sin(r * Math.PI / 180);
         selectedLayers[0].transform.matrix = new DOMMatrix([
             ws * cos, ws * sin,
-            -hs * sin, hs * cos,
+            ms * -hs * sin, ms * hs * cos,
             xs, ys
         ]);
 
@@ -70,6 +74,7 @@
             applyNewMatrix(false); debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
     }
+
 </script>
 
 <Panel title="Transform" disabled={!t}>
@@ -119,6 +124,24 @@
             bind:value={r} onValueChange={debouncedApplyNewMatrix}
             onBlur={() => applyNewMatrix(true)}
         />
+    </div>
+    <div>
+        <div>
+            Mirror:
+            <Checkbox bind:checked={m} onChange={() => applyNewMatrix(true)} />
+        </div>
+        <div style="justify-content: flex-end">
+            <button onclick={() => {}}>
+                <IconButtonVisual label="Flip horizontally">
+                    <FlipHorizontal2 size={16} />
+                </IconButtonVisual>
+            </button>
+            <button onclick={() => {}}>
+                <IconButtonVisual label="Flip vertically">
+                    <FlipVertical2 size={16} />
+                </IconButtonVisual>
+            </button>
+        </div>
     </div>
 </Panel>
 
