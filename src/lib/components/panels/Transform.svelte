@@ -1,9 +1,10 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Slider, Input } from "../ui";
+    import {Slider, Input, Checkbox, IconButtonVisual} from "../ui";
     import docs, { matrixToTransformComponents } from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
     import { postAction } from "../../scripts/action";
+    import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
 
     const selectedLayers = $derived.by(() => {
         if (!docs.selected) return [];
@@ -28,10 +29,12 @@
     let y = $derived(t ? t.translate.y.toFixed(2) : "");
 
     let w = $derived(t ? (t.scale.x * layerSize.width).toFixed(2) : "");
-    let h = $derived(t ? (t.scale.y * layerSize.height).toFixed(2) : "");
+    let h = $derived(t ? (Math.abs(t.scale.y) * layerSize.height).toFixed(2) : "");
 
     let r = $derived(t ? t.rotate : 0);
     let rs = $derived(t ? t.rotate.toFixed(1) : "0");
+
+    let m = $derived(t ? t.scale.y < 0 : false);
 
     function safeParseFloat(val: string, fallback: number) {
         const parsed = parseFloat(val);
@@ -44,21 +47,24 @@
         const xs = safeParseFloat(x, t.translate.x);
         const ys = safeParseFloat(y, t.translate.y);
         const ws = safeParseFloat(w, t.scale.x * layerSize.width) / layerSize.width;
-        const hs = safeParseFloat(h, t.scale.y * layerSize.height) / layerSize.height;
+        const hs = safeParseFloat(h, Math.abs(t.scale.y) * layerSize.height) / layerSize.height;
+        const ms = m ? -1 : 1;
 
         const cos = Math.cos(r * Math.PI / 180);
         const sin = Math.sin(r * Math.PI / 180);
-        selectedLayers[0].transform.matrix = new DOMMatrix([
+        const matrix = new DOMMatrix([
             ws * cos, ws * sin,
-            -hs * sin, hs * cos,
+            ms * -hs * sin, ms * hs * cos,
             xs, ys
         ]);
 
+        selectedLayers[0].transform.matrix = matrix;
+
         if (triggerPostAction) {
             postAction({
-                type: "update",
+                type: "transform",
                 layerID: selectedLayers[0].id,
-                newLayer: { transform: selectedLayers[0].transform }
+                newMatrix: matrix
             });
         }
     }
@@ -70,6 +76,35 @@
             applyNewMatrix(false); debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
     }
+
+    function flipH() {
+        if (!t) return;
+        m = !m;
+        r = (t.rotate + 360) % 360 - 180;
+        rs = r.toFixed(1);
+        const ws = t.scale.x * layerSize.width;
+        let xs = t.translate.x, ys = t.translate.y;
+        const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
+        xs -= ws * cos;
+        ys -= ws * sin;
+        x = xs.toFixed(2);
+        y = ys.toFixed(2);
+        applyNewMatrix(true);
+    }
+
+    function flipV() {
+        if (!t) return;
+        m = !m;
+        const hs = t.scale.y * layerSize.height;
+        let xs = t.translate.x, ys = t.translate.y;
+        const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
+        xs -= hs * sin;
+        ys += hs * cos;
+        x = xs.toFixed(2);
+        y = ys.toFixed(2);
+        applyNewMatrix(true);
+    }
+
 </script>
 
 <Panel title="Transform" disabled={!t}>
@@ -119,6 +154,24 @@
             bind:value={r} onValueChange={debouncedApplyNewMatrix}
             onBlur={() => applyNewMatrix(true)}
         />
+    </div>
+    <div>
+        <div>
+            Mirror:
+            <Checkbox bind:checked={m} onChange={() => applyNewMatrix(true)} />
+        </div>
+        <div style="justify-content: flex-end">
+            <button onclick={() => flipH()}>
+                <IconButtonVisual label="Flip horizontally">
+                    <FlipHorizontal2 size={16} />
+                </IconButtonVisual>
+            </button>
+            <button onclick={() => flipV()}>
+                <IconButtonVisual label="Flip vertically">
+                    <FlipVertical2 size={16} />
+                </IconButtonVisual>
+            </button>
+        </div>
     </div>
 </Panel>
 

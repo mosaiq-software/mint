@@ -15,14 +15,15 @@
 <div
     class="transform-container"
     style="
-        width: {layerWidth * t.scale.x * (ui.selected?.zoom ?? 1) + 'px'};
-        height: {layerHeight * t.scale.y * (ui.selected?.zoom ?? 1) + 'px'};
+        width: {layerWidth * Math.abs(t.scale.x) * (ui.selected?.zoom ?? 1) + 'px'};
+        height: {layerHeight * Math.abs(t.scale.y) * (ui.selected?.zoom ?? 1) + 'px'};
     "
 >
     <div class="transform-overlay" style="
         transform: 
             translate({t.translate.x * (ui.selected?.zoom ?? 1)}px, {t.translate.y * (ui.selected?.zoom ?? 1)}px)
             rotate({t.rotate}deg)
+            {t.scale.y < 0 ? 'scaleY(-1)' : ''}
     ">
         <div class="transform-rotate-container">
             <div class="transform-rotate-handle"></div>
