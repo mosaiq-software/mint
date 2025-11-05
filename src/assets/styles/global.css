@@ -139,4 +139,9 @@ kbd {
     padding: 0 var(--s-sm);
     border-radius: var(--s-sm);
     line-height: 1em;
+    user-select: none;
+}
+
+kbd:active {
+    transform: translateY(1px);
 }
