@@ -1,5 +1,6 @@
 <script lang="ts">
     import Header from "./lib/components/Header.svelte";
+    import Footer from "./lib/components/Footer.svelte";
     import LeftSidebar from "./lib/components/LeftSidebar.svelte";
     import RightSidebar from "./lib/components/RightSidebar.svelte";
     import Viewport from "./lib/components/Viewport.svelte";
@@ -19,6 +20,7 @@
         <div id="viewport-wrapper">
             <Viewport />
         </div>
+        <Footer />
     </div>
     <RightSidebar />
 </main>
