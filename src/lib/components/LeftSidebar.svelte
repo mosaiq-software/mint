@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis} from "@lucide/svelte";
+    import {Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis, PaintBucket} from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup, Popover } from "melt/builders";
     import ui, { modes } from "../scripts/ui.svelte";
@@ -128,6 +128,15 @@
                 selected={modesGroup.value === "text"}
             >
                 <Type color="var(--c-txt)" />
+            </IconButtonVisual>
+        </div>
+        <div {...modesGroup.getItem("fill").attrs}>
+            <IconButtonVisual
+                label="Fill"
+                showLabel
+                selected={modesGroup.value === "fill"}
+            >
+                <PaintBucket />
             </IconButtonVisual>
         </div>
     </div>
