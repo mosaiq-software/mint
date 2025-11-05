@@ -20,6 +20,7 @@ export const fillTool: Tool = {
         const l: Point = {x: Math.floor(data.l.x), y: Math.floor(data.l.y)};
 
         const ctx = layer.canvas.getContext('2d');
+        const width = layer.canvas.width, height = layer.canvas.height;
         if (!ctx) return;
         const srcColorData = ctx.getImageData(l.x, l.y, 1, 1).data;
 
@@ -33,7 +34,13 @@ export const fillTool: Tool = {
         }
 
         const srcColor = imageDataToColor(srcColorData);
-        const dstColor = {...layer.foregroundColor, a: layer.foregroundColor.a * 255};
+        const unroundedDstColor = {...layer.foregroundColor, a: layer.foregroundColor.a * 255};
+        const dstColor: Color = {
+            r: Math.round(unroundedDstColor.r),
+            g: Math.round(unroundedDstColor.g),
+            b: Math.round(unroundedDstColor.b),
+            a: Math.round(unroundedDstColor.a)
+        }
 
         function areColorsEqual(a: Color, b: Color) {
             return a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
@@ -41,10 +48,10 @@ export const fillTool: Tool = {
 
         if (areColorsEqual(srcColor, dstColor)) return;
 
-        const imageData = ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height);
+        const imageData = ctx.getImageData(0, 0, width, height);
 
         function getPointColor(p: Point): Color {
-            const pointIndex = p.y * (layer as CanvasLayer).canvas.width + p.x;
+            const pointIndex = p.y * width + p.x;
             return {
                 r: imageData.data[pointIndex * 4],
                 g: imageData.data[pointIndex * 4 + 1],
@@ -53,46 +60,63 @@ export const fillTool: Tool = {
             }
         }
 
-        function getNeighborPoints(p: Point): Point[] {
-            const neighbors: Point[] = [];
-            if (p.x > 0) {
-                const n = {x: p.x - 1, y: p.y};
-                if (areColorsEqual(srcColor, getPointColor(n))) neighbors.push(n);
-            }
-            if (p.y > 0) {
-                const n = {x: p.x, y: p.y - 1};
-                if (areColorsEqual(srcColor, getPointColor(n))) neighbors.push(n);
-            }
-            if (p.x < (layer as CanvasLayer).canvas.width) {
-                const n = {x: p.x + 1, y: p.y};
-                if (areColorsEqual(srcColor, getPointColor(n))) neighbors.push(n);
-            }
-            if (p.y < (layer as CanvasLayer).canvas.height) {
-                const n = {x: p.x, y: p.y + 1};
-                if (areColorsEqual(srcColor, getPointColor(n))) neighbors.push(n);
-            }
-            return neighbors;
+        function isFillable(p: Point) {
+            const isSrcColor = areColorsEqual(srcColor, getPointColor(p));
+            const inX = 0 <= p.x && p.x < width;
+            const inY = 0 <= p.y && p.y < height;
+            return isSrcColor && inX && inY;
         }
 
-        const queue: Point[] = [l];
-        const visited: Set<Point> = new Set();
-
-        const start = Date.now();
-        while (queue.length > 0) {
-            const p = queue.shift();
-            if (!p || !areColorsEqual(srcColor, getPointColor(p))) continue;
-            // visited.add(p);
-
-            const pointIndex = p.y * (layer as CanvasLayer).canvas.width + p.x;
+        function fillPoint(p: Point) {
+            const pointIndex = p.y * width + p.x;
 
             imageData.data[pointIndex * 4] = dstColor.r;
             imageData.data[pointIndex * 4 + 1] = dstColor.g;
             imageData.data[pointIndex * 4 + 2] = dstColor.b;
             imageData.data[pointIndex * 4 + 3] = dstColor.a;
-
-            queue.push(...getNeighborPoints(p));
         }
-        console.log(Date.now() - start, 'ms');
+
+        // https://en.wikipedia.org/wiki/Flood_fill#Span_filling
+        // just trust OK?
+
+        interface QueueEntry {x1: number, x2: number, y: number, dy: number}
+        const queue: QueueEntry[] = [
+            {x1: l.x, x2: l.x, y: l.y, dy: 1},
+            {x1: l.x, x2: l.x, y: l.y - 1, dy: -1}
+        ];
+
+        while (queue.length > 0) {
+            const entry = queue.shift();
+            if (!entry) continue;
+            let {x1, x2, y, dy} = entry;
+            let x = x1;
+            if (isFillable({x, y})) {
+                while (isFillable({x: x - 1, y})) {
+                    fillPoint({x: x - 1, y});
+                    x -= 1;
+                }
+                if (x < x1) {
+                    queue.push({x1: x, x2: x1 - 1, y: y - dy, dy: -1 * dy});
+                }
+            }
+            while (x1 <= x2) {
+                while (isFillable({x: x1, y})) {
+                    fillPoint({x: x1, y});
+                    x1 = x1 + 1;
+                }
+                if (x1 > x) {
+                    queue.push({x1: x, x2: x1 - 1, y: y + dy, dy});
+                }
+                if (x1 - 1 > x2) {
+                    queue.push({x1: x2 + 1, x2: x1 - 1, y: y - dy, dy: -1 * dy});
+                }
+                x1 = x1 + 1;
+                while (x1 < x2 && !isFillable({x: x1, y})) {
+                    x1++;
+                }
+                x = x1;
+            }
+        }
 
         ctx.putImageData(imageData, 0, 0);
 
