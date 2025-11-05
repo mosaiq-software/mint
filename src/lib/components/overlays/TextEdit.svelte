@@ -11,7 +11,7 @@
 
 <script lang="ts">
     import type { TextLayer } from "../../scripts/layer";
-    import docs from "../../scripts/docs.svelte";
+    import docs, {matrixToTransformComponents} from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { postAction } from "../../scripts/action";
     import ui from "../../scripts/ui.svelte";
@@ -24,6 +24,7 @@
 
     const text = $derived(layer.text);
     const m = $derived(layer.transform.matrix);
+    const t = $derived(matrixToTransformComponents(m));
 
     function handleInput(event: Event) {
         const target = event.target as HTMLTextAreaElement;
@@ -48,9 +49,10 @@
 
 <div
     id="text-edit-container"
-    style:width={layer.width * Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1) + 'px'}
-    style:height={layer.height * Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1) + 'px'}
-    style:transform={`translate(${m.e * (ui.selected?.zoom ?? 1)}px, ${m.f * (ui.selected?.zoom ?? 1)}px) rotate(${Math.atan2(m.b, m.a)}rad)`}
+    style:width={layer.width * t.scale.x * (ui.selected?.zoom ?? 1) + 'px'}
+    style:height={layer.height * Math.abs(t.scale.y) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:transform={`translate(${t.translate.x * (ui.selected?.zoom ?? 1)}px, ${t.translate.y * (ui.selected?.zoom ?? 1)}px)
+        rotate(${t.rotate}deg) ${t.scale.y < 0 ? 'scaleY(-1)' : ''}`}
 >
     <textarea
         bind:this={textarea}
