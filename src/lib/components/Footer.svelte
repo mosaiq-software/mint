@@ -15,6 +15,7 @@
 
 {#if docs.selected}
     <footer>
+        <div>
         {#if ui.mode === "select"}
             {#if !selectedLayer}
                 <p>Click a layer to select</p>
@@ -58,7 +59,8 @@
                 <p>Click to make a text layer</p>
             {/if}
         {/if}
-
+        </div>
+        <div>
         {#if tabStatus[docs.selected.id].canUndo}
             <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Z</kbd> to undo</p>
         {/if}
@@ -68,6 +70,7 @@
         {#if tabStatus[docs.selected.id].actionsSinceSave !== 0}
             <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>S</kbd> to save</p>
         {/if}
+        </div>
     </footer>
 {/if}
 
@@ -99,9 +102,14 @@
         padding: 0 var(--s-sm);
     }
 
+    div {
+        display: flex;
+        flex-shrink: 0;
+    }
+
     footer {
         display: flex;
-        justify-content: start;
+        justify-content: space-between;
         align-items: center;
         background-color: var(--c-sur);
         width: 100%;
@@ -110,5 +118,7 @@
         flex-shrink: 0;
         padding: var(--s-sm);
         cursor: default;
+        font-size: var(--f-sm);
+        gap: var(--s-xl);
     }
 </style>

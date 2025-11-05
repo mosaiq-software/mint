@@ -7,7 +7,8 @@
             computePosition: {
                 placement: 'right'
             }
-        }
+        },
+        openDelay: () => 200
     });
     const {name, children, keybind = null, selected = false} = $props();
 </script>
