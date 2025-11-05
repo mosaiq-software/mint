@@ -81,11 +81,10 @@
         {/if}
         </div>
         <div>
-        {#if tabStatus[docs.selected.id].canUndo}
-            <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Z</kbd> to undo</p>
-        {/if}
         {#if tabStatus[docs.selected.id].canRedo}
             <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Y</kbd> to redo</p>
+        {:else if tabStatus[docs.selected.id].canUndo}
+            <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Z</kbd> to undo</p>
         {/if}
         {#if tabStatus[docs.selected.id].actionsSinceSave !== 0}
             <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>S</kbd> to save</p>
