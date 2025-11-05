@@ -2,7 +2,7 @@
     import {Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis} from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup, Popover } from "melt/builders";
-    import ui, { modes } from "../scripts/ui.svelte";
+    import ui, {modes, modesGroup} from "../scripts/ui.svelte";
     import type { Mode } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
@@ -22,11 +22,6 @@
         },
         open: getPopoverOpen,
         onOpenChange: (open) => popoverOpen = open,
-    });
-
-    const modesGroup = new RadioGroup({
-        value: modes[0],
-        onValueChange: (val) => (ui.mode = val as Mode),
     });
 
     const source: {
