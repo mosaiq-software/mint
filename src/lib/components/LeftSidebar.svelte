@@ -106,13 +106,9 @@
             </Tool>
         </div>
         <div {...modesGroup.getItem("fill").attrs}>
-            <IconButtonVisual
-                label="Fill"
-                showLabel
-                selected={modesGroup.value === "fill"}
-            >
+            <Tool name="Fill" keybind="F" selected={modesGroup.value === "fill"}>
                 <PaintBucket />
-            </IconButtonVisual>
+            </Tool>
         </div>
     </div>
     <div id="colors" class:disabled={!source}>
