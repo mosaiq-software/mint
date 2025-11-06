@@ -34,6 +34,18 @@ const previous = {
     c: { x: 0, y: 0 } as Point
 }
 
+const selectedLayers = $derived.by(() => {
+    if (!docs.selected) return [];
+
+    const selectedLayerIDs = ui.selected?.selectedLayers ?? [];
+    const selectedLayers: Layer[] = [];
+    for (const layerId of selectedLayerIDs) {
+        const layer = docs.selected.layers.find(l => l.id === layerId);
+        if (layer) selectedLayers.push(layer);
+    }
+    return selectedLayers;
+});
+
 const scaleHandleHitboxSize = 5;
 const rotateHandleHitboxSize = 5;
 const rotateHandleOffset = 25; // distance above the bounding box
@@ -42,12 +54,7 @@ export const selectTool: Tool = {
     name: 'select',
     onPointerDown: (data) => {
         select.dragging = true;
-
         if (!docs.selected) return;
-
-        const selectedLayers = ui.selected?.selectedLayers ?? [];
-        const firstSelectedLayer = selectedLayers.length > 0 ?
-            docs.selected.layers.find(l => l.id === selectedLayers[0]) : null;
 
         if (select.action.type === 'select') {
             // traverse layers from top to bottom to find the first shape under the cursor
@@ -92,16 +99,16 @@ export const selectTool: Tool = {
                 ui.selected.selectedLayers = [];
             }
         } else if (select.action.type === 'scale') {
-            if (firstSelectedLayer) {
-                initial.pivot = getScalePivotPoint(select.action.direction, firstSelectedLayer);
+            if (selectedLayers[0]) {
+                initial.pivot = getScalePivotPoint(select.action.direction, selectedLayers[0]);
             }
         }
 
-        if (firstSelectedLayer) {
-            initial.matrix = firstSelectedLayer.transform.matrix.translate(0, 0);
+        if (selectedLayers[0]) {
+            initial.matrix = selectedLayers[0].transform.matrix.translate(0, 0);
             initial.size = {
-                x: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.width : firstSelectedLayer.width,
-                y: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.height : firstSelectedLayer.height,
+                x: selectedLayers[0].type === 'canvas' ? selectedLayers[0].canvas.width : selectedLayers[0].width,
+                y: selectedLayers[0].type === 'canvas' ? selectedLayers[0].canvas.height : selectedLayers[0].height,
             }
         }
 
@@ -113,15 +120,13 @@ export const selectTool: Tool = {
             if (!docs.selected) return;
 
             if (select.action.type === 'move') {
-                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length === 0) return;
 
                 // move all selected layers by the delta
                 let deltaX = data.c.x - previous.c.x;
                 let deltaY = data.c.y - previous.c.y;
 
-                for (const layerId of selectedLayers) {
-                    const layer = docs.selected.layers.find(l => l.id === layerId);
+                for (const layer of selectedLayers) {
                     if (layer) {
                         // map screen delta into the layer's local (non-translated) space
                         // so translation is not affected by the layer's scale/rotation.
@@ -150,10 +155,8 @@ export const selectTool: Tool = {
                 const dir = select.action.direction;
 
                 // find the selected layer
-                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length !== 1) return;
-                const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-                if (!layer) return;
+                const layer = selectedLayers[0];
                 if (!data.l) return;
 
                 if (layer.type === 'rectangle' || layer.type === 'ellipse') {
@@ -207,10 +210,8 @@ export const selectTool: Tool = {
                 }
             } else if (select.action.type === 'rotate') {
                 // find the selected layer
-                const selectedLayers = ui.selected?.selectedLayers ?? [];
                 if (selectedLayers.length !== 1) return;
-                const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-                if (!layer) return;
+                const layer = selectedLayers[0];
                 if (!data.l) return;
 
                 const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width);
@@ -259,30 +260,29 @@ export const selectTool: Tool = {
 
         // if action is scale/move/rotate, record post-action state
         if (docs.selected) {
-            const selectedLayers = ui.selected?.selectedLayers ?? [];
-            const firstSelectedLayer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-            if (firstSelectedLayer) {
+            const layer = selectedLayers[0];
+            if (layer) {
                 if (select.action.type === 'move' || select.action.type === 'rotate') {
                     postAction({
                         type: "transform",
-                        layerID: firstSelectedLayer.id,
-                        newMatrix: firstSelectedLayer.transform.matrix,
+                        layerID: layer.id,
+                        newMatrix: layer.transform.matrix,
                     });
                 } else if (select.action.type === 'scale') {
-                    if (firstSelectedLayer.type === 'rectangle' || firstSelectedLayer.type === 'ellipse') {
+                    if (layer.type === 'rectangle' || layer.type === 'ellipse') {
                         postAction({
                             type: "update",
-                            layerID: firstSelectedLayer.id,
+                            layerID: layer.id,
                             newLayer: {
-                                width: firstSelectedLayer.width,
-                                height: firstSelectedLayer.height
+                                width: layer.width,
+                                height: layer.height
                             }
                         });
                     } else {
                         postAction({
                             type: "transform",
-                            layerID: firstSelectedLayer.id,
-                            newMatrix: firstSelectedLayer.transform.matrix,
+                            layerID: layer.id,
+                            newMatrix: layer.transform.matrix,
                         }); 
                     }
                 }
@@ -295,15 +295,12 @@ export const selectTool: Tool = {
     onKeyDown: (e) => {
         if (e.key === 'Backspace' || e.key === 'Delete') {
             if (!docs.selected) return;
-
-            const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
             // remove selected layers from the document
-            for (const layerId of selectedLayers) {
-                const layerIndex = docs.selected.layers.findIndex(l => l.id === layerId);
+            for (const layer of selectedLayers) {
+                const layerIndex = docs.selected.layers.findIndex(l => l.id === layer.id);
                 if (layerIndex !== -1) {
-                    const layer = docs.selected.layers[layerIndex];
                     docs.selected.layers.splice(layerIndex, 1);
 
                     postAction({
@@ -317,8 +314,6 @@ export const selectTool: Tool = {
             if (ui.selected) ui.selected.selectedLayers = [];
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if (!docs.selected) return;
-
-            const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
             const delta = e.shiftKey ? 10 : 1;
@@ -329,16 +324,13 @@ export const selectTool: Tool = {
             else if (e.key === 'ArrowLeft') dx = -delta;
             else if (e.key === 'ArrowRight') dx = delta;
 
-            for (const layerId of selectedLayers) {
-                const layer = docs.selected.layers.find(l => l.id === layerId);
-                if (layer) {
-                    translateLayerBy(layer, dx, dy);
-                    postAction({
-                        type: "transform",
-                        layerID: layer.id,
-                        newMatrix: layer.transform.matrix,
-                    })
-                }
+            for (const layer of selectedLayers) {
+                translateLayerBy(layer, dx, dy);
+                postAction({
+                    type: "transform",
+                    layerID: layer.id,
+                    newMatrix: layer.transform.matrix,
+                })
             }         
         } else if (e.key === '=') {
             if (ui.selected) ui.selected.zoom *= 1.1;
@@ -352,11 +344,8 @@ function setAction(v: Point, l: Point | null) {
     // grab scale of selected layer
     if (!docs.selected) return;
 
-    const selectedLayers = ui.selected?.selectedLayers ?? [];
     if (selectedLayers.length === 1) {
-        const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-        if (!layer) return;
-
+        const layer = selectedLayers[0];
         const handlePositions = getScaleHandlePositions(layer.transform.matrix, layer);
         
         // check if mouse is over any scale handle
