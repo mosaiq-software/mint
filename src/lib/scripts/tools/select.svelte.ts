@@ -1,5 +1,5 @@
 import type { Tool } from ".";
-import docs from "../docs.svelte";
+import docs, {matrixToTransformComponents} from "../docs.svelte";
 import type { Point } from ".";
 import ui from "../ui.svelte";
 import {translateLayerBy, type Layer } from "../layer";
@@ -226,12 +226,16 @@ export const selectTool: Tool = {
                     x: currentPoint.x - worldCenter.x,
                     y: currentPoint.y - worldCenter.y
                 }
-                const currentAngle = Math.atan2(delta.y, delta.x) + Math.PI / 2;
+
+                let currentAngle = Math.atan2(delta.y, delta.x) + Math.PI / 2;
 
                 // decompose scale from the initial matrix
                 const m = initial.matrix;
-                const scaleX = Math.hypot(m.a, m.b);
-                const scaleY = Math.hypot(m.c, m.d);
+                const comps = matrixToTransformComponents(m);
+                const {scale: {x: scaleX, y: scaleY}} = comps;
+
+                // offset iff mirrored
+                if (scaleY < 0) currentAngle += Math.PI;
 
                 // compose the new matrix:
                 // translate to world center, rotate, scale, translate back

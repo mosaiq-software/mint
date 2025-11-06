@@ -97,7 +97,7 @@ canvas {
 }
 
 .popover {
-    background: var(--c-mid);
+    background: var(--c-pop);
     border: none;
     padding: var(--s-sm);
     border-radius: var(--s-sm);
@@ -137,4 +137,19 @@ select {
     border: 2px solid var(--c-sec);
     border-radius: var(--r-sm);
     padding: var(--s-xs) var(--s-sm);
+}
+
+kbd {
+    display: inline-block;
+    border: var(--s-xs) solid var(--c-off);
+    border-bottom-width: calc(var(--s-xs) + 1px);
+    background: var(--c-mid);
+    padding: 0 var(--s-sm);
+    border-radius: var(--s-sm);
+    line-height: 1em;
+    user-select: none;
+}
+
+kbd:active {
+    transform: translateY(1px);
 }

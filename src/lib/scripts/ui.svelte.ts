@@ -1,7 +1,8 @@
 import type { DocumentID, Color } from "./docs.svelte";
 import type { LayerID } from "./layer";
+import {RadioGroup} from "melt/builders";
 
-export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse'] as const;
+export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill'] as const;
 export type Mode = typeof modes[number];
 
 type UIAttributes = {
@@ -33,5 +34,10 @@ export function initializeUIForDocument(id: DocumentID) {
         zoom: 1
     }
 }
+
+export const modesGroup = new RadioGroup({
+    value: () => ui.mode,
+    onValueChange: (val) => (ui.mode = val as Mode),
+});
 
 export default ui;
