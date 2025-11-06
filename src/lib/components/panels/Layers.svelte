@@ -3,7 +3,7 @@
     import docs from "../../scripts/docs.svelte";
     import { ButtonVisual } from "../ui";
     import IconButtonVisual from "../ui/IconButtonVisual.svelte";
-    import { Plus, X, Eye, EyeOff, Type, Image } from "@lucide/svelte";
+    import { Plus, X, Eye, EyeOff, Type, Image, Square, Circle } from "@lucide/svelte";
     import { createLayer, type LayerID, type Layer } from "../../scripts/layer";
     import ui from "../../scripts/ui.svelte";
     import Input from "../ui/Input.svelte";
@@ -170,8 +170,12 @@
                     >
                         {#if layer.type === 'canvas'}
                             <Image size={16} />
-                        {:else}
+                        {:else if layer.type === 'text'}
                             <Type size={16} />
+                        {:else if layer.type === 'rectangle'}
+                            <Square size={16} />
+                        {:else if layer.type === 'ellipse'}
+                            <Circle size={16} />
                         {/if}
                         {#if layerBeingRenamed === layer.id}
                             <Input
