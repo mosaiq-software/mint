@@ -22,10 +22,12 @@ export function handleShortcuts(event: KeyboardEvent) {
                 break;
             case 'b':
                 event.preventDefault();
+                event.stopPropagation();
                 toggleTextProperty('bold');
                 break;
             case 'i':
                 event.preventDefault();
+                event.stopPropagation();
                 toggleTextProperty('italic');
                 break;
         }
