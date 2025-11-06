@@ -258,12 +258,29 @@ export const selectTool: Tool = {
             const selectedLayers = ui.selected?.selectedLayers ?? [];
             const firstSelectedLayer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (firstSelectedLayer) {
-                if (select.action.type === 'move' || select.action.type === 'scale' || select.action.type === 'rotate') {
+                if (select.action.type === 'move' || select.action.type === 'rotate') {
                     postAction({
                         type: "transform",
                         layerID: firstSelectedLayer.id,
                         newMatrix: firstSelectedLayer.transform.matrix,
                     });
+                } else if (select.action.type === 'scale') {
+                    if (firstSelectedLayer.type === 'rectangle' || firstSelectedLayer.type === 'ellipse') {
+                        postAction({
+                            type: "update",
+                            layerID: firstSelectedLayer.id,
+                            newLayer: {
+                                width: firstSelectedLayer.width,
+                                height: firstSelectedLayer.height
+                            }
+                        });
+                    } else {
+                        postAction({
+                            type: "transform",
+                            layerID: firstSelectedLayer.id,
+                            newMatrix: firstSelectedLayer.transform.matrix,
+                        }); 
+                    }
                 }
             }
         }
