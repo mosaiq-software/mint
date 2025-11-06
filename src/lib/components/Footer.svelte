@@ -84,6 +84,10 @@
             {:else}
                 <p>Select a canvas layer to fill</p>
             {/if}
+        {:else if ui.mode === "rectangle"}
+            <p>Click and drag to create a rectangle</p>
+        {:else if ui.mode === "ellipse"}
+            <p>Click and drag to create an ellipse</p>
         {/if}
         </div>
         <div>
