@@ -27,7 +27,9 @@ export function handleShortcuts(event: KeyboardEvent) {
             'd': 'draw',
             'e': 'erase',
             't': 'text',
-            'f': 'fill'
+            'f': 'fill',
+            'r': 'rectangle',
+            'c': 'ellipse',
         }[event.key];
         if (newMode) {
             modesGroup.value = newMode;
