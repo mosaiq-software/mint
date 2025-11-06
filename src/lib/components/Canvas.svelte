@@ -146,7 +146,7 @@
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-        if (e.target && (e.target as HTMLElement).tagName !== 'INPUT') {
+        if (e.target && (e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
             tool.onKeyDown?.(e);
             handleShortcuts(e);
         }

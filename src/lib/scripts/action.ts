@@ -228,6 +228,8 @@ export function postAction(postAction: PostAction) {
 
     // indicate unsaved changes
     tabStatus[documentId].actionsSinceSave++;
+    tabStatus[documentId].canUndo = true;
+    tabStatus[documentId].canRedo = currentActionIndex[documentId] < actions[documentId].length - 2;
 }
 
 /**
@@ -267,6 +269,8 @@ export function getUndoAction(documentId: DocumentID): Action | null {
         const action = a[index];
         currentActionIndex[documentId] = index - 1;
         tabStatus[documentId].actionsSinceSave--;
+        tabStatus[documentId].canRedo = true;
+        tabStatus[documentId].canUndo = index > 0;
         return action;
     }
     return null;
@@ -286,6 +290,8 @@ export function getRedoAction(documentId: DocumentID): Action | null {
         const action = a[index];
         tabStatus[documentId].actionsSinceSave++;
         currentActionIndex[documentId] = index;
+        tabStatus[documentId].canUndo = true;
+        tabStatus[documentId].canRedo = index < a.length - 2;
         return action;
     }
     return null;

@@ -2,7 +2,9 @@
     /* regular colors */
     --c-bg: #121412;
     --c-sur: #222622;
-    --c-mid: #3a403a;
+    --c-pop: #2E332E;
+    --c-mid: #414941;
+    --c-off: #657565;
     --c-txt: #e9f2ea;
     --c-sec: #bbbbbb;
     --c-acc: #37916b;
@@ -17,7 +19,9 @@
     /* regular colors */
     --c-bg: #ffffff;
     --c-sur: #f5f5f5;
+    --c-pop: #ebebeb;
     --c-mid: #e0e0e0;
+    --c-off: #c6c6c6;
     --c-txt: #000000;
     --c-acc: #37916b;
 

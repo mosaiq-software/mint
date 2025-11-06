@@ -2,13 +2,14 @@
     import {Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis, PaintBucket} from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
     import { RadioGroup, Popover } from "melt/builders";
-    import ui, { modes } from "../scripts/ui.svelte";
+    import ui, {modes, modesGroup} from "../scripts/ui.svelte";
     import type { Mode } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
     import ColorPicker from "./overlays/ColorPicker.svelte";
     import { onMount, onDestroy } from "svelte";
     import FileMenu from "./overlays/FileMenu.svelte";
+    import Tool from "./ui/Tool.svelte";
 
     let popoverOpen = $state(false);
     const getPopoverOpen = () => popoverOpen;
@@ -21,11 +22,6 @@
         },
         open: getPopoverOpen,
         onOpenChange: (open) => popoverOpen = open,
-    });
-
-    const modesGroup = new RadioGroup({
-        value: modes[0],
-        onValueChange: (val) => (ui.mode = val as Mode),
     });
 
     const source: {
@@ -83,52 +79,31 @@
 <div {...modesGroup.root} id="left-sidebar">
     <div id="tools">
         <button {...fileMenuPopover.trigger}>
-            <IconButtonVisual
-                label="Mint"
-                showLabel
-            >
-                <Ellipsis />
-            </IconButtonVisual>
+            <Tool name="Mint"><Ellipsis /></Tool>
         </button>
         <div {...fileMenuPopover.content} class="popover">
             <div {...fileMenuPopover.arrow}></div>
             <FileMenu bind:open={popoverOpen} />
         </div>
         <div {...modesGroup.getItem("select").attrs}>
-            <IconButtonVisual
-                label="Select"
-                showLabel
-                selected={modesGroup.value === "select"}
-            >
-                <MousePointer2 color="var(--c-txt)" />
-            </IconButtonVisual>
+            <Tool name="Select" keybind="S" selected={modesGroup.value === "select"}>
+                <MousePointer2 />
+            </Tool>
         </div>
         <div {...modesGroup.getItem("draw").attrs}>
-            <IconButtonVisual
-                label="Draw"
-                showLabel
-                selected={modesGroup.value === "draw"}
-            >
-                <Brush color="var(--c-txt)" />
-            </IconButtonVisual>
+            <Tool name="Draw" keybind="D" selected={modesGroup.value === "draw"}>
+                <Brush />
+            </Tool>
         </div>
         <div {...modesGroup.getItem("erase").attrs}>
-            <IconButtonVisual
-                label="Erase"
-                showLabel
-                selected={modesGroup.value === "erase"}
-            >
-                <Eraser color="var(--c-txt)" />
-            </IconButtonVisual>
+            <Tool name="Erase" keybind="E" selected={modesGroup.value === "erase"}>
+                <Eraser />
+            </Tool>
         </div>
         <div {...modesGroup.getItem("text").attrs}>
-            <IconButtonVisual
-                label="Text"
-                showLabel
-                selected={modesGroup.value === "text"}
-            >
-                <Type color="var(--c-txt)" />
-            </IconButtonVisual>
+            <Tool name="Text" keybind="T" selected={modesGroup.value === "text"}>
+                <Type />
+            </Tool>
         </div>
         <div {...modesGroup.getItem("fill").attrs}>
             <IconButtonVisual
