@@ -36,7 +36,7 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
 
             const lineHeight = layer.fontSize * layer.lineHeight;
             lines.forEach((line, index) => {
-                ctx.fillText(line, 0, index * lineHeight, layer.width);
+                ctx.fillText(line, 0, index * lineHeight);
             });
         } else if (layer.type === 'rectangle') {
             // draw rectangle
