@@ -78,6 +78,12 @@
             {:else}
                 <p>Click to make a text layer</p>
             {/if}
+        {:else if ui.mode === "fill"}
+            {#if selectedLayer?.type === "canvas"}
+                <p>Click to fill a region</p>
+            {:else}
+                <p>Select a canvas layer to fill</p>
+            {/if}
         {/if}
         </div>
         <div>

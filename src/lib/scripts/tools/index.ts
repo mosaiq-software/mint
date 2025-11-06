@@ -3,7 +3,7 @@ import select, { selectTool } from './select.svelte';
 import draw, { drawTool } from './draw.svelte';
 import erase, { eraseTool } from './erase.svelte';
 import text, { textTool } from './text.svelte';
-
+import { fillTool } from './fill.svelte';
 
 export interface Point {
     x: number;
@@ -27,7 +27,7 @@ export interface Tool {
 }
 
 export const tools: Record<Mode, Tool> = {
-    select: selectTool, draw: drawTool, erase: eraseTool, text: textTool
+    select: selectTool, draw: drawTool, erase: eraseTool, text: textTool, fill: fillTool
 };
 
 export { draw, select, erase, text }
