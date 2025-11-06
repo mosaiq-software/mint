@@ -76,8 +76,8 @@ export const selectTool: Tool = {
                     const point = new DOMPoint(data.c.x, data.c.y).matrixTransform(invMatrix);
 
                     // check if point is within text bounding box
-                    if (point.x >= 0 && point.x <= layer.width &&
-                        point.y >= 0 && point.y <= layer.height) {
+                    if (point.x >= 0 && point.x <= Math.abs(layer.width) &&
+                        point.y >= 0 && point.y <= Math.abs(layer.height)) {
                         if (ui.selected) ui.selected.selectedLayers = [layer.id];
                         data.l = { x: point.x, y: point.y };
                         found = true;
@@ -100,8 +100,8 @@ export const selectTool: Tool = {
         if (firstSelectedLayer) {
             initial.matrix = firstSelectedLayer.transform.matrix.translate(0, 0);
             initial.size = {
-                x: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.width : firstSelectedLayer.width,
-                y: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.height : firstSelectedLayer.height,
+                x: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.width : Math.abs(firstSelectedLayer.width),
+                y: firstSelectedLayer.type === 'canvas' ? firstSelectedLayer.canvas.height : Math.abs(firstSelectedLayer.height),
             }
         }
 
@@ -169,13 +169,27 @@ export const selectTool: Tool = {
 
                     // adjust position for 'w' and 'n' scaling
                     let newMatrix = initial.matrix.translate(0, 0);
-                    if (dir.includes('w')) newMatrix = newMatrix.translate(dx, 0);
-                    if (dir.includes('n')) newMatrix = newMatrix.translate(0, dy);
+                    if (dir.includes('n')) {
+                        if (layer.height < 0 && initial.size.y >= 0)
+                            newMatrix = newMatrix.translate(0, initial.size.y);
+                        else if (initial.size.y >= 0)
+                            newMatrix = newMatrix.translate(0, dy);
+                    }
+                    if (dir.includes('w')) {
+                        if (layer.width < 0 && initial.size.x >= 0)
+                            newMatrix = newMatrix.translate(initial.size.x, 0);
+                        else if (initial.size.x >= 0)
+                            newMatrix = newMatrix.translate(dx, 0);
+                    }
+                    if (dir.includes('e')) {
+                        if (layer.width < 0 && initial.size.x >= 0)
+                            newMatrix = newMatrix.translate(dx + initial.size.x, 0);
+                    }
+                    if (dir.includes('s')) {
+                        if (layer.height < 0 && initial.size.y >= 0)
+                            newMatrix = newMatrix.translate(0, dy + initial.size.y);
+                    }
                     layer.transform.matrix = newMatrix;
-
-                    // enforce minimum size
-                    layer.width = Math.max(layer.width, 1);
-                    layer.height = Math.max(layer.height, 1);
                 } else {
                     // calculate current point in initial layer space
                     const currentPoint = new DOMPoint(data.c.x, data.c.y)
@@ -213,8 +227,8 @@ export const selectTool: Tool = {
                 if (!layer) return;
                 if (!data.l) return;
 
-                const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : layer.width);
-                const layerHeight = (layer.type === 'canvas' ? layer.canvas.height : layer.height);
+                const layerWidth = (layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width));
+                const layerHeight = (layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height));
 
                 // compute the center in local and world space
                 const localCenter = new DOMPoint(layerWidth / 2, layerHeight / 2);
@@ -386,8 +400,8 @@ function setAction(v: Point, l: Point | null) {
         }
 
         // check if mouse is within layer bounds
-        const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-        const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+        const width = layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width);
+        const height = layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height);
         if (l && l.x >= 0 && l.x <= width && l.y >= 0 && l.y <= height) {
             select.action = { type: 'move' };
             return;
@@ -398,8 +412,8 @@ function setAction(v: Point, l: Point | null) {
 }
 
 function getScaleHandlePositions(transform: DOMMatrix, layer: Layer): Record<ScaleDirection, Point> {
-    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-    const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+    const width = layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width);
+    const height = layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height);
 
     // get the corners of the bounding box after transformation
     const corners = [
@@ -408,6 +422,8 @@ function getScaleHandlePositions(transform: DOMMatrix, layer: Layer): Record<Sca
         new DOMPoint(width, height).matrixTransform(transform), // bottom-right
         new DOMPoint(0, height).matrixTransform(transform), // bottom-left
     ];
+
+    console.log(corners);
 
     return {
         nw: { x: corners[0].x, y: corners[0].y },
@@ -426,7 +442,7 @@ function getRotateHandlePosition(
     layer: Layer,
 ): Point {
     // get the top center of the bounding box after transformation
-    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
+    const width = layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width);
     const topCenter = new DOMPoint(width / 2, 0).matrixTransform(transform);
 
     // get a point just above the top center to determine the up direction
@@ -450,8 +466,8 @@ function getRotateHandlePosition(
 }
 
 function getScalePivotPoint(direction: ScaleDirection, layer: Layer): Point {
-    const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-    const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+    const width = layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width);
+    const height = layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height);
 
     switch (direction) {
         case 'n': return { x: width / 2, y: height };

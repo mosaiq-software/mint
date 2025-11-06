@@ -9,8 +9,8 @@
     const { layer }: Props = $props();
     let t = $derived(matrixToTransformComponents(layer.transform.matrix));
 
-    let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : layer.width);
-    let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : layer.height);
+    let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width));
+    let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height));
 </script>
 <div
     class="transform-container"
