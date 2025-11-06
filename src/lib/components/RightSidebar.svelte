@@ -1,5 +1,6 @@
 <script lang="ts">
     import Brush from "./panels/Brush.svelte";
+    import Shape from "./panels/Shape.svelte";
     import Layers from "./panels/Layers.svelte";
     import Transform from "./panels/Transform.svelte";
     import Type from "./panels/Type.svelte";
@@ -9,6 +10,7 @@
 <div>
     <Type />
     <Brush />
+    <Shape />
     <Layers />
     <LayerStyles />
     <Transform />

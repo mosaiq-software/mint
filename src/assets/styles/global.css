@@ -131,6 +131,14 @@ input[type="number"] {
     -moz-appearance: textfield;
 }
 
+select {
+    background: var(--c-bg);
+    color: var(--c-txt);
+    border: 2px solid var(--c-sec);
+    border-radius: var(--r-sm);
+    padding: var(--s-xs) var(--s-sm);
+}
+
 kbd {
     display: inline-block;
     border: var(--s-xs) solid var(--c-off);

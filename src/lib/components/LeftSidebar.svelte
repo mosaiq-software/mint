@@ -1,9 +1,7 @@
 <script lang="ts">
-    import {Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis, PaintBucket} from "@lucide/svelte";
-    import { IconButtonVisual } from "./ui";
-    import { RadioGroup, Popover } from "melt/builders";
-    import ui, {modes, modesGroup} from "../scripts/ui.svelte";
-    import type { Mode } from "../scripts/ui.svelte";
+    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis, Circle, Square , PaintBucket } from "@lucide/svelte";
+    import { Popover } from "melt/builders";
+    import ui, { modesGroup } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
     import ColorPicker from "./overlays/ColorPicker.svelte";
@@ -108,6 +106,16 @@
         <div {...modesGroup.getItem("fill").attrs}>
             <Tool name="Fill" keybind="F" selected={modesGroup.value === "fill"}>
                 <PaintBucket />
+            </Tool>
+        </div>
+        <div {...modesGroup.getItem("rectangle").attrs}>
+            <Tool name="Rectangle" keybind="R" selected={modesGroup.value === "rectangle"}>
+                <Square />
+            </Tool>
+        </div>
+        <div {...modesGroup.getItem("ellipse").attrs}>
+            <Tool name="Ellipse" keybind="C" selected={modesGroup.value === "ellipse"}>
+                <Circle />
             </Tool>
         </div>
     </div>

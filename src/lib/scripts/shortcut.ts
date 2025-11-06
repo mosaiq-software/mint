@@ -1,9 +1,8 @@
 import { getUndoAction, getRedoAction, updateSnapshot, applyUndoAction, applyRedoAction } from "./action";
 import docs from "./docs.svelte";
-import { deepCopyLayer } from "./action";
-import {saveDocumentToDB} from "./persistence.svelte";
+import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
-import ui, {type Mode, modesGroup} from "./ui.svelte";
+import ui, { type Mode } from "./ui.svelte";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -27,11 +26,11 @@ export function handleShortcuts(event: KeyboardEvent) {
             'd': 'draw',
             'e': 'erase',
             't': 'text',
-            'f': 'fill'
+            'f': 'fill',
+            'r': 'rectangle',
+            'c': 'ellipse',
         }[event.key];
-        if (newMode) {
-            modesGroup.value = newMode;
-        }
+        if (newMode) ui.mode = newMode as Mode;
     }
 }
 

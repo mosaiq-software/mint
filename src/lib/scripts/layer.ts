@@ -2,6 +2,7 @@ import type { UUID, Transform, Color } from "./docs.svelte";
 import docs from "./docs.svelte";
 import ui from "./ui.svelte";
 import text from "./tools/text.svelte";
+import { shape } from "./tools/utils/shape.svelte";
 
 export type LayerID = `layer-${UUID}`;
 
@@ -37,9 +38,25 @@ export type TextLayer = BaseLayer & TextProperties & {
     height: number;
 };
 
-export type Layer = CanvasLayer | TextLayer;
+export type ShapeLayer = BaseLayer & {
+    width: number;
+    height: number;
+    strokeWidth: number;
+    strokeAlign: 'center' | 'inside' | 'outside';
+};
 
-export function createLayer(type: 'canvas' | 'text', name: string): Layer {
+export type RectangleLayer = ShapeLayer & {
+    type: 'rectangle';
+    cornerRadius: number;
+};
+
+export type EllipseLayer = ShapeLayer & {
+    type: 'ellipse';
+};
+
+export type Layer = CanvasLayer | TextLayer | RectangleLayer | EllipseLayer;
+
+export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', name: string): Layer {
     if (!docs.selected || !ui.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
@@ -61,7 +78,7 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
             type: 'canvas',
             canvas: new OffscreenCanvas(docs.selected.width, docs.selected.height)
         };
-    } else {
+    } else if (type === 'text') {
         return {
             ...base,
             type: 'text',
@@ -70,6 +87,27 @@ export function createLayer(type: 'canvas' | 'text', name: string): Layer {
             height: text.properties.fontSize * 1.2,
             ...text.properties
         };
+    } else if (type === 'rectangle') {
+        return {
+            ...base,
+            type: 'rectangle',
+            width: 0,
+            height: 0,
+            strokeWidth: shape.strokeWidth,
+            strokeAlign: shape.strokeAlign,
+            cornerRadius: shape.cornerRadius
+        }
+    } else if (type === 'ellipse') {
+        return {
+            ...base,
+            type: 'ellipse',
+            width: 0,
+            height: 0,
+            strokeWidth: shape.strokeWidth,
+            strokeAlign: shape.strokeAlign
+        }
+    } else {
+        throw new Error(`Unknown layer type: ${type}`);
     }
 }
 
