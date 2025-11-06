@@ -1,3 +1,4 @@
+import type { Point } from "..";
 import docs from "../../docs.svelte";
 import type { EllipseLayer, RectangleLayer } from "../../layer";
 import ui from "../../ui.svelte";

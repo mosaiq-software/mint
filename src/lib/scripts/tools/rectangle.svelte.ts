@@ -1,6 +1,6 @@
 import type { PointerEventData, Tool } from '.';
 import { getSelectedRectangleLayer } from './utils/shape.svelte';
-import { createLayer, type RectangleLayer } from '../layer';
+import { createLayer } from '../layer';
 import type { Point } from '.';
 import docs from '../docs.svelte';
 import ui from '../ui.svelte';
@@ -73,7 +73,7 @@ export const rectangleTool: Tool = {
     },
 };
 
-function setAction(data: PointerEventData) {
+function setAction(_data: PointerEventData) {
     rectangle.action = 'create';
 }
 

@@ -75,6 +75,41 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
                 ctx.closePath();
                 ctx.fill('evenodd');
             }
+        } else if (layer.type === 'ellipse') {
+            // draw ellipse
+            const w = layer.width;
+            const h = layer.height;
+
+            ctx.fillStyle = colorToCSS(layer.foregroundColor);
+            ctx.beginPath();
+            ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.fill();
+
+            if (layer.strokeWidth > 0) {
+                const sw = layer.strokeWidth;
+                ctx.fillStyle = colorToCSS(layer.backgroundColor);
+                ctx.beginPath();
+
+                if (layer.strokeAlign === 'inside') {
+                    const ep = 0.5;
+                    ctx.ellipse(w / 2, h / 2, w / 2 + ep, h / 2 + ep, 0, 0, Math.PI * 2);
+                    if (sw < w / 2 && sw < h / 2) {
+                        ctx.ellipse(w / 2, h / 2, w / 2 - sw, h / 2 - sw, 0, 0, Math.PI * 2);
+                    }
+                } else if (layer.strokeAlign === 'center') {
+                    ctx.ellipse(w / 2, h / 2, w / 2 + sw / 2, h / 2 + sw / 2, 0, 0, Math.PI * 2);
+                    if (sw < w && sw < h) {
+                        ctx.ellipse(w / 2, h / 2, w / 2 - sw / 2, h / 2 - sw / 2, 0, 0, Math.PI * 2);
+                    }
+                } else if (layer.strokeAlign === 'outside') {
+                    ctx.ellipse(w / 2, h / 2, w / 2 + sw, h / 2 + sw, 0, 0, Math.PI * 2);
+                    ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                }
+
+                ctx.closePath();
+                ctx.fill('evenodd');
+            }
         }
         
         ctx.restore();

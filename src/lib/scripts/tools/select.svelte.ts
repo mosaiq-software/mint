@@ -70,7 +70,7 @@ export const selectTool: Tool = {
                         data.l = { x: point.x, y: point.y };
                         break;
                     }
-                } else if ((layer.type === "text" || layer.type === "rectangle") && layer.visible) {
+                } else if ((layer.type === "text" || layer.type === "rectangle" || layer.type === "ellipse") && layer.visible) {
                     // convert point to layer space
                     const invMatrix = layer.transform.matrix.inverse();
                     const point = new DOMPoint(data.c.x, data.c.y).matrixTransform(invMatrix);
