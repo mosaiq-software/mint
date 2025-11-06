@@ -97,7 +97,7 @@ canvas {
 }
 
 .popover {
-    background: var(--c-mid);
+    background: var(--c-pop);
     border: none;
     padding: var(--s-sm);
     border-radius: var(--s-sm);
@@ -129,4 +129,19 @@ input::-webkit-inner-spin-button {
 
 input[type="number"] {
     -moz-appearance: textfield;
+}
+
+kbd {
+    display: inline-block;
+    border: var(--s-xs) solid var(--c-off);
+    border-bottom-width: calc(var(--s-xs) + 1px);
+    background: var(--c-mid);
+    padding: 0 var(--s-sm);
+    border-radius: var(--s-sm);
+    line-height: 1em;
+    user-select: none;
+}
+
+kbd:active {
+    transform: translateY(1px);
 }

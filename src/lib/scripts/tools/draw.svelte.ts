@@ -89,8 +89,10 @@ export const drawTool: Tool = {
     name: 'draw',
     onPointerDown: (data) => {
         draw.drawing = true;
+        let usingNewLayer = false;
 
         if (!data.l) {
+            usingNewLayer = true;
             const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
             if (!docs.selected || !ui.selected) return;
 
@@ -112,14 +114,31 @@ export const drawTool: Tool = {
             if (!docs.selected) return;
 
             const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-            if (!layer || layer.type !== 'canvas') return;
+            if (!layer || layer.type !== 'canvas') {
+                usingNewLayer = true;
+                const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
+                if (!docs.selected || !ui.selected) return;
+
+                // add new layer to document and select it
+                docs.selected.layers = [...docs.selected.layers, newLayer];
+                ui.selected.selectedLayers = [newLayer.id];
+
+                postAction({
+                    type: 'create',
+                    layer: newLayer,
+                    position: docs.selected.layers.length - 1
+                });
+            }
         }
+
+        usingNewLayer = true;
 
         stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
         layerSnapshot = takeLayerSnapshot(drawLayer);
 
-        stroke.start = data.l ?? data.c;
-        stroke.current = data.l ?? data.c;
+        stroke.start = usingNewLayer ? data.c : data.l ?? data.c;
+        stroke.current = usingNewLayer ? data.c : data.l ?? data.c;
+
         drawStamp(stroke.start);
     },
     onPointerMove: (data) => {

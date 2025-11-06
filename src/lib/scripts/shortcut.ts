@@ -3,6 +3,7 @@ import docs from "./docs.svelte";
 import { deepCopyLayer } from "./action";
 import {saveDocumentToDB} from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
+import ui, {type Mode, modesGroup} from "./ui.svelte";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -19,6 +20,16 @@ export function handleShortcuts(event: KeyboardEvent) {
                 event.preventDefault();
                 handleSave();
                 break;
+        }
+    } else {
+        const newMode = {
+            's': 'select',
+            'd': 'draw',
+            'e': 'erase',
+            't': 'text'
+        }[event.key];
+        if (newMode) {
+            modesGroup.value = newMode;
         }
     }
 }
