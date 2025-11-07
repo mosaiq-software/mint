@@ -332,6 +332,8 @@ export const selectTool: Tool = {
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if (!docs.selected) return;
 
+            e.preventDefault();
+
             const selectedLayers = ui.selected?.selectedLayers ?? [];
             if (selectedLayers.length === 0) return;
 
