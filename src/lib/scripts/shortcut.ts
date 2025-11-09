@@ -3,6 +3,7 @@ import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { type Mode } from "./ui.svelte";
+import { clipboard, pasteLayerFromClipboard } from "./copypaste.svelte";
 import type {TextLayer} from "./layer";
 
 export function handleShortcuts(event: KeyboardEvent) {
@@ -30,6 +31,14 @@ export function handleShortcuts(event: KeyboardEvent) {
                 event.stopPropagation();
                 toggleTextProperty('italic');
                 break;
+            case 'c':
+                event.preventDefault();
+                handleCopy();
+                break;
+            case 'v':
+                event.preventDefault();
+                handlePaste();
+                break;
         }
     } else {
         const newMode = {
@@ -53,6 +62,21 @@ function toggleTextProperty<K extends keyof TextLayer>(property: K) {
     if (layer && layer.type === 'text' && property in layer && typeof layer[property] === 'boolean') {
         layer[property] = !layer[property] as TextLayer[K];
     }
+}
+
+function handleCopy() {
+    if (!docs.selected) return;
+    const selectedLayerID = ui.selected?.selectedLayers[0];
+    if (selectedLayerID) {
+        const selectedLayer = docs.selected.layers.find(l => l.id === selectedLayerID);
+        if (selectedLayer) {
+            clipboard.layer = selectedLayer;
+        }
+    }
+}
+
+function handlePaste() {
+    pasteLayerFromClipboard();
 }
 
 export function handleSave() {
