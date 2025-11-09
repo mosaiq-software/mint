@@ -48,28 +48,17 @@ const initial = {
     c: { x: 0, y: 0 } as Point
 }
 
-const selectedLayers = $derived.by(() => {
-    if (!docs.selected) return [];
-
-    const selectedLayerIDs = ui.selected?.selectedLayers ?? [];
-    const selectedLayers: Layer[] = [];
-    for (const layerId of selectedLayerIDs) {
-        const layer = docs.selected.layers.find(l => l.id === layerId);
-        if (layer) selectedLayers.push(layer);
-    }
-    return selectedLayers;
-});
-
 let previousSelectedLayerIDs: LayerID[] = [];
 let previousRotation = 0;
 export function updateBoundingBox() {
+    console.log("Updating bounding box");
     const currentSelectedLayerIDs = ui.selected?.selectedLayers ?? [];
 
     // detect selection change
     if (previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
         !previousSelectedLayerIDs.every((id, index) => id === currentSelectedLayerIDs[index])) {
         // determine if all selected layers have the same rotation
-        const rotations = selectedLayers.map(layer => {
+        const rotations = ui.selectedLayers.map(layer => {
             const m = matrixToTransformComponents(layer.transform.matrix);
             return m.rotate;
         });
@@ -81,14 +70,14 @@ export function updateBoundingBox() {
     previousSelectedLayerIDs = [...currentSelectedLayerIDs];
 
     // handle no selection
-    if (selectedLayers.length === 0) {
+    if (ui.selectedLayers.length === 0) {
         previousRotation = 0;
         select.bounds = null;
         return;
     }
 
     // handle multi-layer selection: compute bounding box around all selected layers
-    const allCorners = selectedLayers.flatMap(layer => {
+    const allCorners = ui.selectedLayers.flatMap(layer => {
         const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
         const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
         
@@ -192,7 +181,7 @@ export const selectTool: Tool = {
         } else {
             // store initial matrices for all selected layers
             initial.matrices = {};
-            for (const layer of selectedLayers) {
+            for (const layer of ui.selectedLayers) {
                 initial.matrices[layer.id] = layer.transform.matrix.translate(0, 0);
                 if (layer.type === 'rectangle' || layer.type === 'ellipse')
                     initial.sizes[layer.id] = { x: layer.width, y: layer.height };
@@ -220,7 +209,7 @@ export const selectTool: Tool = {
                 const dx = data.c.x - initial.c.x;
                 const dy = data.c.y - initial.c.y;
 
-                translateLayers(selectedLayers, dx, dy);
+                translateLayers(ui.selectedLayers, dx, dy);
             } else if (select.action.type === 'scale') {
                 const dir = select.action.direction;
 
@@ -242,7 +231,7 @@ export const selectTool: Tool = {
                 let scaleX = (initial.bounds.size.x + (dir.includes('e') ? dx : (dir.includes('w') ? -dx : 0))) / initial.bounds.size.x;
                 let scaleY = (initial.bounds.size.y + (dir.includes('s') ? dy : (dir.includes('n') ? -dy : 0))) / initial.bounds.size.y;
 
-                if (selectedLayers.length > 1) {
+                if (ui.selectedLayers.length > 1) {
                     // for multiple layers, constrain to uniform scale
                     let uniformScale;
                     if (dir === 'n' || dir === 's')  uniformScale = scaleY;
@@ -252,7 +241,7 @@ export const selectTool: Tool = {
                     scaleY = uniformScale;
                 }
 
-                scaleLayers(selectedLayers, scaleX, scaleY, pivotWorld, initial.bounds.rot);
+                scaleLayers(ui.selectedLayers, scaleX, scaleY, pivotWorld, initial.bounds.rot);
             } else if (select.action.type === 'rotate') {
                 // get angle delta relative to center of initial bounds,
                 // taking into account bounds rotation
@@ -267,7 +256,7 @@ export const selectTool: Tool = {
                 const angle = Math.atan2(data.c.y - center.y, data.c.x - center.x) * (180 / Math.PI) + 90;
                 const angleDelta = angle - initial.bounds.rot;
 
-                rotateLayers(selectedLayers, angleDelta, center);
+                rotateLayers(ui.selectedLayers, angleDelta, center);
 
                 if (select.bounds) select.bounds.rot = angle;
                 previousRotation = angle;
@@ -283,7 +272,7 @@ export const selectTool: Tool = {
         // if action is scale/move/rotate, record post-action state
         if (docs.selected) {
             const actions: PostAction[] = []
-            for (const layer of selectedLayers) {
+            for (const layer of ui.selectedLayers) {
                 if (select.action.type === 'move' || select.action.type === 'rotate') {
                     actions.push({
                         type: "transform",
@@ -324,11 +313,11 @@ export const selectTool: Tool = {
     onKeyDown: (e) => {
         if (e.key === 'Backspace' || e.key === 'Delete') {
             if (!docs.selected) return;
-            if (selectedLayers.length === 0) return;
+            if (ui.selectedLayers.length === 0) return;
 
             // remove selected layers from the document
             const actions: PostAction[] = [];
-            for (const layer of selectedLayers) {
+            for (const layer of ui.selectedLayers) {
                 const layerIndex = docs.selected.layers.findIndex(l => l.id === layer.id);
                 if (layerIndex !== -1) {
                     docs.selected.layers.splice(layerIndex, 1);
@@ -353,7 +342,7 @@ export const selectTool: Tool = {
             if (!docs.selected) return;
             e.preventDefault();
 
-            if (selectedLayers.length === 0) return;
+            if (ui.selectedLayers.length === 0) return;
 
             const delta = e.shiftKey ? 10 : 1;
             let dx = 0;
@@ -364,7 +353,7 @@ export const selectTool: Tool = {
             else if (e.key === 'ArrowRight') dx = delta;
 
             const actions: PostAction[] = [];
-            for (const layer of selectedLayers) {
+            for (const layer of ui.selectedLayers) {
                 translateLayerBy(layer, dx, dy);
                 actions.push({
                     type: "transform",

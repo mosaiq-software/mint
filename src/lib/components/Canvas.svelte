@@ -1,6 +1,6 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui from "../scripts/ui.svelte";
+    import ui, { updateSelectedLayers } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
@@ -86,6 +86,7 @@
         }
     });
 
+    $effect(updateSelectedLayers);
     $effect(updateBoundingBox);
 
     function getViewportPoint(e: PointerEvent): Point {
