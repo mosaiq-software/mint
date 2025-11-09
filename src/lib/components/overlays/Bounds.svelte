@@ -1,8 +1,7 @@
 <script lang="ts">
     import ui from "../../scripts/ui.svelte";
-    import select from "../../scripts/tools/select.svelte";
 
-    const b = $derived(select.bounds);
+    const b = $derived(ui.selected?.bounds);
 </script>
 
 {#if b}

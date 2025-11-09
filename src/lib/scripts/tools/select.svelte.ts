@@ -1,8 +1,9 @@
 import docs, { matrixToTransformComponents } from "../docs.svelte";
-import ui from "../ui.svelte";
+import ui, { type Bounds } from "../ui.svelte";
 import type { Tool, Point } from ".";
 import { translateLayerBy, type Layer, type LayerID } from "../layer";
 import { postAction, type PostAction } from "../action";
+import { setPreviousRotation } from "../ui.svelte";
 
 const scaleHandleHitboxSize = 5;
 const rotateHandleHitboxSize = 5;
@@ -21,16 +22,9 @@ export type SelectAction = {
     type: 'rotate',
 }
 
-type Bounds = {
-    pos: Point,
-    size: Point,
-    rot: number
-}
-
 const select: {
     action: SelectAction,
-    dragging: boolean,
-    bounds: Bounds | null
+    dragging: boolean
 } = $state({
     action: { type: 'select' },
     dragging: false,
@@ -46,76 +40,6 @@ const initial = {
     matrices: {} as Record<LayerID, DOMMatrix>,
     sizes: {} as Record<LayerID, Point>,
     c: { x: 0, y: 0 } as Point
-}
-
-let previousSelectedLayerIDs: LayerID[] = [];
-let previousRotation = 0;
-export function updateBoundingBox() {
-    console.log("Updating bounding box");
-    const currentSelectedLayerIDs = ui.selected?.selectedLayers ?? [];
-
-    // detect selection change
-    if (previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
-        !previousSelectedLayerIDs.every((id, index) => id === currentSelectedLayerIDs[index])) {
-        // determine if all selected layers have the same rotation
-        const rotations = ui.selectedLayers.map(layer => {
-            const m = matrixToTransformComponents(layer.transform.matrix);
-            return m.rotate;
-        });
-
-        // if all rotations are the same (within a small tolerance), use that rotation
-        const allSameRotation = rotations.every(rot => Math.abs(rot-rotations[0]) < 0.01);
-        previousRotation = allSameRotation ? rotations[0] : 0;
-    }
-    previousSelectedLayerIDs = [...currentSelectedLayerIDs];
-
-    // handle no selection
-    if (ui.selectedLayers.length === 0) {
-        previousRotation = 0;
-        select.bounds = null;
-        return;
-    }
-
-    // handle multi-layer selection: compute bounding box around all selected layers
-    const allCorners = ui.selectedLayers.flatMap(layer => {
-        const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-        const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
-        
-        return [
-            new DOMPoint(0, 0),
-            new DOMPoint(width, 0),
-            new DOMPoint(width, height),
-            new DOMPoint(0, height)
-        ].map(corner => layer.transform.matrix.transformPoint(corner));
-    });
-
-    // rotate corners to align with previous bounding box rotation
-    const inverseRotation = new DOMMatrix().rotate(-previousRotation);
-    const rotatedCorners = allCorners.map(corner => corner.matrixTransform(inverseRotation));
-
-    // calculate bounding box of selected layers
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-
-    for (const corner of rotatedCorners) {
-        minX = Math.min(minX, corner.x);
-        minY = Math.min(minY, corner.y);
-        maxX = Math.max(maxX, corner.x);
-        maxY = Math.max(maxY, corner.y);
-    }
-
-    // transform top-left back to world space
-    const topLeft = new DOMMatrix()
-        .rotate(previousRotation)
-        .transformPoint(new DOMPoint(minX, minY));
-
-    select.bounds = {
-        pos: { x: topLeft.x, y: topLeft.y },
-        size: { x: maxX - minX, y: maxY - minY },
-        rot: previousRotation
-    };
 }
 
 export const selectTool: Tool = {
@@ -188,11 +112,12 @@ export const selectTool: Tool = {
             }
 
             // store initial bounds
-            if (select.bounds) {
+            if (ui.selected?.bounds) {
+                const bounds = ui.selected.bounds;
                 initial.bounds = {
-                    pos: { x: select.bounds.pos.x, y: select.bounds.pos.y },
-                    size: { x: select.bounds.size.x, y: select.bounds.size.y },
-                    rot: select.bounds.rot
+                    pos: { x: bounds.pos.x, y: bounds.pos.y },
+                    size: { x: bounds.size.x, y: bounds.size.y },
+                    rot: bounds.rot
                 };
             }
 
@@ -206,6 +131,7 @@ export const selectTool: Tool = {
             if (initial.bounds === null) return;
 
             if (select.action.type === 'move') {
+                console.log('moving');
                 const dx = data.c.x - initial.c.x;
                 const dy = data.c.y - initial.c.y;
 
@@ -258,8 +184,8 @@ export const selectTool: Tool = {
 
                 rotateLayers(ui.selectedLayers, angleDelta, center);
 
-                if (select.bounds) select.bounds.rot = angle;
-                previousRotation = angle;
+                if (ui.selected?.bounds) ui.selected.bounds.rot = angle;
+                setPreviousRotation(angle);
             }
         } else {
             // determine action based on mouse position
@@ -379,12 +305,13 @@ export const selectTool: Tool = {
 function setAction(v: Point, c: Point) {
     if (!docs.selected) return;
 
-    if (select.bounds) {
+    if (ui.selected?.bounds) {
+        const bounds = ui.selected.bounds;
         const matrix = new DOMMatrix()
-            .translate(select.bounds.pos.x, select.bounds.pos.y)
-            .rotate(select.bounds.rot);
+            .translate(bounds.pos.x, bounds.pos.y)
+            .rotate(bounds.rot);
         
-        const handlePositions = getScaleHandlePositions(matrix, select.bounds.size.x, select.bounds.size.y);
+        const handlePositions = getScaleHandlePositions(matrix, bounds.size.x, bounds.size.y);
         // check if mouse is over any scale handle
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
@@ -404,7 +331,7 @@ function setAction(v: Point, c: Point) {
         }
 
         // check if mouse is over rotate handle
-        const rotateHandle = getRotateHandlePosition(matrix, select.bounds.size.x);
+        const rotateHandle = getRotateHandlePosition(matrix, bounds.size.x);
         const dist = Math.hypot(v.x - rotateHandle.x, v.y - rotateHandle.y);
         if (dist < rotateHandleHitboxSize) {
             select.action = { type: 'rotate' };
@@ -415,8 +342,8 @@ function setAction(v: Point, c: Point) {
         const invMatrix = matrix.inverse();
         const c_rot = new DOMPoint(c.x, c.y).matrixTransform(invMatrix);
 
-        if (c_rot.x >= 0 && c_rot.x <= select.bounds.size.x &&
-            c_rot.y >= 0 && c_rot.y <= select.bounds.size.y) {
+        if (c_rot.x >= 0 && c_rot.x <= bounds.size.x &&
+            c_rot.y >= 0 && c_rot.y <= bounds.size.y) {
             select.action = { type: 'move' };
             return;
         }
