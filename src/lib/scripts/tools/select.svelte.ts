@@ -1,9 +1,12 @@
-import type { Tool } from ".";
 import docs, { matrixToTransformComponents } from "../docs.svelte";
-import type { Point } from ".";
 import ui from "../ui.svelte";
+import type { Tool, Point } from ".";
 import { translateLayerBy, type Layer, type LayerID } from "../layer";
-import { postAction } from "../action";
+import { postAction, type PostAction } from "../action";
+
+const scaleHandleHitboxSize = 5;
+const rotateHandleHitboxSize = 5;
+const rotateHandleOffset = 25; // distance above the bounding box
 
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
@@ -45,10 +48,6 @@ const initial = {
     c: { x: 0, y: 0 } as Point
 }
 
-const previous = {
-    c: { x: 0, y: 0 } as Point
-}
-
 const selectedLayers = $derived.by(() => {
     if (!docs.selected) return [];
 
@@ -64,69 +63,48 @@ const selectedLayers = $derived.by(() => {
 let previousSelectedLayerIDs: LayerID[] = [];
 let previousRotation = 0;
 export function updateBoundingBox() {
-    // store previous selected layer IDs
     const currentSelectedLayerIDs = ui.selected?.selectedLayers ?? [];
+
+    // detect selection change
     if (previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
         !previousSelectedLayerIDs.every((id, index) => id === currentSelectedLayerIDs[index])) {
-        previousRotation = 0;
+        // determine if all selected layers have the same rotation
+        const rotations = selectedLayers.map(layer => {
+            const m = matrixToTransformComponents(layer.transform.matrix);
+            return m.rotate;
+        });
+
+        // if all rotations are the same (within a small tolerance), use that rotation
+        const allSameRotation = rotations.every(rot => Math.abs(rot-rotations[0]) < 0.01);
+        previousRotation = allSameRotation ? rotations[0] : 0;
     }
     previousSelectedLayerIDs = [...currentSelectedLayerIDs];
 
-    // set to null if no layers selected
+    // handle no selection
     if (selectedLayers.length === 0) {
         previousRotation = 0;
         select.bounds = null;
         return;
     }
 
-    if (selectedLayers.length === 1) {
-        const layer = selectedLayers[0];
+    // handle multi-layer selection: compute bounding box around all selected layers
+    const allCorners = selectedLayers.flatMap(layer => {
         const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
         const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
+        
+        return [
+            new DOMPoint(0, 0),
+            new DOMPoint(width, 0),
+            new DOMPoint(width, height),
+            new DOMPoint(0, height)
+        ].map(corner => layer.transform.matrix.transformPoint(corner));
+    });
 
-        const m = matrixToTransformComponents(layer.transform.matrix);
-        previousRotation = m.rotate;
-        select.bounds = {
-            pos: {
-                x: m.translate.x,
-                y: m.translate.y
-            },
-            size: {
-                x: width * m.scale.x,
-                y: height * m.scale.y
-            },
-            rot: m.rotate
-        };
-        return;
-    }
+    // rotate corners to align with previous bounding box rotation
+    const inverseRotation = new DOMMatrix().rotate(-previousRotation);
+    const rotatedCorners = allCorners.map(corner => corner.matrixTransform(inverseRotation));
 
-    const allCorners: DOMPoint[] = [];
-    for (const layer of selectedLayers) {
-        const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-        const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
-
-        // get the corners of the bounding box after transformation in canvas space
-        const corners = [
-            new DOMPoint(0, 0), // top-left
-            new DOMPoint(width, 0), // top-right
-            new DOMPoint(width, height), // bottom-right
-            new DOMPoint(0, height), // bottom-left
-        ];
-
-        for (const corner of corners) {
-            allCorners.push(layer.transform.matrix.transformPoint(corner));
-        }
-    }
-
-    const inverseRotation = new DOMMatrix()
-        .rotate(-previousRotation);
-
-    const rotatedCorners = allCorners.map(corner =>
-        corner.matrixTransform(inverseRotation)
-    );
-
-    // calculate bounding box of selected layers,
-    // taking into account current bounding box rotation
+    // calculate bounding box of selected layers
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -139,27 +117,17 @@ export function updateBoundingBox() {
         maxY = Math.max(maxY, corner.y);
     }
 
-    // Step 6: Transform the top-left corner back to world space
+    // transform top-left back to world space
     const topLeft = new DOMMatrix()
         .rotate(previousRotation)
         .transformPoint(new DOMPoint(minX, minY));
 
     select.bounds = {
-        pos: {
-            x: topLeft.x,
-            y: topLeft.y
-        },
-        size: {
-            x: maxX - minX,
-            y: maxY - minY
-        },
+        pos: { x: topLeft.x, y: topLeft.y },
+        size: { x: maxX - minX, y: maxY - minY },
         rot: previousRotation
     };
 }
-
-const scaleHandleHitboxSize = 5;
-const rotateHandleHitboxSize = 5;
-const rotateHandleOffset = 25; // distance above the bounding box
 
 export const selectTool: Tool = {
     name: 'select',
@@ -252,10 +220,7 @@ export const selectTool: Tool = {
                 const dx = data.c.x - initial.c.x;
                 const dy = data.c.y - initial.c.y;
 
-                for (const layer of selectedLayers) {
-                    const initialMatrix = initial.matrices[layer.id];
-                    translateLayer(layer, initialMatrix, dx, dy);
-                }
+                translateLayers(selectedLayers, dx, dy);
             } else if (select.action.type === 'scale') {
                 const dir = select.action.direction;
 
@@ -287,10 +252,7 @@ export const selectTool: Tool = {
                     scaleY = uniformScale;
                 }
 
-                for (const layer of selectedLayers) {
-                    const initialMatrix = initial.matrices[layer.id];
-                    scaleLayer(layer, initialMatrix, scaleX, scaleY, pivotWorld, initial.bounds.rot);
-                }
+                scaleLayers(selectedLayers, scaleX, scaleY, pivotWorld, initial.bounds.rot);
             } else if (select.action.type === 'rotate') {
                 // get angle delta relative to center of initial bounds,
                 // taking into account bounds rotation
@@ -305,10 +267,7 @@ export const selectTool: Tool = {
                 const angle = Math.atan2(data.c.y - center.y, data.c.x - center.x) * (180 / Math.PI) + 90;
                 const angleDelta = angle - initial.bounds.rot;
 
-                for (const layer of selectedLayers) {
-                    const initialMatrix = initial.matrices[layer.id];
-                    rotateLayer(layer, initialMatrix, angleDelta, center);
-                }
+                rotateLayers(selectedLayers, angleDelta, center);
 
                 if (select.bounds) select.bounds.rot = angle;
                 previousRotation = angle;
@@ -317,25 +276,23 @@ export const selectTool: Tool = {
             // determine action based on mouse position
             setAction(data.v, data.c);
         }
-
-        previous.c = data.c;
     },
     onPointerUp: (data) => {
         select.dragging = false;
 
         // if action is scale/move/rotate, record post-action state
         if (docs.selected) {
-            const layer = selectedLayers[0];
-            if (layer) {
+            const actions: PostAction[] = []
+            for (const layer of selectedLayers) {
                 if (select.action.type === 'move' || select.action.type === 'rotate') {
-                    postAction({
+                    actions.push({
                         type: "transform",
                         layerID: layer.id,
                         newMatrix: layer.transform.matrix,
                     });
                 } else if (select.action.type === 'scale') {
                     if (layer.type === 'rectangle' || layer.type === 'ellipse') {
-                        postAction({
+                        actions.push({
                             type: "update",
                             layerID: layer.id,
                             newLayer: {
@@ -344,13 +301,20 @@ export const selectTool: Tool = {
                             }
                         });
                     } else {
-                        postAction({
+                        actions.push({
                             type: "transform",
                             layerID: layer.id,
                             newMatrix: layer.transform.matrix,
                         }); 
                     }
                 }
+            }
+
+            if (actions.length > 0) {
+                postAction({
+                    type: "compound",
+                    actions: actions
+                });
             }
         }
 
@@ -363,17 +327,25 @@ export const selectTool: Tool = {
             if (selectedLayers.length === 0) return;
 
             // remove selected layers from the document
+            const actions: PostAction[] = [];
             for (const layer of selectedLayers) {
                 const layerIndex = docs.selected.layers.findIndex(l => l.id === layer.id);
                 if (layerIndex !== -1) {
                     docs.selected.layers.splice(layerIndex, 1);
 
-                    postAction({
+                    actions.push({
                         type: "delete",
                         layer: layer,
                         position: layerIndex,
                     });
                 }
+            }
+
+            if (actions.length > 0) {
+                postAction({
+                    type: "compound",
+                    actions: actions
+                });
             }
             
             if (ui.selected) ui.selected.selectedLayers = [];
@@ -389,14 +361,22 @@ export const selectTool: Tool = {
             else if (e.key === 'ArrowLeft') dx = -delta;
             else if (e.key === 'ArrowRight') dx = delta;
 
+            const actions: PostAction[] = [];
             for (const layer of selectedLayers) {
                 translateLayerBy(layer, dx, dy);
-                postAction({
+                actions.push({
                     type: "transform",
                     layerID: layer.id,
                     newMatrix: layer.transform.matrix,
-                })
-            }         
+                });
+            }
+
+            if (actions.length > 0) {
+                postAction({
+                    type: "compound",
+                    actions: actions
+                });
+            }
         } else if (e.key === '=') {
             if (ui.selected) ui.selected.zoom *= 1.1;
         } else if (e.key === '-') {
@@ -513,62 +493,63 @@ function getScalePivotPoint(direction: ScaleDirection, width: number, height: nu
     }
 }
 
-function translateLayer(layer: Layer, initialMatrix: DOMMatrix, dx: number, dy: number) {
-    const mat = initialMatrix.translate(0, 0);
-    mat.m41 = 0;
-    mat.m42 = 0;
+function translateLayers(layers: Layer[], dx: number, dy: number) {
+    for (const layer of layers) {
+        const initialMatrix = initial.matrices[layer.id];
+        const mat = initialMatrix.translate(0, 0);
+        mat.m41 = 0;
+        mat.m42 = 0;
 
-    // guard against non-invertible matrices
-    let localDx = dx;
-    let localDy = dy;
-    try {
-        const inv = mat.inverse();
-        const localDelta = new DOMPoint(dx, dy).matrixTransform(inv);
-        localDx = localDelta.x;
-        localDy = localDelta.y;
-    } catch (err) {
-        // fallback: if inverse fails, use raw screen delta
+        // guard against non-invertible matrices
+        let localDx = dx;
+        let localDy = dy;
+        try {
+            const inv = mat.inverse();
+            const localDelta = new DOMPoint(dx, dy).matrixTransform(inv);
+            localDx = localDelta.x;
+            localDy = localDelta.y;
+        } catch (err) {
+            // fallback: if inverse fails, use raw screen delta
+        }
+
+        layer.transform.matrix = initialMatrix.translate(localDx, localDy);
     }
-
-    layer.transform.matrix = initialMatrix.translate(localDx, localDy);
 }
 
-function rotateLayer(layer: Layer, initialMatrix: DOMMatrix, angle: number, pivot: Point) {
-    layer.transform.matrix = new DOMMatrix()
-        .translate(pivot.x, pivot.y)
-        .rotate(angle)
-        .translate(-pivot.x, -pivot.y)
-        .multiply(initialMatrix);
+function rotateLayers(layers: Layer[], angle: number, pivot: Point) {
+    for (const layer of layers) {
+        layer.transform.matrix = new DOMMatrix()
+            .translate(pivot.x, pivot.y)
+            .rotate(angle)
+            .translate(-pivot.x, -pivot.y)
+            .multiply(initial.matrices[layer.id]);
+    }
 }
 
-function scaleLayer(layer: Layer, initialMatrix: DOMMatrix, scaleX: number, scaleY: number, pivot: Point, angle: number) {
-    if (layer.type === 'rectangle' || layer.type === 'ellipse') {
+function scaleLayers(layers: Layer[], scaleX: number, scaleY: number, pivot: Point, angle: number) {
+    for (const layer of layers) {
+        // apply scale around pivot point
         layer.transform.matrix = new DOMMatrix()
             .translate(pivot.x, pivot.y)
             .rotate(angle)
             .scale(scaleX, scaleY)
             .rotate(-angle)
             .translate(-pivot.x, -pivot.y)
-            .multiply(initialMatrix);
-        
-        const m = matrixToTransformComponents(layer.transform.matrix);
-        const initialWidth = initial.sizes[layer.id].x;
-        const initialHeight = initial.sizes[layer.id].y;
-        layer.width = (initialWidth * m.scale.x);
-        layer.height = (initialHeight * m.scale.y);
+            .multiply(initial.matrices[layer.id]);
 
-        // reset scale to 1 after applying to width/height
-        layer.transform.matrix = new DOMMatrix()
-            .translate(m.translate.x, m.translate.y)
-            .rotate(m.rotate);
-    } else {
-        layer.transform.matrix = new DOMMatrix()
-            .translate(pivot.x, pivot.y)
-            .rotate(angle)
-            .scale(scaleX, scaleY)
-            .rotate(-angle)
-            .translate(-pivot.x, -pivot.y)
-            .multiply(initialMatrix);
+        if (layer.type === 'rectangle' || layer.type === 'ellipse') {
+            // apply scale to width/height instead of matrix
+            const m = matrixToTransformComponents(layer.transform.matrix);
+            const initialWidth = initial.sizes[layer.id].x;
+            const initialHeight = initial.sizes[layer.id].y;
+            layer.width = (initialWidth * m.scale.x);
+            layer.height = (initialHeight * m.scale.y);
+
+            // reset scale to 1
+            layer.transform.matrix = new DOMMatrix()
+                .translate(m.translate.x, m.translate.y)
+                .rotate(m.rotate);
+        }
     }
 }
 
