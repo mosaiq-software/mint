@@ -146,7 +146,12 @@
     }
 
     function handleKeyDown(e: KeyboardEvent) {
-        if (e.target && (e.target as HTMLElement).tagName !== 'INPUT' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+        // override the input/textarea prevention iff keybind is
+        // ctrl+b or ctrl+i (which affect text layers)
+        if (e.target
+            && ((e.target as HTMLElement).tagName !== 'INPUT'
+            && (e.target as HTMLElement).tagName !== 'TEXTAREA')
+            || (e.ctrlKey && ['b', 'i'].includes(e.key))) {
             tool.onKeyDown?.(e);
             handleShortcuts(e);
         }

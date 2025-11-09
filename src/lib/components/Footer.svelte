@@ -75,6 +75,8 @@
         {:else if ui.mode === "text"}
             {#if selectedLayer?.type === "text"}
                 <p>Type in layer to edit text</p>
+                <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>B</kbd> for bold</p>
+                <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>I</kbd> for italics</p>
             {:else}
                 <p>Click to make a text layer</p>
             {/if}

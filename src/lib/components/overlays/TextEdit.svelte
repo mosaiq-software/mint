@@ -61,6 +61,9 @@
         onblur={handleBlur}
         style:font-family={layer.fontFamily}
         style:font-size={layer.fontSize + 'px'}
+        style:font-weight={layer.bold ? 'bold' : 'normal'}
+        style:font-style={layer.italic ? 'italic' : 'normal'}
+        style:text-decoration={layer.underline ? 'underline' : 'normal'}
         style:line-height={layer.lineHeight}
         style:width={layer.width + 'px'}
         style:height={layer.height + 'px'}

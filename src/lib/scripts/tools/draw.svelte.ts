@@ -2,7 +2,7 @@ import type { Tool, Point } from ".";
 import docs from "../docs.svelte";
 import ui from "../ui.svelte";
 import { createLayer, type CanvasLayer } from "../layer";
-import { postAction } from "../action";
+import { postAction, type PostAction } from "../action";
 import { createStamp, takeLayerSnapshot, interpolateStrokePoints, getSelectedDrawLayer } from "./utils/brush";
 
 export const draw = $state({
@@ -15,6 +15,11 @@ const stroke = {
     stamp: null as ImageData | null,
     start: { x: 0, y: 0 } as Point,
     current: { x: 0, y: 0 } as Point,
+};
+
+const compoundPostAction: PostAction = {
+    type: 'compound',
+    actions: []
 };
 
 const drawLayer = $derived(getSelectedDrawLayer());
@@ -100,7 +105,7 @@ export const drawTool: Tool = {
             docs.selected.layers = [...docs.selected.layers, newLayer];
             ui.selected.selectedLayers = [newLayer.id];
 
-            postAction({
+            compoundPostAction.actions.push({
                 type: 'create',
                 layer: newLayer,
                 position: docs.selected.layers.length - 1
@@ -123,7 +128,7 @@ export const drawTool: Tool = {
                 docs.selected.layers = [...docs.selected.layers, newLayer];
                 ui.selected.selectedLayers = [newLayer.id];
 
-                postAction({
+                compoundPostAction.actions.push({
                     type: 'create',
                     layer: newLayer,
                     position: docs.selected.layers.length - 1
@@ -168,13 +173,17 @@ export const drawTool: Tool = {
         // force update
         if (!docs.selected) return;
         
-        if (drawLayer) postAction({
-            type: "content",
-            layerID: drawLayer.id,
-            newContent: drawLayer.canvas
-                .getContext('2d')!
-                .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
-        });
+        if (drawLayer) {
+            compoundPostAction.actions.push({
+                type: "content",
+                layerID: drawLayer.id,
+                newContent: drawLayer.canvas
+                    .getContext('2d')!
+                    .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
+            });
+            postAction(compoundPostAction);
+            compoundPostAction.actions = [];
+        }
         docs.selected.layers = [...docs.selected.layers];
     }
 }

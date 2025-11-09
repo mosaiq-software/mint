@@ -4,6 +4,7 @@ import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { type Mode } from "./ui.svelte";
 import { clipboard, pasteLayerFromClipboard } from "./copypaste.svelte";
+import type {TextLayer} from "./layer";
 
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
@@ -19,6 +20,16 @@ export function handleShortcuts(event: KeyboardEvent) {
             case 's':
                 event.preventDefault();
                 handleSave();
+                break;
+            case 'b':
+                event.preventDefault();
+                event.stopPropagation();
+                toggleTextProperty('bold');
+                break;
+            case 'i':
+                event.preventDefault();
+                event.stopPropagation();
+                toggleTextProperty('italic');
                 break;
             case 'c':
                 event.preventDefault();
@@ -40,6 +51,16 @@ export function handleShortcuts(event: KeyboardEvent) {
             'c': 'ellipse',
         }[event.key];
         if (newMode) ui.mode = newMode as Mode;
+    }
+}
+
+function toggleTextProperty<K extends keyof TextLayer>(property: K) {
+    if (!docs.selected) return;
+    const selectedLayerID = ui.selected?.selectedLayers[0];
+    if (!selectedLayerID) return;
+    const layer = docs.selected.layers.find(l => l.id === selectedLayerID);
+    if (layer && layer.type === 'text' && property in layer && typeof layer[property] === 'boolean') {
+        layer[property] = !layer[property] as TextLayer[K];
     }
 }
 
