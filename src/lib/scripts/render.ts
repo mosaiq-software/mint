@@ -36,12 +36,12 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
 
             const lineHeight = layer.fontSize * layer.lineHeight;
             lines.forEach((line, index) => {
-                ctx.fillText(line, 0, index * lineHeight, layer.width);
+                ctx.fillText(line, 0, index * lineHeight);
             });
         } else if (layer.type === 'rectangle') {
             // draw rectangle
-            const w = layer.width;
-            const h = layer.height;
+            const w = Math.abs(layer.width);
+            const h = Math.abs(layer.height);
             const r = Math.min(layer.cornerRadius, w / 2, h / 2);
 
             ctx.fillStyle = colorToCSS(layer.foregroundColor);
@@ -77,8 +77,8 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
             }
         } else if (layer.type === 'ellipse') {
             // draw ellipse
-            const w = layer.width;
-            const h = layer.height;
+            const w = Math.abs(layer.width);
+            const h = Math.abs(layer.height);
 
             ctx.fillStyle = colorToCSS(layer.foregroundColor);
             ctx.beginPath();
@@ -159,7 +159,7 @@ function getWrappedLines(element: HTMLElement): string[] {
 }
 
 function constructRoundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-    const r = Math.min(radius, width / 2, height / 2);
+    const r = Math.min(radius, Math.abs(width / 2), Math.abs(height / 2));
 
     ctx.moveTo(x + r, y);
     ctx.lineTo(x + width - r, y);

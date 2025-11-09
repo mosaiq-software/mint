@@ -351,6 +351,8 @@ export const selectTool: Tool = {
             if (ui.selected) ui.selected.selectedLayers = [];
         } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             if (!docs.selected) return;
+            e.preventDefault();
+
             if (selectedLayers.length === 0) return;
 
             const delta = e.shiftKey ? 10 : 1;
