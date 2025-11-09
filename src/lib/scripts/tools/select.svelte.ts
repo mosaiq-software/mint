@@ -411,10 +411,10 @@ function getScalePivotPoint(direction: ScaleDirection, width: number, height: nu
     }
 }
 
-function translateLayers(layers: Layer[], dx: number, dy: number) {
+export function translateLayers(layers: Layer[], dx: number, dy: number, source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
-        const initialMatrix = initial.matrices[layer.id];
-        const mat = initialMatrix.translate(0, 0);
+        const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
+        const mat = matrix.translate(0, 0);
         mat.m41 = 0;
         mat.m42 = 0;
 
@@ -430,22 +430,25 @@ function translateLayers(layers: Layer[], dx: number, dy: number) {
             // fallback: if inverse fails, use raw screen delta
         }
 
-        layer.transform.matrix = initialMatrix.translate(localDx, localDy);
+        layer.transform.matrix = matrix.translate(localDx, localDy);
     }
 }
 
-function rotateLayers(layers: Layer[], angle: number, pivot: Point) {
+export function rotateLayers(layers: Layer[], angle: number, pivot: Point, source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
+        const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
         layer.transform.matrix = new DOMMatrix()
             .translate(pivot.x, pivot.y)
             .rotate(angle)
             .translate(-pivot.x, -pivot.y)
-            .multiply(initial.matrices[layer.id]);
+            .multiply(matrix);
     }
 }
 
-function scaleLayers(layers: Layer[], scaleX: number, scaleY: number, pivot: Point, angle: number) {
+export function scaleLayers(layers: Layer[], scaleX: number, scaleY: number, pivot: Point, angle: number, source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
+        const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
+
         // apply scale around pivot point
         layer.transform.matrix = new DOMMatrix()
             .translate(pivot.x, pivot.y)
@@ -453,15 +456,15 @@ function scaleLayers(layers: Layer[], scaleX: number, scaleY: number, pivot: Poi
             .scale(scaleX, scaleY)
             .rotate(-angle)
             .translate(-pivot.x, -pivot.y)
-            .multiply(initial.matrices[layer.id]);
+            .multiply(matrix);
 
         if (layer.type === 'rectangle' || layer.type === 'ellipse') {
             // apply scale to width/height instead of matrix
             const m = matrixToTransformComponents(layer.transform.matrix);
-            const initialWidth = initial.sizes[layer.id].x;
-            const initialHeight = initial.sizes[layer.id].y;
-            layer.width = (initialWidth * m.scale.x);
-            layer.height = (initialHeight * m.scale.y);
+            const width = source === 'initial' ? initial.sizes[layer.id].x : layer.width;
+            const height = source === 'initial' ? initial.sizes[layer.id].y : layer.height;
+            layer.width = (width * m.scale.x);
+            layer.height = (height * m.scale.y);
 
             // reset scale to 1
             layer.transform.matrix = new DOMMatrix()
