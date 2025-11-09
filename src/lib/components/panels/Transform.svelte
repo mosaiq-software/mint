@@ -88,7 +88,7 @@
     }
 
     let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
-    function debouncedapplyTransform() {
+    function debouncedApplyTransform() {
         if (debounceTimeout) return;
         debounceTimeout = setTimeout(() => {
             applyTransform(false); debounceTimeout = null;
@@ -169,7 +169,7 @@
         </Input>
         <Slider
             min={-180} max={180} step={1}
-            bind:value={r} onValueChange={debouncedapplyTransform}
+            bind:value={r} onValueChange={debouncedApplyTransform}
             onBlur={() => applyTransform(true)}
         />
     </div>
