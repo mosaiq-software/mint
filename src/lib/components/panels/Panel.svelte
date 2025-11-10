@@ -1,14 +1,9 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
-    const { title, disabled, children, scrollable }: { title?: string, disabled?: boolean, children: Snippet, scrollable?: boolean} = $props();
+    const { title, disabled, children }: { title?: string, disabled?: boolean, children: Snippet, scrollable?: boolean} = $props();
 </script>
 
-<div id="panel" class:disabled={disabled ?? false}
-     class:overflow={scrollable ?? false}
->
-    {#if title}
-        <h2>{title}</h2>
-    {/if}
+<div id="panel" class:disabled={disabled ?? false}>
     {@render children()}
 </div>
 
@@ -20,11 +15,6 @@
         flex: 0 0 auto;
         min-height: 0;
         padding-bottom: var(--s-md);
-    }
-
-    #panel.overflow {
-        overflow: auto;
-        flex: 0 1 auto;
     }
 
     #panel.disabled {
