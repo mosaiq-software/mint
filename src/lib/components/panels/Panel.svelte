@@ -13,7 +13,6 @@
         flex-direction: column;
         gap: var(--s-sm);
         flex: 0 0 auto;
-        min-height: 0;
         padding-bottom: var(--s-md);
     }
 

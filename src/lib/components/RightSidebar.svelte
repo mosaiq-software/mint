@@ -36,7 +36,6 @@
         <div {...item.content}
              class:content={true}
              class:closed={!item.isExpanded}
-             class:scrollable={item.item.title === 'Layers'}
         >
             {#if item.item.title === 'Type'}
                 <Type />
@@ -62,7 +61,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        flex-shrink: 0;
+        overflow: scroll;
     }
 
     h2 {
@@ -85,11 +84,6 @@
 
     button:hover {
         background: var(--c-mid);
-    }
-
-    .scrollable {
-        flex-shrink: 1;
-        overflow-y: auto;
     }
 
     .closed {
