@@ -61,7 +61,8 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        overflow: scroll;
+        overflow-y: scroll;
+        flex-shrink: 0;
     }
 
     h2 {
