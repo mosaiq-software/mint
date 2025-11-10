@@ -6,6 +6,7 @@
     import Type from "./panels/Type.svelte";
     import LayerStyles from "./panels/LayerStyles.svelte";
     import { Accordion, type AccordionItem } from "melt/builders";
+    import { ChevronRight } from "@lucide/svelte";
 
     type Item = AccordionItem<{
         title: string,
@@ -24,7 +25,12 @@
     {#each items as item}
         <h2 {...item.heading}>
             <button {...item.trigger}>
-                {item.item.title}
+                <span>
+                    {item.item.title}
+                </span>
+                <i style:transform={item.isExpanded ? 'rotate(90deg)' : ''}>
+                    <ChevronRight size={16} />
+                </i>
             </button>
         </h2>
         <div {...item.content}
@@ -68,6 +74,9 @@
         text-align: left;
         cursor: pointer;
         padding: var(--s-sm);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     h2:not(:first-child) button {
