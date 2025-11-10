@@ -156,7 +156,7 @@
     });
 </script>
 
-<Panel title="Layers" scrollable>
+<Panel title="Layers">
     <div id="layers"
          ondragover={handleDragover}
          ondrop={(e) => e.preventDefault()}
