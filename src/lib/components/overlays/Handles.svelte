@@ -1,6 +1,5 @@
 <script lang="ts">
     import ui from "../../scripts/ui.svelte";
-
     const b = $derived(ui.selected?.bounds);
 </script>
 
@@ -17,19 +16,23 @@
                 translate({b.pos.x * (ui.selected?.zoom ?? 1)}px, {b.pos.y * (ui.selected?.zoom ?? 1)}px)
                 rotate({b.rot}deg)
         ">
-            <div class="transform-rotate-container">
-                <div class="transform-rotate-handle"></div>
-                <div class="transform-rotate-line"></div>
-            </div>
+            {#if ui.mode === 'select'}
+                <div class="transform-rotate-container">
+                    <div class="transform-rotate-handle"></div>
+                    <div class="transform-rotate-line"></div>
+                </div>
 
-            <div class="transform-scale n"></div>
-            <div class="transform-scale e"></div>
-            <div class="transform-scale s"></div>
-            <div class="transform-scale w"></div>
-            <div class="transform-scale nw"></div>
-            <div class="transform-scale ne"></div>
-            <div class="transform-scale sw"></div>
-            <div class="transform-scale se"></div>
+                <div class="transform-scale n"></div>
+                <div class="transform-scale e"></div>
+                <div class="transform-scale s"></div>
+                <div class="transform-scale w"></div>
+                <div class="transform-scale nw"></div>
+                <div class="transform-scale ne"></div>
+                <div class="transform-scale sw"></div>
+                <div class="transform-scale se"></div>
+            {:else if ui.mode === 'text' && ui.selectedLayers.length === 1 && ui.selectedLayers[0].type === 'text'}
+                <div class="transform-scale se"></div>
+            {/if}
         </div>
     </div>
 {/if}
@@ -71,12 +74,12 @@
 
     .transform-scale.se {
         bottom: -6px;
-        left: -6px;
+        right: -6px;
     }
 
     .transform-scale.sw {
         bottom: -6px;
-        right: -6px;
+        left: -6px;
     }
 
     .transform-scale.n {

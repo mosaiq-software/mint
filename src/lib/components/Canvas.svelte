@@ -4,8 +4,7 @@
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
-    import Transform from "./overlays/Transform.svelte";
-    import Bounds from "./overlays/Bounds.svelte";
+    import Handles from "./overlays/Handles.svelte";
     import TextMeasure from "./overlays/TextMeasure.svelte";
     import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
@@ -266,10 +265,7 @@
                     <DropMargin side="bottom" />
                     <DropMargin side="right" />
                 {/if}
-                <!-- {#if tool.name === 'select' && selectedLayer}
-                    <Transform layer={selectedLayer} />
-                {/if} -->
-                <Bounds />
+                <Handles />
                 {#if tool.name === 'text' && selectedLayer?.type === 'text'}
                     <TextEdit bind:layer={selectedLayer} />
                 {/if}
