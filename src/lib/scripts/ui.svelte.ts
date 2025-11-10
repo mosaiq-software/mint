@@ -3,6 +3,7 @@ import docs, { matrixToTransformComponents } from "./docs.svelte";
 import type { Layer, LayerID } from "./layer";
 import {RadioGroup} from "melt/builders";
 import type { Point } from "./tools";
+import { updateBoundsSnapshot } from "./action";
 
 export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill'] as const;
 export type Mode = typeof modes[number];
@@ -77,10 +78,12 @@ export function updateBoundingBox() {
     }
 
     const currentSelectedLayerIDs = ui.selected?.selectedLayers ?? [];
+    let selectedLayersChanged = false
 
     // detect selection change
     if (previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
         !previousSelectedLayerIDs.every((id, index) => id === currentSelectedLayerIDs[index])) {
+        selectedLayersChanged = true;
         // determine if all selected layers have the same rotation
         const rotations = ui.selectedLayers.map(layer => {
             const m = matrixToTransformComponents(layer.transform.matrix);
@@ -140,6 +143,10 @@ export function updateBoundingBox() {
         size: { x: maxX - minX, y: maxY - minY },
         rot: previousRotation
     };
+
+    if (selectedLayersChanged && ui.selectedDocument) {
+        updateBoundsSnapshot(ui.selectedDocument, ui.selected.bounds);
+    }
 }
 
 export function setPreviousRotation(rot: number) {

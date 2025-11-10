@@ -44,7 +44,8 @@
                 actions.push({
                     type: "transform",
                     layerID: layer.id,
-                    newMatrix: layer.transform.matrix
+                    newMatrix: layer.transform.matrix,
+                    newBounds: ui.selected ? ui.selected.bounds : null
                 });
             }
         }
@@ -59,7 +60,8 @@
                 actions.push({
                     type: "transform",
                     layerID: layer.id,
-                    newMatrix: layer.transform.matrix
+                    newMatrix: layer.transform.matrix,
+                    newBounds: ui.selected ? ui.selected.bounds : null
                 });
             }
         }
@@ -74,7 +76,8 @@
                 actions.push({
                     type: "transform",
                     layerID: layer.id,
-                    newMatrix: layer.transform.matrix
+                    newMatrix: layer.transform.matrix,
+                    newBounds: ui.selected ? ui.selected.bounds : null
                 });
             }
         }

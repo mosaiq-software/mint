@@ -131,7 +131,6 @@ export const selectTool: Tool = {
             if (initial.bounds === null) return;
 
             if (select.action.type === 'move') {
-                console.log('moving');
                 const dx = data.c.x - initial.c.x;
                 const dy = data.c.y - initial.c.y;
 
@@ -204,6 +203,7 @@ export const selectTool: Tool = {
                         type: "transform",
                         layerID: layer.id,
                         newMatrix: layer.transform.matrix,
+                        newBounds: ui.selected ? ui.selected.bounds : null
                     });
                 } else if (select.action.type === 'scale') {
                     if (layer.type === 'rectangle' || layer.type === 'ellipse') {
@@ -220,6 +220,7 @@ export const selectTool: Tool = {
                             type: "transform",
                             layerID: layer.id,
                             newMatrix: layer.transform.matrix,
+                            newBounds: ui.selected ? ui.selected.bounds : null
                         }); 
                     }
                 }
@@ -285,6 +286,7 @@ export const selectTool: Tool = {
                     type: "transform",
                     layerID: layer.id,
                     newMatrix: layer.transform.matrix,
+                    newBounds: ui.selected ? ui.selected.bounds : null
                 });
             }
 

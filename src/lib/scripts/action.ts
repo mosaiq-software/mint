@@ -1,7 +1,7 @@
 import type { Layer, LayerID } from "./layer";
 import type { DocumentID, Document } from "./docs.svelte";
-import docs from "./docs.svelte";
-import ui from "./ui.svelte";
+import docs, { matrixToTransformComponents } from "./docs.svelte";
+import ui, { setPreviousRotation, type Bounds } from "./ui.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 
 type CreateAction = {
@@ -21,6 +21,8 @@ type TransformAction = {
     layerID: LayerID;
     oldMatrix: DOMMatrix;
     newMatrix: DOMMatrix;
+    oldBounds: Bounds | null;
+    newBounds: Bounds | null;
 }
 
 type ContentAction = {
@@ -77,6 +79,7 @@ type TransformPostAction = {
     type: 'transform';
     layerID: LayerID;
     newMatrix: DOMMatrix;
+    newBounds: Bounds | null;
 }
 
 type ContentPostAction = {
@@ -115,6 +118,7 @@ export type PostAction = CreatePostAction
 
 const actions: Record<DocumentID, Action[]> = {};
 const snapshots: Record<LayerID, Layer | null> = {};
+const bounds: Record<DocumentID, Bounds | null> = {};
 const currentActionIndex: Record<DocumentID, number> = {};
 
 function postActionToAction(postAction: PostAction): Action | null {
@@ -135,11 +139,22 @@ function postActionToAction(postAction: PostAction): Action | null {
     } else if (postAction.type === 'transform') {
         const snapshot = snapshots[postAction.layerID];
         if (!snapshot) return null;
+        const oldBounds = docs.selected ? bounds[docs.selected.id] ?? null : null;
         action = {
             type: 'transform',
             layerID: postAction.layerID,
             oldMatrix: snapshot.transform.matrix,
-            newMatrix: postAction.newMatrix
+            newMatrix: postAction.newMatrix,
+            oldBounds: oldBounds ? {
+                pos: { ...oldBounds.pos },
+                size: { ...oldBounds.size },
+                rot: oldBounds.rot
+            } : null,
+            newBounds: postAction.newBounds ? {
+                pos: { ...postAction.newBounds.pos },
+                size: { ...postAction.newBounds.size },
+                rot: postAction.newBounds.rot
+            } : null
         };
     } else if (postAction.type === 'content') {
         const snapshot = snapshots[postAction.layerID];
@@ -226,6 +241,9 @@ export function postAction(postAction: PostAction) {
     // update the snapshot for the layer
     updateSnapshot(action, 'redo');
 
+    // update the bounds snapshot
+    updateBoundsSnapshot(documentId, ui.selected?.bounds ?? null);
+
     // indicate unsaved changes
     tabStatus[documentId].actionsSinceSave++;
     tabStatus[documentId].canUndo = true;
@@ -303,6 +321,18 @@ export function getRedoAction(documentId: DocumentID): Action | null {
  * @param type 
  */
 export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
+    // update the bounds snapshot
+    if (action.type === 'transform') {
+        if (type === 'undo') {
+            updateBoundsSnapshot(docs.selected!.id, action.oldBounds);
+        } else {
+            updateBoundsSnapshot(docs.selected!.id, action.newBounds);
+        }
+    } else {
+        updateBoundsSnapshot(docs.selected!.id, ui.selected?.bounds ?? null);
+    }
+
+    // update the layer snapshot
     if (action.type === 'create') {
         if (type === 'undo') {
             delete snapshots[action.layer.id];
@@ -353,6 +383,19 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     }
 }
 
+export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds | null) {
+    if (newBounds === null) {
+        bounds[documentId] = null;
+        return;
+    } else {
+        bounds[documentId] = {
+            pos: { ...newBounds.pos },
+            size: { ...newBounds.size },
+            rot: newBounds.rot
+        };
+    }
+}
+
 /**
  * Applies an undo action to the document.
  * @param action 
@@ -378,6 +421,7 @@ export function applyUndoAction(action: Action) {
         if (layer) {
             layer.transform.matrix = action.oldMatrix;
         }
+        applyBounds(action.oldBounds);
     } else if (action.type === 'content') {
         // layer content was changed, so revert to oldContent
         const layer = docs.selected.layers.find(l => l.id === action.layerID);
@@ -416,6 +460,30 @@ export function applyUndoAction(action: Action) {
     docs.selected.layers = [...docs.selected.layers];
 }
 
+function applyBounds(newBounds: Bounds | null) {
+    if (!ui.selected) return;
+
+    if (newBounds === null) {
+        ui.selected.bounds = null;
+        return;
+    }
+
+    if (ui.selected.bounds === null) return;
+
+    if (ui.selectedLayers.length === 0) {
+        return;
+    } else if (ui.selectedLayers.length === 1) {
+        // single layer, apply rotation of layer
+        const m = matrixToTransformComponents(ui.selectedLayers[0].transform.matrix);
+        setPreviousRotation(m.rotate);
+        ui.selected.bounds.rot = m.rotate;
+    } else {
+        // multiple layers, set rotation to bounds rotation
+        setPreviousRotation(newBounds.rot);
+        ui.selected.bounds.rot = newBounds.rot;
+    }
+}
+
 /**
  * Applies a redo action to the document.
  * @param action 
@@ -441,6 +509,7 @@ export function applyRedoAction(action: Action) {
         if (layer) {
             layer.transform.matrix = action.newMatrix;
         }
+        applyBounds(action.newBounds);
     } else if (action.type === 'content') {
         // layer content was changed, so apply newContent
         const layer = docs.selected.layers.find(l => l.id === action.layerID);

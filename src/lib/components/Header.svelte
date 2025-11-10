@@ -39,7 +39,6 @@
     function handleTabDelete(tab: Document) {
         if (docs.selected?.id === tab.id) {
             const closestDocID = findClosestDocumentIDByTabIndex(tab, false) ?? findClosestDocumentIDByTabIndex(tab, true);
-            console.log(closestDocID);
             docs.selected = closestDocID ? docs[closestDocID] : closestDocID;
             ui.selectedDocument = closestDocID;
         }
