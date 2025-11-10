@@ -178,7 +178,9 @@ export const selectTool: Tool = {
                     initial.bounds.size.y / 2
                 ).matrixTransform(matrix);
 
-                const angle = Math.atan2(data.c.y - center.y, data.c.x - center.x) * (180 / Math.PI) + 90;
+                let angle = Math.atan2(data.c.y - center.y, data.c.x - center.x) * (180 / Math.PI) + 90;
+                angle = ((angle + 180) % 360) - 180;
+                if (angle < -180) angle += 360;
                 const angleDelta = angle - initial.bounds.rot;
 
                 rotateLayers(ui.selectedLayers, angleDelta, center);
