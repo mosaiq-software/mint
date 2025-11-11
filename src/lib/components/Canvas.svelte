@@ -88,7 +88,7 @@
     $effect(updateSelectedLayers);
     $effect(updateBoundingBox);
 
-    function getViewportPoint(e: PointerEvent): Point {
+    function getViewportPoint(e: { clientX: number, clientY: number }): Point {
         const rect = canvas.getBoundingClientRect();
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
@@ -205,7 +205,35 @@
     function handleWheel(e: WheelEvent) {
         if (e.ctrlKey && ui.selected) {
             e.preventDefault();
-            ui.selected.zoom /= 1 + e.deltaY / 100;
+
+            pointerPosition = getViewportPoint(e);
+            const w = scrollContainer.clientWidth;
+            const h = scrollContainer.clientHeight;
+            const cursor = getCanvasPoint(pointerPosition);
+            const oldPan = { ...ui.selected.pan };
+
+            const center = {
+                x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
+                y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
+            };
+
+            const factor = 1 - e.deltaY / 100;
+            ui.selected.zoom *= factor;
+
+            const newC = {
+                x: center.x + (cursor.x - center.x) * (factor - 1),
+                y: center.y + (cursor.y - center.y) * (factor - 1)
+            }
+
+            ui.selected.pan = {
+                x: 30 + newC.x * ui.selected.zoom - w / 2,
+                y: 30 + newC.y * ui.selected.zoom - h / 2
+            };
+
+            pointerPosition = {
+                x: pointerPosition.x + (ui.selected.pan.x - oldPan.x) * factor,
+                y: pointerPosition.y + (ui.selected.pan.y - oldPan.y) * factor
+            };
         }
     }
 </script>
