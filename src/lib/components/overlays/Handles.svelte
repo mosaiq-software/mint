@@ -1,45 +1,41 @@
 <script lang="ts">
-    import type { Layer } from "../../scripts/layer";
-    import { matrixToTransformComponents } from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
-    interface Props {
-        layer: Layer;
-    }
-
-    const { layer }: Props = $props();
-    let t = $derived(matrixToTransformComponents(layer.transform.matrix));
-
-    let layerWidth = $derived(layer.type === 'canvas' ? layer.canvas.width : Math.abs(layer.width));
-    let layerHeight = $derived(layer.type === 'canvas' ? layer.canvas.height : Math.abs(layer.height));
+    const b = $derived(ui.selected?.bounds);
 </script>
-<div
-    class="transform-container"
-    style="
-        width: {layerWidth * Math.abs(t.scale.x) * (ui.selected?.zoom ?? 1) + 'px'};
-        height: {layerHeight * Math.abs(t.scale.y) * (ui.selected?.zoom ?? 1) + 'px'};
-    "
->
-    <div class="transform-overlay" style="
-        transform: 
-            translate({t.translate.x * (ui.selected?.zoom ?? 1)}px, {t.translate.y * (ui.selected?.zoom ?? 1)}px)
-            rotate({t.rotate}deg)
-            {t.scale.y < 0 ? 'scaleY(-1)' : ''}
-    ">
-        <div class="transform-rotate-container">
-            <div class="transform-rotate-handle"></div>
-            <div class="transform-rotate-line"></div>
-        </div>
 
-        <div class="transform-scale n"></div>
-        <div class="transform-scale e"></div>
-        <div class="transform-scale s"></div>
-        <div class="transform-scale w"></div>
-        <div class="transform-scale nw"></div>
-        <div class="transform-scale ne"></div>
-        <div class="transform-scale sw"></div>
-        <div class="transform-scale se"></div>
+{#if b}
+    <div
+        class="transform-container"
+        style="
+            width: {b.size.x * (ui.selected?.zoom ?? 1) + 'px'};
+            height: {b.size.y * (ui.selected?.zoom ?? 1) + 'px'};
+        "
+    >
+        <div class="transform-overlay" style="
+            transform: 
+                translate({b.pos.x * (ui.selected?.zoom ?? 1)}px, {b.pos.y * (ui.selected?.zoom ?? 1)}px)
+                rotate({b.rot}deg)
+        ">
+            {#if ui.mode === 'select'}
+                <div class="transform-rotate-container">
+                    <div class="transform-rotate-handle"></div>
+                    <div class="transform-rotate-line"></div>
+                </div>
+
+                <div class="transform-scale n"></div>
+                <div class="transform-scale e"></div>
+                <div class="transform-scale s"></div>
+                <div class="transform-scale w"></div>
+                <div class="transform-scale nw"></div>
+                <div class="transform-scale ne"></div>
+                <div class="transform-scale sw"></div>
+                <div class="transform-scale se"></div>
+            {:else if ui.mode === 'text' && ui.selectedLayers.length === 1 && ui.selectedLayers[0].type === 'text'}
+                <div class="transform-scale se"></div>
+            {/if}
+        </div>
     </div>
-</div>
+{/if}
 
 <style>
     .transform-overlay {
@@ -78,12 +74,12 @@
 
     .transform-scale.se {
         bottom: -6px;
-        left: -6px;
+        right: -6px;
     }
 
     .transform-scale.sw {
         bottom: -6px;
-        right: -6px;
+        left: -6px;
     }
 
     .transform-scale.n {

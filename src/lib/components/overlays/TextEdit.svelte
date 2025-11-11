@@ -71,7 +71,6 @@
         style:caret-color={colorToCSS(layer.foregroundColor)}
         style:transform={`scale(${Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1)}, ${Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1)})`}
     ></textarea>
-    <div class="resize-handle"></div>
 </div>
 
 <style>
@@ -79,7 +78,6 @@
         position: absolute;
         top: 0;
         left: 0;
-        border: 2px dashed var(--c-acc);
         transform-origin: top left;
     }
 
@@ -96,16 +94,5 @@
         color: transparent;
         cursor: inherit;
         transform-origin: top left;
-    }
-
-    .resize-handle {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: var(--c-txt);
-        border: 1px solid var(--c-bg);
-        bottom: -6px;
-        right: -6px;
-        pointer-events: none;
     }
 </style>

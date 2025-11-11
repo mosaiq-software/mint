@@ -41,8 +41,20 @@
         });
     }
 
-    function selectLayer(layerId: LayerID) {
-        if (ui.selected) ui.selected.selectedLayers = [layerId];
+    function selectLayer(e: MouseEvent, layerId: LayerID) {
+        if (!ui.selected) return;
+
+        if (e.shiftKey) {
+            // toggle visibility
+            if (ui.selected.selectedLayers.includes(layerId)) {
+                ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== layerId);
+            } else {
+                ui.selected.selectedLayers = [...ui.selected.selectedLayers, layerId];
+            }
+        } else {
+            // single select
+            ui.selected.selectedLayers = [layerId]
+        }
     }
 
     let layerBeingRenamed: LayerID | null = $state(null);
@@ -165,7 +177,7 @@
                 >
                     <button
                         class="preview"
-                        onclick={() => selectLayer(layer.id)}
+                        onclick={(e) => selectLayer(e, layer.id)}
                         ondblclick={() => renameLayer(layer.id)}
                     >
                         {#if layer.type === 'canvas'}

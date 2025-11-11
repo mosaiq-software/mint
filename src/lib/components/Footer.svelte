@@ -19,6 +19,7 @@
         {#if ui.mode === "select"}
             {#if !selectedLayer}
                 <p>Click a layer to select</p>
+                <p><kbd>Shift</kbd> + click a layer to toggle selection</p>
             {:else}
                 <p>Move <i><SquareDashed size={16} /></i> to move</p>
                 <p>

@@ -1,16 +1,17 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui from "../scripts/ui.svelte";
+    import ui, { updateSelectedLayers } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
-    import Transform from "./overlays/Transform.svelte";
+    import Handles from "./overlays/Handles.svelte";
     import TextMeasure from "./overlays/TextMeasure.svelte";
     import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
     import { handleShortcuts } from "../scripts/shortcut";
+    import { updateBoundingBox } from "../scripts/ui.svelte"
 ;
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
@@ -83,6 +84,9 @@
             scrollContainer.scrollTop = ui.selected.pan.y;
         }
     });
+
+    $effect(updateSelectedLayers);
+    $effect(updateBoundingBox);
 
     function getViewportPoint(e: PointerEvent): Point {
         const rect = canvas.getBoundingClientRect();
@@ -261,9 +265,7 @@
                     <DropMargin side="bottom" />
                     <DropMargin side="right" />
                 {/if}
-                {#if tool.name === 'select' && selectedLayer}
-                    <Transform layer={selectedLayer} />
-                {/if}
+                <Handles />
                 {#if tool.name === 'text' && selectedLayer?.type === 'text'}
                     <TextEdit bind:layer={selectedLayer} />
                 {/if}
