@@ -1,6 +1,6 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui from "../scripts/ui.svelte";
+    import ui, { zoomAroundCenter } from "../scripts/ui.svelte";
     import { ZoomIn, ZoomOut } from "@lucide/svelte";
     import { IconButtonVisual } from "./ui";
 
@@ -9,13 +9,13 @@
 
     function zoomOut() {
         if (ui.selected) {
-            ui.selected.zoom /= 1.1;
+            zoomAroundCenter(1 / 1.1);
         }
     }
 
     function zoomIn() {
         if (ui.selected) {
-            ui.selected.zoom *= 1.1;
+            zoomAroundCenter(1.1);
         }
     }
 
@@ -24,8 +24,16 @@
     let dropdownZoom = $state(-1);
 
     function setZoomFromDropdown() {
-        if (ui.selected) {
-            ui.selected.zoom = dropdownZoom;
+        if (ui.selected && docs.selected) {
+            if (dropdownZoom === 0) {
+                ui.selected.zoom = Math.min(
+                    (ui.viewport.width - 60) / docs.selected.width,
+                    (ui.viewport.height - 60) / docs.selected.height,
+                );
+                ui.selected.pan = {x: 0, y: 0};
+            } else {
+                zoomAroundCenter(dropdownZoom / ui.selected.zoom);
+            }
             dropdownZoom = -1;
         }
     }
@@ -42,7 +50,8 @@
             {#each zooms as z}
                 <option value={z / 100}>{z}%</option>
             {/each}
-            <option value={-1} selected>{zoomStr}</option>
+            <option value={0}>Fit</option>
+            <option value={-1} selected style:display="none">{zoomStr}</option>
         </select>
         <button onclick={zoomIn}>
             <IconButtonVisual label="Zoom in">
