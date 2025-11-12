@@ -298,10 +298,6 @@ export const selectTool: Tool = {
                     actions: actions
                 });
             }
-        } else if (e.key === '=') {
-            if (ui.selected) ui.selected.zoom *= 1.1;
-        } else if (e.key === '-') {
-            if (ui.selected) ui.selected.zoom /= 1.1;
         }
     }
 }

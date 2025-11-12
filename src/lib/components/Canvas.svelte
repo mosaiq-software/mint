@@ -1,6 +1,6 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui, { updateSelectedLayers } from "../scripts/ui.svelte";
+    import ui, { updateSelectedLayers, zoomAroundPoint } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
@@ -207,32 +207,16 @@
             e.preventDefault();
 
             pointerPosition = getViewportPoint(e);
-            const w = scrollContainer.clientWidth;
-            const h = scrollContainer.clientHeight;
+
             const cursor = getCanvasPoint(pointerPosition);
             const oldPan = { ...ui.selected.pan };
+            const zoomFactor = 1 - e.deltaY / 100;
 
-            const center = {
-                x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
-                y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
-            };
-
-            const factor = 1 - e.deltaY / 100;
-            ui.selected.zoom *= factor;
-
-            const newC = {
-                x: center.x + (cursor.x - center.x) * (factor - 1),
-                y: center.y + (cursor.y - center.y) * (factor - 1)
-            }
-
-            ui.selected.pan = {
-                x: 30 + newC.x * ui.selected.zoom - w / 2,
-                y: 30 + newC.y * ui.selected.zoom - h / 2
-            };
+            zoomAroundPoint(zoomFactor, cursor);
 
             pointerPosition = {
-                x: pointerPosition.x + (ui.selected.pan.x - oldPan.x) * factor,
-                y: pointerPosition.y + (ui.selected.pan.y - oldPan.y) * factor
+                x: pointerPosition.x + (ui.selected.pan.x - oldPan.x) * zoomFactor,
+                y: pointerPosition.y + (ui.selected.pan.y - oldPan.y) * zoomFactor
             };
         }
     }
@@ -245,6 +229,8 @@
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
     style="cursor: {cursor};"
+    bind:clientWidth={ui.viewport.width}
+    bind:clientHeight={ui.viewport.height}
     bind:this={scrollContainer}
     onkeydown={handleKeyDown}
     onpointerdown={handlePointerDown}
