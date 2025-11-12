@@ -232,7 +232,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--s-xs);
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
     }
 
