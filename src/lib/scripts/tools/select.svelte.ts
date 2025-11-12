@@ -156,7 +156,7 @@ export const selectTool: Tool = {
                 let scaleX = (initial.bounds.size.x + (dir.includes('e') ? dx : (dir.includes('w') ? -dx : 0))) / initial.bounds.size.x;
                 let scaleY = (initial.bounds.size.y + (dir.includes('s') ? dy : (dir.includes('n') ? -dy : 0))) / initial.bounds.size.y;
 
-                if (ui.selectedLayers.length > 1) {
+                if (ui.selectedLayers.length > 1 || data.e.shiftKey) {
                     // for multiple layers, constrain to uniform scale
                     let uniformScale;
                     if (dir === 'n' || dir === 's')  uniformScale = scaleY;
