@@ -141,5 +141,6 @@
         cursor: default;
         font-size: var(--f-sm);
         gap: var(--s-xl);
+        border-top: var(--s-xs) solid var(--c-mid);
     }
 </style>
