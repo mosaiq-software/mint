@@ -2,7 +2,7 @@ import { getUndoAction, getRedoAction, updateSnapshot, applyUndoAction, applyRed
 import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
-import ui, { type Mode } from "./ui.svelte";
+import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
 import { clipboard, pasteLayerFromClipboard } from "./copypaste.svelte";
 import type {TextLayer} from "./layer";
 
@@ -38,6 +38,14 @@ export function handleShortcuts(event: KeyboardEvent) {
             case 'v':
                 event.preventDefault();
                 handlePaste();
+                break;
+            case '=':
+                event.preventDefault();
+                handleZoom('in');
+                break;
+            case '-':
+                event.preventDefault();
+                handleZoom('out');
                 break;
         }
     } else {
@@ -105,4 +113,9 @@ function handleRedo() {
 
     updateSnapshot(action, 'redo');
     applyRedoAction(action);
+}
+
+function handleZoom(action: 'in' | 'out') {
+    if (action === 'in') zoomAroundCenter(1.1);
+    else zoomAroundCenter(1 / 1.1);
 }

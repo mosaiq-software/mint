@@ -28,13 +28,21 @@ type UI  = Record<DocumentID, UIAttributes> & {
     selected: UIAttributes | null;
     selectedDocument: DocumentID | null;
     selectedLayers: Layer[];
+    viewport: {
+        width: number;
+        height: number;
+    }
 }
 
 const ui: UI = $state({
     mode: 'select',
     selectedDocument: null,
     selected: null,
-    selectedLayers: []
+    selectedLayers: [],
+    viewport: {
+        width: 0,
+        height: 0,
+    }
 });
 
 export function initializeUIForDocument(id: DocumentID) {
@@ -151,6 +159,47 @@ export function updateBoundingBox() {
 
 export function setPreviousRotation(rot: number) {
     previousRotation = rot;
+}
+
+export function zoomAroundPoint(zoomFactor: number, point: Point) {
+    if (!ui.selected) return;
+
+    const w = ui.viewport.width;
+    const h = ui.viewport.height;
+    const center = {
+        x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
+        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
+    };
+
+    ui.selected.zoom *= zoomFactor;
+
+    const newC = {
+        x: center.x + (point.x - center.x) * (zoomFactor - 1),
+        y: center.y + (point.y - center.y) * (zoomFactor - 1)
+    }
+
+    ui.selected.pan = {
+        x: 30 + newC.x * ui.selected.zoom - w / 2,
+        y: 30 + newC.y * ui.selected.zoom - h / 2
+    };
+}
+
+export function zoomAroundCenter(zoomFactor: number) {
+    if (!ui.selected) return;
+
+    const w = ui.viewport.width;
+    const h = ui.viewport.height;
+    const center = {
+        x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
+        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
+    };
+
+    ui.selected.zoom *= zoomFactor;
+
+    ui.selected.pan = {
+        x: 30 + center.x * ui.selected.zoom - w / 2,
+        y: 30 + center.y * ui.selected.zoom - h / 2
+    };
 }
 
 export const modesGroup = new RadioGroup({

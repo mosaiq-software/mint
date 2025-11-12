@@ -1,6 +1,6 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui, { updateSelectedLayers } from "../scripts/ui.svelte";
+    import ui, { updateSelectedLayers, zoomAroundPoint } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
@@ -88,7 +88,7 @@
     $effect(updateSelectedLayers);
     $effect(updateBoundingBox);
 
-    function getViewportPoint(e: PointerEvent): Point {
+    function getViewportPoint(e: { clientX: number, clientY: number }): Point {
         const rect = canvas.getBoundingClientRect();
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
@@ -205,7 +205,19 @@
     function handleWheel(e: WheelEvent) {
         if (e.ctrlKey && ui.selected) {
             e.preventDefault();
-            ui.selected.zoom /= 1 + e.deltaY / 100;
+
+            pointerPosition = getViewportPoint(e);
+
+            const cursor = getCanvasPoint(pointerPosition);
+            const oldPan = { ...ui.selected.pan };
+            const zoomFactor = 1 - e.deltaY / 100;
+
+            zoomAroundPoint(zoomFactor, cursor);
+
+            pointerPosition = {
+                x: pointerPosition.x + (ui.selected.pan.x - oldPan.x) * zoomFactor,
+                y: pointerPosition.y + (ui.selected.pan.y - oldPan.y) * zoomFactor
+            };
         }
     }
 </script>
@@ -217,6 +229,8 @@
     aria-label="Drawing canvas"
     aria-describedby="canvas-instructions"
     style="cursor: {cursor};"
+    bind:clientWidth={ui.viewport.width}
+    bind:clientHeight={ui.viewport.height}
     bind:this={scrollContainer}
     onkeydown={handleKeyDown}
     onpointerdown={handlePointerDown}
