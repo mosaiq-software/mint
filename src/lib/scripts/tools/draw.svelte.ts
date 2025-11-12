@@ -136,8 +136,6 @@ export const drawTool: Tool = {
             }
         }
 
-        usingNewLayer = true;
-
         stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
         layerSnapshot = takeLayerSnapshot(drawLayer);
 
