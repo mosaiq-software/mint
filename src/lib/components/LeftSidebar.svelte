@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Ellipsis, Circle, Square , PaintBucket } from "@lucide/svelte";
+    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket } from "@lucide/svelte";
+    import MintLogo from "./ui/MintLogo.svelte";
     import { Popover } from "melt/builders";
     import ui, { modesGroup } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
@@ -77,7 +78,7 @@
 <div {...modesGroup.root} id="left-sidebar">
     <div id="tools">
         <button {...fileMenuPopover.trigger}>
-            <Tool name="Mint"><Ellipsis /></Tool>
+            <Tool name="Mint"><MintLogo color="var(--c-acc)" /></Tool>
         </button>
         <div {...fileMenuPopover.content} class="popover">
             <div {...fileMenuPopover.arrow}></div>
