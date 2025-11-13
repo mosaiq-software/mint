@@ -1,5 +1,4 @@
 import type { Point } from "..";
-import docs from "../../docs.svelte";
 import ui from "../../ui.svelte";
 
 export function createStamp(size: number, feather: number): ImageData {
@@ -46,14 +45,6 @@ export function interpolateStrokePoints(start: Point, end: Point, brushSize: num
 }
 
 export function getSelectedDrawLayer() {
-    if (!docs.selected) return null;
-
-    const selectedLayerIds = ui.selected?.selectedLayers ?? [];
-    if (selectedLayerIds.length !== 1) return null;
-    const selectedLayerId = selectedLayerIds[0];
-
-    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
-    if (layer?.type !== 'canvas') return null;
-    
-    return layer;
+    return (ui.selectedLayers.length !== 1 || ui.selectedLayers[0].type !== "canvas")
+        ? null : ui.selectedLayers[0];
 }

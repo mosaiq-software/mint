@@ -5,6 +5,7 @@ import { createLayer, type CanvasLayer } from "../layer";
 import { postAction, type PostAction } from "../action";
 import { createStamp, takeLayerSnapshot, interpolateStrokePoints, getSelectedDrawLayer } from "./utils/brush";
 
+/** Draw tool state */
 export const draw = $state({
     drawing: false,
     brushSize: 10,
@@ -24,22 +25,25 @@ const compoundPostAction: PostAction = {
 const drawLayer = $derived(getSelectedDrawLayer());
 
 let layerSnapshot = null as ImageData | null;
+
 const strokeCanvas = $derived(
     drawLayer
         ? new OffscreenCanvas(drawLayer.canvas.width, drawLayer.canvas.height)
         : null
 );
 
+/**
+ * Draws the stamp at point p onto the stroke canvas and composites
+ * it onto the draw layer. Adds color values and takes the max alpha.
+ * @param p The point to draw the stamp at, in layer space.
+ * @returns 
+ */
 function drawStamp(p: Point) {
-    if (!drawLayer || !strokeCanvas) return;
+    if (!drawLayer || !strokeCanvas || !stroke.stamp) return;
     const ctx = strokeCanvas.getContext('2d');
     if (!ctx) return;
 
     const color = drawLayer ? drawLayer.foregroundColor : { r: 0, g: 0, b: 0, a: 1 };
-
-    // draw line from stroke.current to p using stamp
-    // adding rgb, but taking the max of alphas
-    if (!stroke.stamp) return;
 
     const points = interpolateStrokePoints(stroke.current, p, draw.brushSize);
     for (const point of points) {
@@ -47,12 +51,9 @@ function drawStamp(p: Point) {
         const y = point.y;
         
         const radius = draw.brushSize / 2;
-
-        // Draw gradient to temp canvas
         const offsetX = x - radius;
         const offsetY = y - radius;
 
-        // Get existing pixels from stroke canvas
         const existingData = ctx.getImageData(
             offsetX, offsetY,
             draw.brushSize, draw.brushSize
@@ -87,8 +88,7 @@ function drawStamp(p: Point) {
     drawCtx.drawImage(strokeCanvas, 0, 0);
 }
 
-// ...existing code...
-
+/** The draw tool implementation. Creates brush strokes on canvas layers. */
 export const drawTool: Tool = {
     name: 'draw',
     onPointerDown: (data) => {
@@ -99,8 +99,7 @@ export const drawTool: Tool = {
             usingNewLayer = true;
             const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
             if (!docs.selected || !ui.selected) return;
-
-            // add new layer to document and select it
+            
             docs.selected.layers = [...docs.selected.layers, newLayer];
             ui.selected.selectedLayers = [newLayer.id];
 
@@ -123,7 +122,6 @@ export const drawTool: Tool = {
                 const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
                 if (!docs.selected || !ui.selected) return;
 
-                // add new layer to document and select it
                 docs.selected.layers = [...docs.selected.layers, newLayer];
                 ui.selected.selectedLayers = [newLayer.id];
 
@@ -159,16 +157,12 @@ export const drawTool: Tool = {
         stroke.current = data.l;
         stroke.stamp = null;
 
-        // clear stroke canvas and snapshot
         const ctx = strokeCanvas?.getContext('2d');
         if (ctx && drawLayer) {
             ctx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
         }
         layerSnapshot = null;
 
-        // force update
-        if (!docs.selected) return;
-        
         if (drawLayer) {
             compoundPostAction.actions.push({
                 type: "content",
@@ -180,6 +174,9 @@ export const drawTool: Tool = {
             postAction(compoundPostAction);
             compoundPostAction.actions = [];
         }
+
+        // force update
+        if (!docs.selected) return;
         docs.selected.layers = [...docs.selected.layers];
     }
 }
