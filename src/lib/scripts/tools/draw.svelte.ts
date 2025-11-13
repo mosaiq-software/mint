@@ -13,7 +13,6 @@ export const draw = $state({
 
 const stroke = {
     stamp: null as ImageData | null,
-    start: { x: 0, y: 0 } as Point,
     current: { x: 0, y: 0 } as Point,
 };
 
@@ -38,7 +37,7 @@ function drawStamp(p: Point) {
 
     const color = drawLayer ? drawLayer.foregroundColor : { r: 0, g: 0, b: 0, a: 1 };
 
-    // Draw line from stroke.start to p using stamp
+    // draw line from stroke.current to p using stamp
     // adding rgb, but taking the max of alphas
     if (!stroke.stamp) return;
 
@@ -139,10 +138,9 @@ export const drawTool: Tool = {
         stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
         layerSnapshot = takeLayerSnapshot(drawLayer);
 
-        stroke.start = usingNewLayer ? data.c : data.l ?? data.c;
         stroke.current = usingNewLayer ? data.c : data.l ?? data.c;
 
-        drawStamp(stroke.start);
+        drawStamp(stroke.current);
     },
     onPointerMove: (data) => {
         if (!draw.drawing || !data.l || !drawLayer) return;
