@@ -3,9 +3,13 @@ import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
-import { clipboard, pasteLayerFromClipboard } from "./copypaste.svelte";
+import { copyLayerToClipboard, pasteLayerFromClipboard } from "./copyPaste.svelte";
 import type {TextLayer} from "./layer";
 
+/**
+ * Handles keyboard shortcuts for various application actions.
+ * @param event The keyboard event to handle.
+ */
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
@@ -62,31 +66,30 @@ export function handleShortcuts(event: KeyboardEvent) {
     }
 }
 
+/**
+ * Toggles a boolean text property (like bold or italic) on the selected text layer.
+ * @param property The text property to toggle.
+ */
 function toggleTextProperty<K extends keyof TextLayer>(property: K) {
-    if (!docs.selected) return;
-    const selectedLayerID = ui.selected?.selectedLayers[0];
-    if (!selectedLayerID) return;
-    const layer = docs.selected.layers.find(l => l.id === selectedLayerID);
-    if (layer && layer.type === 'text' && property in layer && typeof layer[property] === 'boolean') {
+    if (ui.selectedLayers.length !== 1) return;
+    const layer = ui.selectedLayers[0];
+    if (layer.type === 'text' && property in layer && typeof layer[property] === 'boolean') {
         layer[property] = !layer[property] as TextLayer[K];
     }
 }
 
+/** Handles copying the currently selected layer to the clipboard. */
 function handleCopy() {
-    if (!docs.selected) return;
-    const selectedLayerID = ui.selected?.selectedLayers[0];
-    if (selectedLayerID) {
-        const selectedLayer = docs.selected.layers.find(l => l.id === selectedLayerID);
-        if (selectedLayer) {
-            clipboard.layer = selectedLayer;
-        }
-    }
+    if (ui.selectedLayers.length !== 1) return;
+    copyLayerToClipboard(ui.selectedLayers[0]);
 }
 
+/** Handles pasting the layer from the clipboard into the current document. */
 function handlePaste() {
     pasteLayerFromClipboard();
 }
 
+/** Handles saving the currently selected document to the database. */
 export function handleSave() {
     if (!docs.selected) return;
 
@@ -95,6 +98,7 @@ export function handleSave() {
     });
 }
 
+/** Undoes the last action in the currently selected document. */
 function handleUndo() {
     if (!docs.selected) return;
 
@@ -105,6 +109,7 @@ function handleUndo() {
     applyUndoAction(action);
 }
 
+/** Redoes the last undone action in the currently selected document. */
 function handleRedo() {
     if (!docs.selected) return;
 
@@ -115,6 +120,7 @@ function handleRedo() {
     applyRedoAction(action);
 }
 
+/** Handles zooming in or out around the center of the viewport. */
 function handleZoom(action: 'in' | 'out') {
     if (action === 'in') zoomAroundCenter(1.1);
     else zoomAroundCenter(1 / 1.1);

@@ -1,9 +1,16 @@
-import docs, { type Document } from './docs.svelte';
+import { type Document } from './docs.svelte';
 import { text } from './tools';
 import { colorToCSS } from './docs.svelte';
 
+/**
+ * Renders the given document onto the provided canvas. Iterates through each
+ * layer in the document and draws it onto the canvas, applying visibility,
+ * opacity, and transformation settings.
+ * @param canvas The HTML canvas element to render onto.
+ * @param doc The document to render.
+ * @param clear Whether to clear the canvas before rendering. Default is true.
+ */
 export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean = true) {
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -145,19 +152,30 @@ function getWrappedLines(element: HTMLElement): string[] {
         if (lastTop === null) {
             lastTop = top;
         } else if (top !== lastTop) {
-            // New line detected
+            // new line detected
             lines.push(text.slice(start, i - 1));
             start = i - 1;
             lastTop = top;
         }
     }
-    // Push the last line
+
+    // push remaining text
     if (start < text.length) {
         lines.push(text.slice(start));
     }
     return lines;
 }
 
+/**
+ * Constructs a rounded rectangle path on the given canvas context.
+ * Restricts the corner radius to not exceed half the width or height.
+ * @param ctx The canvas rendering context.
+ * @param x The x coordinate of the rectangle's top-left corner.
+ * @param y The y coordinate of the rectangle's top-left corner.
+ * @param width The width of the rectangle.
+ * @param height The height of the rectangle.
+ * @param radius The corner radius.
+ */
 function constructRoundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
     const r = Math.min(radius, Math.abs(width / 2), Math.abs(height / 2));
 
