@@ -47,7 +47,7 @@
         }
     });
 
-    const combobox = new Combobox<string>(
+    let combobox = $state(new Combobox<string>(
         {
             value: fontFamily,
             inputValue: fontFamily,
@@ -56,7 +56,20 @@
                     fontFamily = newFont;
             }
         }
-    );
+    ));
+
+    $effect(() => {
+        combobox = new Combobox<string>(
+            {
+                value: fontFamily,
+                inputValue: fontFamily,
+                onValueChange: (newFont) => {
+                    if (newFont)
+                        fontFamily = newFont;
+                }
+            }
+        );
+    });
 
     const filtered = $derived.by(() => {
         return [
