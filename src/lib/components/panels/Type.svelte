@@ -8,6 +8,7 @@
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { Bold, Italic } from "@lucide/svelte";
     import { postAction } from "../../scripts/action";
+    import Fonts from "./Fonts.svelte";
 
     const textLayer = $derived(getSelectedTextLayer());
     const p: TextProperties = $derived(textLayer ? textLayer : text.properties);
@@ -88,13 +89,7 @@
     <div id="type">
         <div id="preview-container">
             <div id="preview-inputs">
-                <Input
-                    name="Family"
-                    bind:value={p.fontFamily}
-                    placeholder="Font Family"
-                    labelPosition="side"
-                    onBlur={handleFontFamilyChange}
-                ><div class="preview-label">Family</div></Input>
+                <Fonts bind:fontFamily={p.fontFamily} />
                 <Input
                     name="Size"
                     type="number"
