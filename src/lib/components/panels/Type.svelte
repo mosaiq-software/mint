@@ -89,13 +89,7 @@
     <div id="type">
         <div id="preview-container">
             <div id="preview-inputs">
-                <Input
-                    name="Family"
-                    bind:value={p.fontFamily}
-                    placeholder="Font Family"
-                    labelPosition="side"
-                    onBlur={handleFontFamilyChange}
-                ><div class="preview-label">Family</div></Input>
+                <Fonts bind:fontFamily={p.fontFamily} />
                 <Input
                     name="Size"
                     type="number"
@@ -138,7 +132,6 @@
         </div>
     </div>
 </Panel>
-<Fonts />
 
 <style>
     #type {
