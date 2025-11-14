@@ -8,6 +8,7 @@
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { Bold, Italic } from "@lucide/svelte";
     import { postAction } from "../../scripts/action";
+    import Fonts from "./Fonts.svelte";
 
     const textLayer = $derived(getSelectedTextLayer());
     const p: TextProperties = $derived(textLayer ? textLayer : text.properties);
@@ -137,6 +138,7 @@
         </div>
     </div>
 </Panel>
+<Fonts />
 
 <style>
     #type {
