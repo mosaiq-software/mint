@@ -48,6 +48,7 @@
         closeOnOutsideClick: false
     });
 
+    /** Swap the foreground and background colors of the source. */
     function swapColors() {
         if (!source) return;
 
@@ -56,6 +57,7 @@
         source.backgroundColor = fg;
     }
 
+    /** Handle clicks outside the color edit popover to close it. */
     onMount(() => {
         function handleMouseDown(event: MouseEvent) {
             const contentEl = document.getElementById(editColorPopover.ids.content);

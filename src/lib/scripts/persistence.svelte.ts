@@ -16,7 +16,7 @@ interface DatabaseTypes {
                 height: number
             }
         }))[],
-        lastModified: Date
+        lastModified: number
     },
     [DBs.LAYERS]: Blob,
     [DBs.PREVIEWS]: Blob
@@ -228,7 +228,7 @@ export async function getDocumentsFromDB() {
 
     const fullDocs = await Promise.all(fullDocPs);
 
-    return new Promise<(Document & {preview: OffscreenCanvas, lastModified: Date})[]>((resolve, reject) => {
+    return new Promise<(Document & {preview: OffscreenCanvas, lastModified: number})[]>((resolve, reject) => {
         resolve(fullDocs);
     });
 }

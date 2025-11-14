@@ -6,16 +6,30 @@
     import docs from "../../scripts/docs.svelte";
     import { colorToCSS, type Color } from "../../scripts/docs.svelte";
 
+    /**
+     * Get active foreground and background colors from UI state,
+     * This will be the layer colors if a layer is selected, the
+     * global UI colors if no layers are selected, and a default
+     * black/white if no documents are open.
+     */
     const colors: {
         foregroundColor: Color;
         backgroundColor: Color;
     } = $derived.by(() => {
-        return ui.selected ?? {
-            foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-            backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
+        if (ui.selectedLayers[0]) {
+            return {
+                foregroundColor: ui.selectedLayers[0].foregroundColor,
+                backgroundColor: ui.selectedLayers[0].backgroundColor
+            };
+        } else {
+            return ui.selected ?? {
+                foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+                backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
+            }
         };
     });
 
+    /** Get the currently selected shape layer, if any. */
     const selectedShapeLayer = $derived.by(() => {
         if (docs.selected && ui.selected) {
             const layer = docs.selected.layers.find(
@@ -30,14 +44,26 @@
         return null;
     });
 
+    /**
+     * Get the source of shape properties, either from the selected
+     * shape layer or from the global shape tool settings.
+     */
     const shapeSource = $derived(selectedShapeLayer ?? shape);
 
+    /**
+     * Get the corner radius, either from the selected shape layer
+     * (if it's a rectangle) or from the global shape tool settings.
+     */
     const cornerRadius = $derived(
         selectedShapeLayer && selectedShapeLayer.type === "rectangle"
             ? selectedShapeLayer.cornerRadius
             : shape.cornerRadius
     );
 
+    /**
+     * Get the border radius for the shape preview, accounting for
+     * stroke alignment and shape type.
+     */
     const borderRadius = $derived.by(() => {
         if (selectedShapeLayer && selectedShapeLayer.type === "ellipse") {
             return 9999;
@@ -48,6 +74,11 @@
         }
     });
 
+    /**
+     * Update the corner radius of the selected shape layer
+     * or the global shape tool settings.
+     * @param value The new corner radius value.
+     */
     function updateCornerRadius(value: number) {
         if (selectedShapeLayer && selectedShapeLayer.type === "rectangle") {
             selectedShapeLayer.cornerRadius = value;

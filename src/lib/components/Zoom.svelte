@@ -7,12 +7,14 @@
     const zoom = $derived(ui.selected?.zoom ?? 0);
     const zoomStr = $derived(`${(zoom * 100).toFixed(2)}%`);
 
+    /** Zoom out the selected document around its center. */
     function zoomOut() {
         if (ui.selected) {
             zoomAroundCenter(1 / 1.1);
         }
     }
 
+    /** Zoom in the selected document around its center. */
     function zoomIn() {
         if (ui.selected) {
             zoomAroundCenter(1.1);
@@ -23,6 +25,7 @@
 
     let dropdownZoom = $state(-1);
 
+    /** Set the zoom level from the dropdown selection. */
     function setZoomFromDropdown() {
         if (ui.selected && docs.selected) {
             if (dropdownZoom === 0) {
@@ -34,6 +37,8 @@
             } else {
                 zoomAroundCenter(dropdownZoom / ui.selected.zoom);
             }
+
+            // set back to -1 to show the actual zoom level
             dropdownZoom = -1;
         }
     }

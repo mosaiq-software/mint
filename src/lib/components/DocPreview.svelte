@@ -1,11 +1,11 @@
 <script lang="ts">
-    import docs, {type Document, selectDocument} from '../scripts/docs.svelte';
+    import docs, { type Document, selectDocument } from '../scripts/docs.svelte';
     import {
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
         deleteDocumentFromDB,
-        saveDocumentToDB, updateDocumentMetadata
+        updateDocumentMetadata
     } from "../scripts/persistence.svelte";
     import IconButtonVisual from './ui/IconButtonVisual.svelte';
     import { Ellipsis } from '@lucide/svelte';
@@ -14,12 +14,13 @@
     import { ButtonVisual } from "./ui";
     import { initializeUIForDocument } from "../scripts/ui.svelte";
 
-    const {doc, rerenderDocs}: {
-        doc: Document & { preview: OffscreenCanvas, lastModified: Date },
+    const { doc, rerenderDocs }: {
+        doc: Document & { preview: OffscreenCanvas, lastModified: number },
         rerenderDocs: () => void
     } = $props();
+
     let canvas: HTMLCanvasElement;
-    const {width, height} = getPreviewSize(doc);
+    const { width, height } = getPreviewSize(doc);
 
     function getDateString() {
         const date = new Date(doc.lastModified);

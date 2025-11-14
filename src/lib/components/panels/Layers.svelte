@@ -9,6 +9,31 @@
     import Input from "../ui/Input.svelte";
     import { postAction } from "../../scripts/action";
 
+    let layerBeingDragged: Layer | null = $state(null);
+    let shadowLayerIndex: number | null = $state(null);
+    let layersRect: DOMRect | null = $state(null);
+    let interLayerDiff: number = $state(1);
+    let updateLayerInterval: number = $state(-1);
+
+    /**
+     * The list of layers to display in the layers panel, accounting for
+     * any layer currently being dragged.
+     */
+    let layerDisplayList = $derived.by(() => {
+        if (!docs.selected) return [];
+        if (!layerBeingDragged || shadowLayerIndex === null) return docs.selected.layers;
+        const draggedId = layerBeingDragged.id;
+        const allButDragged = docs.selected.layers.filter(l => l.id !== draggedId);
+        return [
+            ...allButDragged.slice(0, shadowLayerIndex),
+            layerBeingDragged,
+            ...allButDragged.slice(shadowLayerIndex)
+        ];
+    });
+
+    /**
+     * Add a new canvas layer to the currently selected document.
+     */
     function addLayer() {
         if (!docs.selected) return;
 
@@ -22,6 +47,10 @@
         })
     }
 
+    /**
+     * Remove a layer from the currently selected document.
+     * @param layerId The ID of the layer to remove.
+     */
     function removeLayer(layerId: LayerID) {
         if (!docs.selected) return;
         const layer = docs.selected.layers.find(layer => layer.id === layerId);
@@ -41,6 +70,12 @@
         });
     }
 
+    /**
+     * Select a layer in the layers panel. Toggles selection if shift is held,
+     * otherwise single selects.
+     * @param e
+     * @param layerId
+     */
     function selectLayer(e: MouseEvent, layerId: LayerID) {
         if (!ui.selected) return;
 
@@ -60,10 +95,17 @@
     let layerBeingRenamed: LayerID | null = $state(null);
     let startingIndex: number = -1;
 
-    function renameLayer(layerId: LayerID) {
+    /**
+     * Begin renaming a layer by triggering the input to appear.
+     * @param layerId 
+     */
+    function beginRenameLayer(layerId: LayerID) {
         layerBeingRenamed = layerId;
     }
 
+    /**
+     * Handle when the rename input loses focus, committing the name change.
+     */
     function handleRenameBlur() {
         if (!layerBeingRenamed || !docs.selected) return;
         const layer = docs.selected.layers.find(l => l.id === layerBeingRenamed);
@@ -82,6 +124,10 @@
         });
     }
 
+    /**
+     * Toggle the visibility of a layer.
+     * @param layer The layer to toggle.
+     */
     function toggleLayerVisibility(layer: Layer) {
         layer.visible = !layer.visible;
 
@@ -92,6 +138,10 @@
         });
     }
 
+    /**
+     * Handle dragover event to determine where to place the temporary layer.
+     * @param event The dragover event.
+     */
     function handleDragover(event: DragEvent) {
         event.preventDefault();
         if (!layersRect) return;
@@ -102,10 +152,16 @@
         shadowLayerIndex = Math.max(0, Math.min(uncappedIndex, layerDisplayList.length));
     }
 
+    /**
+     * Update the order of layers in the document based on the current display list.
+     */
     function updateLayerOrder() {
         if (docs.selected) docs.selected.layers = layerDisplayList;
     }
 
+    /**
+     * Handle the end of a drag operation, committing the new layer order.
+     */
     function handleDragEnd() {
         window.clearInterval(updateLayerInterval);
 
@@ -124,12 +180,12 @@
         shadowLayerIndex = null;
     }
 
-    let layerBeingDragged: Layer | null = $state(null);
-    let shadowLayerIndex: number | null = $state(null);
-    let layersRect: DOMRect | null = $state(null);
-    let interLayerDiff: number = $state(1);
-    let updateLayerInterval: number = $state(-1);
-
+    /**
+     * Handle the start of a drag operation for a layer.
+     * @param event The drag event.
+     * @param layer The layer being dragged.
+     * @param index The index of the layer being dragged.
+     */
     function handleDragStart(event: DragEvent, layer: Layer, index: number) {
         layerBeingDragged = layer;
         shadowLayerIndex = index;
@@ -142,18 +198,6 @@
         updateLayerInterval = window.setInterval(updateLayerOrder, 50);
         startingIndex = index;
     }
-
-    let layerDisplayList = $derived.by(() => {
-        if (!docs.selected) return [];
-        if (!layerBeingDragged || shadowLayerIndex === null) return docs.selected.layers;
-        const draggedId = layerBeingDragged.id;
-        const allButDragged = docs.selected.layers.filter(l => l.id !== draggedId);
-        return [
-            ...allButDragged.slice(0, shadowLayerIndex),
-            layerBeingDragged,
-            ...allButDragged.slice(shadowLayerIndex)
-        ];
-    });
 </script>
 
 <Panel title="Layers">
@@ -178,7 +222,7 @@
                     <button
                         class="preview"
                         onclick={(e) => selectLayer(e, layer.id)}
-                        ondblclick={() => renameLayer(layer.id)}
+                        ondblclick={() => beginRenameLayer(layer.id)}
                     >
                         {#if layer.type === 'canvas'}
                             <Image size={16} />

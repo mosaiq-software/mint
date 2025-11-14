@@ -51,7 +51,7 @@
         DBDocuments = getDocumentsFromDB();
     }
 
-    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: Date})[]) {
+    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: number})[]) {
         return [...documents].sort((a, b) => a.lastModified - b.lastModified);
     }
 </script>

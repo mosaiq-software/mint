@@ -5,14 +5,26 @@
     import ui from "../../scripts/ui.svelte";
     import { colorToCSS, type Color } from "../../scripts/docs.svelte";
 
-    const gradientId = $derived(`brush-gradient-${Math.random()}`);
+    /**
+     * Get active foreground and background colors from UI state,
+     * This will be the layer colors if a layer is selected, the
+     * global UI colors if no layers are selected, and a default
+     * black/white if no documents are open.
+     */
     const colors: {
         foregroundColor: Color;
         backgroundColor: Color;
     } = $derived.by(() => {
-        return ui.selected ?? {
-            foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-            backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
+        if (ui.selectedLayers[0]) {
+            return {
+                foregroundColor: ui.selectedLayers[0].foregroundColor,
+                backgroundColor: ui.selectedLayers[0].backgroundColor
+            };
+        } else {
+            return ui.selected ?? {
+                foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+                backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
+            }
         };
     });
 </script>
@@ -38,7 +50,7 @@
         <div id="size-preview">
             <svg width="50" height="50">
                 <defs>
-                    <radialGradient id={gradientId}>
+                    <radialGradient id="brush-gradient">
                         <stop offset="0%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
                         <stop offset={`${(1 - draw.brushFeather) * 100}%`} stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
                         <stop offset="100%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="0" />
@@ -47,7 +59,7 @@
                 <circle
                     cx="50%" cy="50%"
                     r={draw.brushSize / 2}
-                    fill={`url(#${gradientId})`}
+                    fill="url(#brush-gradient)"
                 />
             </svg>
         </div>

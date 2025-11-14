@@ -14,17 +14,28 @@
         return values;
     });
 
+    /**
+     * Handle clicking on a tab to select the corresponding document.
+     * @param tab The document tab that was clicked, or null for a new document.
+     */
     function handleTabClick(tab: Document | null) {
         selectDocument(tab ? tab.id : null);
     }
 
+    /**
+     * Find the closest document ID by tab index, either above or below.
+     * @param tab The reference tab.
+     * @param above Whether to search for tabs above (lower index) or below (higher index).
+     */
     function findClosestDocumentIDByTabIndex(tab: Document, above: boolean): DocumentID | null {
         const selectedTabIndex = tabStatus[tab.id].tabIndex;
         let closestTabIndex = Number.NEGATIVE_INFINITY, closestTabId = tab.id;
-        Object.entries(tabStatus).forEach(([id, {tabIndex, ...rest}]) => {
+
+        Object.entries(tabStatus).forEach(([id, { tabIndex }]) => {
             if (tabIndex === selectedTabIndex) return;
             if (above && tabIndex > selectedTabIndex) return;
             if (!above && tabIndex < selectedTabIndex) return;
+
             const closestDiff = Math.abs(selectedTabIndex - closestTabIndex);
             const currentDiff = Math.abs(selectedTabIndex - tabIndex);
             if (currentDiff < closestDiff) {
@@ -32,10 +43,17 @@
                 closestTabId = id as DocumentID;
             }
         });
+
         if (closestTabId === tab.id) return null;
         return closestTabId;
     }
 
+    /**
+     * Handle deleting a tab, closing the corresponding document.
+     * If the closed document is currently selected, selects the
+     * closest document by tab index.
+     * @param tab The document tab to delete.
+     */
     function handleTabDelete(tab: Document) {
         if (docs.selected?.id === tab.id) {
             const closestDocID = findClosestDocumentIDByTabIndex(tab, false) ?? findClosestDocumentIDByTabIndex(tab, true);
