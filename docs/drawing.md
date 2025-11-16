@@ -1,0 +1,9 @@
+# Drawing
+To support feathered brushstrokes (or subtle anti-aliasing), our draw tool must gracefully handle transparency. This is achieved by adding additional objects to our draw tool: one representing the current accumulated brush stroke, and one representing the pixel content of the layer before the brushstroke was applied.
+
+When a user has the draw tool selected and presses down the pointer on a canvas layer, it clears the stroke canvas and renders the brush as a radial gradient to `stroke.stamp`. With the stroke canvas cleared, the brush is stamped onto the stroke canvas at the mouse position. When the pointer is moved, a new brush stamp is added to the stroke canvas. But, instead of using typical alpha blending, which would effectively destroy any feathering as the stamps are stacked on top of each other, the stroke canvas uses the max alpha value of each pixel the stamp would overwrite. Thus, the pixels in the stroke canvas only get less transparent if a more opaque part of the brush is dragged over it.
+
+## Intermediate Processing
+To provide immediate feedback to the user as the stroke is being drawn (and before the pointer is released), the draw tool saves the pixel content of the layer when the pointer is pressed to `layerSnapshot`. Every frame after, the draw tool composites the current stroke canvas onto this layer snapshot (using typical alpha blending) as its canvas content.
+
+When the pointer is released, the stroke content is applied directly to the canvas content, being treated as a completed brushstroke. Thus, any future brushstrokes will be layered on top of the new canvas content.
