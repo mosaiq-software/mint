@@ -22,6 +22,9 @@
     let canvas: HTMLCanvasElement;
     const { width, height } = getPreviewSize(doc);
 
+    /**
+     * Stringifies the lastModified date.
+     */
     function getDateString() {
         const date = new Date(doc.lastModified);
         const now = new Date();
@@ -43,6 +46,9 @@
         }
     })
 
+    /**
+     * Open the document as a tab.
+     */
     async function selectDoc() {
         docs[doc.id] = await getDocumentFromDB(doc.id);
 
@@ -53,11 +59,17 @@
     const popover = new Popover();
     const warningPopover = new Popover();
 
+    /**
+     * Delete the document.
+     */
     async function deleteDoc() {
         await deleteDocumentFromDB(doc);
         rerenderDocs();
     }
 
+    /**
+     * Handle the document being renamed.
+     */
     let name = $derived(doc.name);
     async function handleDocNameBlur() {
         if (name.length > 0) {

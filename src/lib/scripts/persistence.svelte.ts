@@ -8,6 +8,12 @@ enum DBs {
     PREVIEWS = 'previews'
 }
 
+/**
+ * Metadata: Record<DocumentID, metadata>.
+ * Metadata is mostly the same as Document except for lastModified and removal of canvases.
+ * Layers: Record<LayerID, Blob>. The blob represents imageData of a canvas layer.
+ * Previews: Record<DocumentID, Blob>. The blob represents a preview of an entire document.
+ */
 interface DatabaseTypes {
     [DBs.METADATA]: Document & {
         layers: (TextLayer | (Omit<CanvasLayer, "canvas"> & {
@@ -22,6 +28,12 @@ interface DatabaseTypes {
     [DBs.PREVIEWS]: Blob
 }
 
+/**
+ * Opens a local database and accesses an object store.
+ * @param name The name of the database.
+ * @param version The version, important if we ever create new production DB schemas...
+ * @returns A promise containing the database to be worked on.
+ */
 function workOnDatabase(name: DBs, version: number = 1): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(name, version);
@@ -39,6 +51,12 @@ function workOnDatabase(name: DBs, version: number = 1): Promise<IDBDatabase> {
     });
 }
 
+/**
+ * Sets a <key, value> pair in a local database.
+ * @param name The name of the database.
+ * @param key The key.
+ * @param value The value.
+ */
 async function putInDB(name: DBs, key: IDBValidKey, value: any) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
@@ -49,6 +67,11 @@ async function putInDB(name: DBs, key: IDBValidKey, value: any) {
     });
 }
 
+/**
+ * Gets a single value from a local database.
+ * @param name The name of the database.
+ * @param key The key of the entry.
+ */
 async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type]>((resolve, reject) => {
@@ -59,6 +82,11 @@ async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
     })
 }
 
+/**
+ * Gets several values from a local database.
+ * @param name The name of the database.
+ * @param keys The keys of the entries.
+ */
 async function getSeveralFromDB<type extends DBs>(name: DBs, keys: string[]) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
@@ -78,6 +106,11 @@ async function getSeveralFromDB<type extends DBs>(name: DBs, keys: string[]) {
     })
 }
 
+/**
+ * Deletes a <key, value> pair from a local database.
+ * @param name The name of the database.
+ * @param key The key of the entry.
+ */
 async function deleteFromDB(name: DBs, key: IDBValidKey) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
@@ -88,6 +121,10 @@ async function deleteFromDB(name: DBs, key: IDBValidKey) {
     });
 }
 
+/**
+ * Gets all values from a local database.
+ * @param name The name of the database.
+ */
 async function getAllFromDB<type extends DBs>(name: DBs) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
@@ -98,6 +135,11 @@ async function getAllFromDB<type extends DBs>(name: DBs) {
     })
 }
 
+/**
+ * Draws a blob on an offscreen canvas.
+ * @param blob
+ * @param ctx
+ */
 async function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingContext2D) {
     return new Promise<null>((resolve, reject) => {
 
@@ -115,6 +157,11 @@ async function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderi
 
 export const PREVIEW_MAX_SIZE = 64;
 
+/**
+ * Clamps the doc, preserving aspect ratio, to a 64x64 area for previews.
+ * @param doc The document.
+ * @returns The integer width and height of the clamped document.
+ */
 export function getPreviewSize(doc: Document) {
     const docOverPreviewSize = Math.floor(Math.max(doc.width, doc.height) / PREVIEW_MAX_SIZE);
     const pWidth = Math.floor(doc.width / docOverPreviewSize);
@@ -122,6 +169,11 @@ export function getPreviewSize(doc: Document) {
     return {width: pWidth, height: pHeight};
 }
 
+/**
+ * Gets a 64x64 preview of a document.
+ * @param doc The document.
+ * @returns A promise to a blob of a preview of a document.
+ */
 async function getPreview(doc: Document) {
     const canvas = document.createElement('canvas');
     canvas.width = doc.width;
@@ -135,6 +187,14 @@ async function getPreview(doc: Document) {
     return await preview.convertToBlob();
 }
 
+/**
+ * Saves a document to the database.
+ * Puts the document's metadata in the Metadata database,
+ * each of the document's canvas layers in the Layers database,
+ * and a preview of the document to the Previews database.
+ * @param document The document.
+ * @returns A promise to the (unmodified) document.
+ */
 export async function saveDocumentToDB(document: Document) {
     const docId = document.id;
 
@@ -173,6 +233,11 @@ export async function saveDocumentToDB(document: Document) {
 }
 
 // for an actual document -- metadata + layers
+/**
+ * Gets an entire document from the database (Metadata + Layers).
+ * @param docId The ID of the document.
+ * @returns A promise to the document.
+ */
 export async function getDocumentFromDB(docId: DocumentID) {
     const doc = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
 
@@ -210,7 +275,10 @@ export async function getDocumentFromDB(docId: DocumentID) {
     });
 }
 
-// for document headers -- metadata + preview
+/**
+ * Gets previews and metadata for all documents.
+ * @returns A promise to all documents (and previews and lastModified timestamps.)
+ */
 export async function getDocumentsFromDB() {
     const docs = await getAllFromDB<DBs.METADATA>(DBs.METADATA);
     const previews = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
@@ -233,6 +301,11 @@ export async function getDocumentsFromDB() {
     });
 }
 
+/**
+ * Deletes a document from the database.
+ * @param doc The document to be deleted.
+ * @returns A promise to null.
+ */
 export async function deleteDocumentFromDB(doc: Document) {
     const metadataP = deleteFromDB(DBs.METADATA, doc.id);
     const previewsP = deleteFromDB(DBs.PREVIEWS, doc.id);
@@ -244,6 +317,11 @@ export async function deleteDocumentFromDB(doc: Document) {
     })
 }
 
+/**
+ * Updates the metadata of a document. Used for renaming from Welcome menu.
+ * @param doc The partial document with document ID and updated fields.
+ * @returns A promise to the updated document.
+ */
 export async function updateDocumentMetadata(doc: Partial<Document> & {id: DocumentID}) {
     const metadata = await getFromDB<DBs.METADATA>(DBs.METADATA, doc.id);
     const newMetadata = {...metadata, ...doc};

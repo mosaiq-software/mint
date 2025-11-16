@@ -12,11 +12,19 @@
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
 
+    /**
+     * Saves and closes the file menu.
+     */
     function saveAndClose() {
         handleSave();
         open = false;
     }
 
+    /**
+     * Updates the size of the canvas when either width or height is edited.
+     * @param type 'width' or 'height'
+     * @param dimStr A string representing the input dimension.
+     */
     function handleCanvasSizeBlur(type: 'width' | 'height', dimStr: string) {
         if (!docs.selected) return dimStr;
 
@@ -36,6 +44,10 @@
 
     const exportsPopover = new Popover({floatingConfig: {computePosition: {placement: 'right-start'}}});
 
+    /**
+     * Exports the selected document to the user's device.
+     * @param filetype The filetype to use.
+     */
     function handleExport(filetype: 'png' | 'jpg' | 'webp') {
         if (!docs.selected) return;
         const canvas = document.createElement('canvas');
@@ -64,6 +76,9 @@
 
     let name = $derived(docs.selected ? docs.selected.name : '');
 
+    /**
+     * Updates the document name when edited.
+     */
     function handleDocNameBlur() {
         if (!docs.selected) return;
         if (name.length > 0) {
