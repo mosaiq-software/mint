@@ -1,0 +1,13 @@
+# State Management
+Mint relies heavily on [global reactive state](https://svelte.dev/docs/svelte/svelte-js-files) for its state management. The two most important pieces of global state are `docs.svelte.ts` and `ui.svelte.ts`, which export `docs` and `ui` respectively. Additionally, tools can keep track of their own global state, which can be used by panel components to modify their behavior. For example, `draw.svelte.ts` stores the current brush size and feather, which is modified by `Brush.svelte`.
+
+## Direct Modification
+Components are encouraged to directly modify core state objects, such as layers or document properties. As a result, state that relies on these properties should be set up to detect these changes automatically through `$derived` or `$effect` runes. For example, the current selection's bounding box is configured to be re-calculated automatically when the list of selected layers changes, or a selected layer's properties change.
+
+Be aware that Svelte's reactivity system is limited to certain types of objects, such as arrays and object properties. Notably, this excludes `Map` and `DOMMatrix` objects. To solve this, maps are foregone in favor of objects of type `Record`, and code that modifies `DOMMatrix` is encouraged to re-assign the `layer.transform` property (or the layer itself, in some cases).
+
+## Use of `$effect`
+Some pieces of derived state are used frequently by many Mint components, such as the currently selected document (`docs.selected`) or UI properties (`ui.selected`). Because Svelte does not support exporting derived state (or any state that's expected to be directly reassigned), globally-accessible derived state is included as a property of the relevant state object (usually `docs` or `ui`) in addition to an exported function responsible for re-assigning that state when its dependencies change. This function is then included as the body of a `$effect` rune in a singleton component, usually `Canvas.svelte`. Such a pattern can be hard to understand at first, but is needed due to limitations of where `$effect` runes can be used.
+
+## Exceptions
+Some uncommon operations expect to be initialized by calling specific contstructor functions. For example, using `createDocument` to initialize a new document is strongly encouraged, since it automatically initializes the needed UI objects and selects the new document. These functions may be converted to support direct modification of its dependent properties in the future.
