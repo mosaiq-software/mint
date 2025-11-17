@@ -1,6 +1,6 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import {Slider, Input, Checkbox, IconButtonVisual} from "../ui";
+    import { Input, IconButtonVisual} from "../ui";
     import ui, { setPreviousRotation, getBoundsCenter } from "../../scripts/ui.svelte";
     import { postAction, type PostAction } from "../../scripts/action";
     import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
