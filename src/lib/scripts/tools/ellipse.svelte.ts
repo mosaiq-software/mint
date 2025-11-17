@@ -42,7 +42,7 @@ export const ellipseTool: Tool = {
 
                 if (!selectedEllipseLayer && width > 0 && height > 0) {
                     if (!docs.selected || !ui.selected) return;
-                    const newLayer = createLayer('ellipse', 'New Ellipse');
+                    const newLayer = createLayer('ellipse', 'Ellipse');
                     docs.selected.layers.push(newLayer);
                     ui.selected.selectedLayers = [ newLayer.id ];
                 }

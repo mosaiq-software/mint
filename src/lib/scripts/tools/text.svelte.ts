@@ -46,7 +46,7 @@ export const textTool: Tool = {
         const selectedTextLayer = getSelectedTextLayer();
         if (!selectedTextLayer) {
             // create a new text layer
-            const layer = createLayer('text', 'Text');
+            const layer = createLayer('text', 'Text', false);
             layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
             docs.selected.layers.push(layer);
             if (ui.selected) ui.selected.selectedLayers = [layer.id];

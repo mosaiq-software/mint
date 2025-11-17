@@ -119,7 +119,7 @@ export const drawTool: Tool = {
             const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') {
                 usingNewLayer = true;
-                const newLayer = createLayer('canvas', 'New Layer') as CanvasLayer;
+                const newLayer = createLayer('canvas', 'Canvas') as CanvasLayer;
                 if (!docs.selected || !ui.selected) return;
 
                 docs.selected.layers = [...docs.selected.layers, newLayer];

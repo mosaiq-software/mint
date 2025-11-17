@@ -5,6 +5,7 @@
     import { postAction, type PostAction } from "../../scripts/action";
     import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
     import { translateLayers, scaleLayers, rotateLayers } from "../../scripts/tools/select.svelte";
+    import SliderWithInput from "../ui/SliderWithInput.svelte";
 
     const bounds = $derived(ui.selected ? ui.selected.bounds : null);
 
@@ -157,25 +158,17 @@
             <div class="label">H:</div>
         </Input>
     </div>
-    <div>
-        <Input
-            name="r" labelPosition="side" disabled={!bounds} variant="underline"
-            style="width: 12ch;"
-            bind:value={rs}
-            onBlur={() => {
+    <SliderWithInput
+            name="Rotation"
+            bind:value={r}
+            min={-180} max={180} step={1}
+            onInputBlur={() => {
                 if (!bounds) return;
-                r = safeParseFloat(rs, bounds.rot);
                 applyTransform(true);
             }}
-        >
-            <div class="label">R:</div>
-        </Input>
-        <Slider
-            min={-180} max={180} step={1}
-            bind:value={r} onValueChange={debouncedApplyTransform}
-            onBlur={() => applyTransform(true)}
-        />
-    </div>
+            onSliderChange={debouncedApplyTransform}
+            onSliderBlur={() => applyTransform(true)}
+    />
     <div>
         <div style="justify-content: flex-end">
             <button onclick={() => flipH()}>

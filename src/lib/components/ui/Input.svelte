@@ -13,6 +13,7 @@
         disabled?: boolean;
         hideLabel?: boolean;
         onBlur?: (e: FocusEvent) => void;
+        id?: string;
     }
 
     let {
@@ -26,7 +27,8 @@
         value = $bindable(),
         disabled = false,
         hideLabel = false,
-        onBlur = (e: FocusEvent) => {}
+        onBlur = (e: FocusEvent) => {},
+        id
     }: Props = $props();
 
     /**
@@ -61,6 +63,7 @@
         disabled={disabled}
         onblur={onBlur}
         onkeydown={handleKeydown}
+        id={id}
     />
 </div>
 
