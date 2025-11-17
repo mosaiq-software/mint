@@ -107,6 +107,8 @@
     /** Debounced application of transform changes, used for rotation. */
     function debouncedApplyTransform() {
         if (debounceTimeout) return;
+        if (r == bounds?.rot) return;
+
         debounceTimeout = setTimeout(() => {
             applyTransform(false); debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
