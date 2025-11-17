@@ -107,13 +107,6 @@
                              onInputBlur={updateCornerRadius}
                              disabled={selectedShapeLayer?.type === "ellipse"}
             />
-<!--            <div class="control" class:disabled={selectedShapeLayer?.type === "ellipse"}>-->
-<!--                <div>-->
-<!--                    <label for="feather">Corner Radius</label>-->
-<!--                    <span>{Math.round(cornerRadius * 10) / 10}px</span>-->
-<!--                </div>-->
-<!--                <Slider value={cornerRadius} onValueChange={updateCornerRadius} min={0} max={100} step={1} />-->
-<!--            </div>-->
             <div class="control-horizontal">
                 <label for="stroke-alignment">Stroke Align</label>
                 <select bind:value={shapeSource.strokeAlign} id="stroke-alignment">
