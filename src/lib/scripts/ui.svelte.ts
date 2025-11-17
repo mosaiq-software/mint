@@ -189,6 +189,15 @@ export function setPreviousRotation(rot: number) {
     previousRotation = rot;
 }
 
+export function getBoundsCenter(bounds: Bounds): Point {
+    const matrix = new DOMMatrix()
+        .translate(bounds.pos.x, bounds.pos.y)
+        .rotate(bounds.rot)
+        .scale(bounds.size.x, bounds.size.y);
+    const centerPoint = matrix.transformPoint(new DOMPoint(0.5, 0.5));
+    return { x: centerPoint.x, y: centerPoint.y };
+}
+
 /**
  * Zooms in or out around a specific point (in canvas space) in the viewport.
  * @param zoomFactor The factor to zoom by.

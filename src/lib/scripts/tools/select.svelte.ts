@@ -501,19 +501,29 @@ export function scaleLayers(
     scaleY: number, pivot: Point, angle: number,
     source: 'initial' | 'current' = 'initial') {
     // flip rotation when scaleY changes sign
-    if (initial.bounds && ui.selected?.bounds) {
-        const rotationDiff = Math.abs(initial.bounds.rot - ui.selected.bounds.rot);
-        const isFlipped = rotationDiff > 179 && rotationDiff < 181;
-        
-        if (scaleY < 0 && !isFlipped) {
+    if (source === 'initial') {
+        if (initial.bounds && ui.selected?.bounds) {
+            const rotationDiff = Math.abs(initial.bounds.rot - ui.selected.bounds.rot);
+            const isFlipped = rotationDiff > 179 && rotationDiff < 181;
+            
+            if (scaleY < 0 && !isFlipped) {
+                let newRot = ui.selected.bounds.rot + 180;
+                while (newRot > 180) newRot -= 360;
+                while (newRot < -180) newRot += 360;
+                ui.selected.bounds.rot = newRot;
+                setPreviousRotation(newRot);
+            } else if (scaleY >= 0 && isFlipped) {
+                ui.selected.bounds.rot = initial.bounds.rot;
+                setPreviousRotation(ui.selected.bounds.rot);
+            }
+        }
+    } else {
+        if (scaleY < 0 && ui.selected?.bounds) {
             let newRot = ui.selected.bounds.rot + 180;
             while (newRot > 180) newRot -= 360;
             while (newRot < -180) newRot += 360;
             ui.selected.bounds.rot = newRot;
             setPreviousRotation(newRot);
-        } else if (scaleY >= 0 && isFlipped) {
-            ui.selected.bounds.rot = initial.bounds.rot;
-            setPreviousRotation(ui.selected.bounds.rot);
         }
     }
 

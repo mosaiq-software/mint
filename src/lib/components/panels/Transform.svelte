@@ -1,7 +1,7 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import {Slider, Input, Checkbox, IconButtonVisual} from "../ui";
-    import ui, { setPreviousRotation } from "../../scripts/ui.svelte";
+    import ui, { setPreviousRotation, getBoundsCenter } from "../../scripts/ui.svelte";
     import { postAction, type PostAction } from "../../scripts/action";
     import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
     import { translateLayers, scaleLayers, rotateLayers } from "../../scripts/tools/select.svelte";
@@ -17,8 +17,6 @@
 
     let r = $derived(bounds ? bounds.rot : 0);
     let rs = $derived(bounds ? bounds.rot.toFixed(1) : "0"); // string version for input field
-
-    let m = $derived(bounds ? bounds.size.y < 0 : false); // mirrored in y-axis
 
     /**
      * Safely parse a float from a string, returning a fallback
@@ -43,7 +41,6 @@
         const ys = safeParseFloat(y, bounds.pos.y);
         const ws = safeParseFloat(w, bounds.size.x);
         const hs = safeParseFloat(h, bounds.size.y);
-        const ms = m ? -1 : 1;
 
         const actions: PostAction[] = [];
 
@@ -116,32 +113,18 @@
 
     /** Flip the selected layers horizontally. */
     function flipH() {
-        // if (!t) return;
-        // m = !m;
-        // r = (t.rotate + 360) % 360 - 180;
-        // rs = r.toFixed(1);
-        // const ws = t.scale.x * layerSize.width;
-        // let xs = t.translate.x, ys = t.translate.y;
-        // const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
-        // xs -= ws * cos;
-        // ys -= ws * sin;
-        // x = xs.toFixed(2);
-        // y = ys.toFixed(2);
-        // applyTransform(true);
+        if (ui.selected?.bounds) {
+            const center = getBoundsCenter(ui.selected.bounds);
+            scaleLayers(ui.selectedLayers, -1, 1, center, r, 'current');
+        }
     }
 
     /** Flip the selected layers vertically. */
     function flipV() {
-        // if (!t) return;
-        // m = !m;
-        // const hs = t.scale.y * layerSize.height;
-        // let xs = t.translate.x, ys = t.translate.y;
-        // const sin = Math.sin(r * Math.PI / 180), cos = Math.cos(r * Math.PI / 180);
-        // xs -= hs * sin;
-        // ys += hs * cos;
-        // x = xs.toFixed(2);
-        // y = ys.toFixed(2);
-        // applyTransform(true);
+        if (ui.selected?.bounds) {
+            const center = getBoundsCenter(ui.selected.bounds);
+            scaleLayers(ui.selectedLayers, 1, -1, center, r, 'current');
+        }
     }
 </script>
 
@@ -194,10 +177,6 @@
         />
     </div>
     <div>
-        <div>
-            Mirror:
-            <Checkbox bind:checked={m} onChange={() => applyTransform(true)} />
-        </div>
         <div style="justify-content: flex-end">
             <button onclick={() => flipH()}>
                 <IconButtonVisual label="Flip horizontally">
