@@ -5,6 +5,7 @@ import { postAction } from "../action";
 import draw from "./draw.svelte";
 import { getSelectedDrawLayer, createStamp, interpolateStrokePoints, takeLayerSnapshot } from "./utils/brush";
 
+/** Erase tool state */
 export const erase = $state({
     erasing: false,
 });
@@ -24,6 +25,11 @@ const strokeCanvas = $derived(
         : null
 );
 
+/** 
+ * Draws the stamp at point p onto the stroke canvas and erases
+ * it from the draw layer. Composites by taking max alpha.
+ * @param p The point to erase the stamp at, in layer space.
+ */
 function eraseStamp(p: Point) {
     if (!drawLayer || !strokeCanvas) return;
     const ctx = strokeCanvas.getContext('2d');
@@ -31,8 +37,6 @@ function eraseStamp(p: Point) {
 
     const color = drawLayer ? drawLayer.foregroundColor : { r: 0, g: 0, b: 0, a: 1 };
 
-    // Draw line from stroke.start to p using stamp
-    // adding rgb, but taking the max of alphas
     if (!stroke.stamp) return;
 
     const points = interpolateStrokePoints(stroke.current, p, draw.brushSize);
@@ -42,11 +46,9 @@ function eraseStamp(p: Point) {
 
         const radius = draw.brushSize / 2;
 
-        // Draw gradient to temp canvas
         const offsetX = x - radius;
         const offsetY = y - radius;
 
-        // Get existing pixels from stroke canvas
         const existingData = ctx.getImageData(
             offsetX, offsetY,
             draw.brushSize, draw.brushSize
@@ -85,8 +87,7 @@ function eraseStamp(p: Point) {
     drawCtx.globalCompositeOperation = 'source-over';
 }
 
-// ...existing code...
-
+/** The erase tool implementation. Erases brush strokes on canvas layers. */
 export const eraseTool: Tool = {
     name: 'erase',
     onPointerDown: (data) => {
@@ -103,12 +104,6 @@ export const eraseTool: Tool = {
             const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
             if (!layer || layer.type !== 'canvas') return;
         }
-
-        // set up stamp canvas
-        const stampCanvas = new OffscreenCanvas(
-            draw.brushSize, draw.brushSize
-        );
-        const stampCtx = stampCanvas.getContext('2d');
 
         stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
         layerSnapshot = takeLayerSnapshot(drawLayer);
@@ -134,15 +129,11 @@ export const eraseTool: Tool = {
         stroke.current = data.l;
         stroke.stamp = null;
 
-        // clear stroke canvas and snapshot
         const ctx = strokeCanvas?.getContext('2d');
         if (ctx && drawLayer) {
             ctx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
         }
         layerSnapshot = null;
-
-        // force update
-        if (!docs.selected) return;
         
         if (drawLayer) postAction({
             type: "content",
@@ -151,6 +142,9 @@ export const eraseTool: Tool = {
                 .getContext('2d')!
                 .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
         });
+
+        // force update
+        if (!docs.selected) return;
         docs.selected.layers = [...docs.selected.layers];
     }
 }

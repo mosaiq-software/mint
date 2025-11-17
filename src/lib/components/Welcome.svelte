@@ -13,6 +13,9 @@
     });
     let creationError: string | null = $state(null);
 
+    /**
+     * Checks the given width and height, then creates and selects a new document.
+     */
     function handleCreateDocument() {
         const width = parseInt(size.width);
         const height = parseInt(size.height);
@@ -22,16 +25,14 @@
             return;
         }
 
-        if (name.trim() === "") {
-            creationError = "Please enter a document name.";
-            return;
-        }
-
         createDocument(name.trim(), width, height);
         creationError = null;
         creatingDocument = false;
     }
 
+    /**
+     * Opens the device file menu for image uploading.
+     */
     function handleImportImage() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -47,11 +48,18 @@
 
     let DBDocuments = $state(getDocumentsFromDB());
 
+    /**
+     * Rerender the welcome menu by querying the database.
+     */
     function rerenderDocs() {
         DBDocuments = getDocumentsFromDB();
     }
 
-    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: Date})[]) {
+    /**
+     * Sort documents by lastModified.
+     * @param documents The documents.
+     */
+    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: number})[]) {
         return [...documents].sort((a, b) => a.lastModified - b.lastModified);
     }
 </script>

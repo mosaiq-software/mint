@@ -1,11 +1,11 @@
 <script lang="ts">
-    import docs, {type Document, selectDocument} from '../scripts/docs.svelte';
+    import docs, { type Document, selectDocument } from '../scripts/docs.svelte';
     import {
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
         deleteDocumentFromDB,
-        saveDocumentToDB, updateDocumentMetadata
+        updateDocumentMetadata
     } from "../scripts/persistence.svelte";
     import IconButtonVisual from './ui/IconButtonVisual.svelte';
     import { Ellipsis } from '@lucide/svelte';
@@ -15,13 +15,17 @@
     import { initializeUIForDocument } from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte";
 
-    const {doc, rerenderDocs}: {
-        doc: Document & { preview: OffscreenCanvas, lastModified: Date },
+    const { doc, rerenderDocs }: {
+        doc: Document & { preview: OffscreenCanvas, lastModified: number },
         rerenderDocs: () => void
     } = $props();
-    let canvas: HTMLCanvasElement;
-    const {width, height} = getPreviewSize(doc);
 
+    let canvas: HTMLCanvasElement;
+    const { width, height } = getPreviewSize(doc);
+
+    /**
+     * Stringifies the lastModified date.
+     */
     function getDateString() {
         const date = new Date(doc.lastModified);
         const now = new Date();
@@ -43,6 +47,9 @@
         }
     })
 
+    /**
+     * Open the document as a tab.
+     */
     async function selectDoc() {
         docs[doc.id] = await getDocumentFromDB(doc.id);
 
@@ -53,6 +60,9 @@
     const popover = new Popover();
     const warningPopover = new Popover();
 
+    /**
+     * Delete the document.
+     */
     async function deleteDoc() {
         await deleteDocumentFromDB(doc);
         rerenderDocs();
@@ -60,6 +70,9 @@
         delete tabStatus[doc.id];
     }
 
+    /**
+     * Handle the document being renamed.
+     */
     let name = $derived(doc.name);
     async function handleDocNameBlur() {
         if (name.length > 0) {

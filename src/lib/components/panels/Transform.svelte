@@ -8,6 +8,7 @@
 
     const bounds = $derived(ui.selected ? ui.selected.bounds : null);
 
+    // Transform values bound to the input fields
     let x = $derived(bounds ? bounds.pos.x.toFixed(2) : "");
     let y = $derived(bounds ? bounds.pos.y.toFixed(2) : "");
 
@@ -15,15 +16,26 @@
     let h = $derived(bounds ? bounds.size.y.toFixed(2) : "");
 
     let r = $derived(bounds ? bounds.rot : 0);
-    let rs = $derived(bounds ? bounds.rot.toFixed(1) : "0");
+    let rs = $derived(bounds ? bounds.rot.toFixed(1) : "0"); // string version for input field
 
-    let m = $derived(bounds ? bounds.size.y < 0 : false);
+    let m = $derived(bounds ? bounds.size.y < 0 : false); // mirrored in y-axis
 
+    /**
+     * Safely parse a float from a string, returning a fallback
+     * value if parsing fails.
+     * @param val The string to parse.
+     * @param fallback The fallback value if parsing fails.
+     */
     function safeParseFloat(val: string, fallback: number) {
         const parsed = parseFloat(val);
         return isNaN(parsed) ? fallback : parsed;
     }
 
+    /**
+     * Translate, rotate, or scale the selected layers based on
+     * modified input values.
+     * @param triggerPostAction Whether to trigger a new undo/redo action.
+     */
     function applyTransform(triggerPostAction: boolean) {
         if (!bounds) return;
 
@@ -91,6 +103,8 @@
     }
 
     let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    /** Debounced application of transform changes, used for rotation. */
     function debouncedApplyTransform() {
         if (debounceTimeout) return;
         debounceTimeout = setTimeout(() => {
@@ -98,6 +112,7 @@
         }, 8); // ~1 frame at 60Hz
     }
 
+    /** Flip the selected layers horizontally. */
     function flipH() {
         // if (!t) return;
         // m = !m;
@@ -113,6 +128,7 @@
         // applyTransform(true);
     }
 
+    /** Flip the selected layers vertically. */
     function flipV() {
         // if (!t) return;
         // m = !m;
@@ -125,7 +141,6 @@
         // y = ys.toFixed(2);
         // applyTransform(true);
     }
-
 </script>
 
 <Panel title="Transform" disabled={!bounds}>

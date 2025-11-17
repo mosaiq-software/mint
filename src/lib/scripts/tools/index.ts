@@ -7,11 +7,19 @@ import rectangle, { rectangleTool } from './rectangle.svelte';
 import ellipse, { ellipseTool } from './ellipse.svelte';
 import { fillTool } from './fill.svelte';
 
+/** A 2D point with x and y coordinates. */
 export interface Point {
     x: number;
     y: number;
 }
 
+/**
+ * Data provided to tool pointer event handlers.
+ * v: Viewport coordinates, unadjusted by scale (relative to the canvas top-left)
+ * c: Canvas coordinates (relative to the document canvas top-left)
+ * l: Layer coordinates (relative to the target layer top-left), or null if not applicable
+ * e: The original MouseEvent
+ */
 export interface PointerEventData {
     v: Point;
     c: Point;
@@ -19,6 +27,7 @@ export interface PointerEventData {
     e: MouseEvent;
 }
 
+/** A tool implementation with event handlers for pointer and keyboard events. */
 export interface Tool {
     name: Mode;
     onPointerDown?: (data: PointerEventData) => void;
@@ -28,6 +37,7 @@ export interface Tool {
     onKeyUp?: (e: KeyboardEvent) => void;
 }
 
+/** A record mapping tool modes to their implementations. */
 export const tools: Record<Mode, Tool> = {
     select: selectTool, draw: drawTool,
     erase: eraseTool, text: textTool,

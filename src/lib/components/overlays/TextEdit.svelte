@@ -1,6 +1,8 @@
 <script module>
+    /* Script module to hold exported functions */
     let textarea: HTMLTextAreaElement;
 
+    /** Focus and select the textarea. */
     export function focusAndSelect() {
         if (textarea) {
             textarea.focus();
@@ -26,18 +28,25 @@
     const m = $derived(layer.transform.matrix);
     const t = $derived(matrixToTransformComponents(m));
 
+    /**
+     * Sync layer text content with textarea input
+     * @param event Input event
+     */
     function handleInput(event: Event) {
         const target = event.target as HTMLTextAreaElement;
         layer.text = target.value;
-        if (docs.selected) docs.selected.layers = [...docs.selected.layers]; // trigger reactivity
 
-        // Reset scroll after the browser's automatic scroll
+        // trigger reactivity 
+        if (docs.selected) docs.selected.layers = [...docs.selected.layers];
+
+        // keep scroll at top-left
         requestAnimationFrame(() => {
             target.scrollTop = 0;
             target.scrollLeft = 0;
         });
     }
 
+    /** Commit text changes on blur */
     function handleBlur() {
         postAction({
             type: "update",

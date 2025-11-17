@@ -27,12 +27,14 @@
         },
     });
 
+    /** Sync external value changes to the slider instance. */
     $effect(() => {
         if (value !== undefined && slider.value !== value) slider.value = value;
     });
 
     let pointerUpHandler: ((e: PointerEvent) => void) | null = null;
 
+    /** Handle focus on the slider thumb to track pointer up events. */
     function handleFocus() {
         pointerUpHandler = (e) => {
             document.getElementById(slider.thumb.id)?.blur();
@@ -40,6 +42,7 @@
         document.addEventListener('pointerup', pointerUpHandler);
     }
 
+    /** Handle blur on the slider thumb to clean up event listeners. */
     function handleBlur() {
         if (pointerUpHandler) {
             document.removeEventListener('pointerup', pointerUpHandler);

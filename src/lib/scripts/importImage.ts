@@ -2,6 +2,13 @@ import { type CanvasLayer, createLayer, translateLayerBy } from "./layer";
 import docs, { createDocument } from "./docs.svelte";
 import {postAction, type PostAction} from "./action";
 
+/**
+ * Handles the drop event for importing an image into the currently selected document.
+ * Supports inserting the image to the top, bottom, left, or right margins of the document,
+ * or using the cursor position if no margin side is specified.
+ * @param event 
+ * @param marginSide 
+ */
 export function handleImageDrop(event: DragEvent, marginSide: string = '') {
     event.preventDefault();
     const files = event.dataTransfer?.files;
@@ -31,7 +38,8 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                             actions.push({
                                 type: 'transform',
                                 layerID: oldLayer.id,
-                                newMatrix: oldLayer.transform.matrix
+                                newMatrix: oldLayer.transform.matrix,
+                                newBounds: null
                             });
                         });
                         actions.push({
@@ -61,7 +69,8 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
                             actions.push({
                                 type: 'transform',
                                 layerID: oldLayer.id,
-                                newMatrix: oldLayer.transform.matrix
+                                newMatrix: oldLayer.transform.matrix,
+                                newBounds: null
                             });
                         });
                         actions.push({
@@ -146,6 +155,11 @@ export function handleImageDrop(event: DragEvent, marginSide: string = '') {
     }
 }
 
+/**
+ * Imports an image file as a new document with a single layer.
+ * @param file The image file to import as a new document.
+ * @param onSuccess Optional callback to execute after successful import.
+ */
 export function importImageAsNewDoc(file: File, onSuccess: () => void = () => {}) {
     const reader = new FileReader();
     reader.onload = (readerEvent) => {

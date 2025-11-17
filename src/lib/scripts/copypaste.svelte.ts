@@ -1,24 +1,50 @@
-import {type Layer, type LayerID} from "./layer";
+import { type Layer, type LayerID } from "./layer";
 import docs from "./docs.svelte";
-import {deepCopyLayer, postAction} from "./action";
+import { deepCopyLayer, postAction, type PostAction } from "./action";
 import ui from "./ui.svelte";
 
-export let clipboard: {layer: Layer | null} = $state({layer: null});
+/**
+ * Stores the clipboard data for copy-paste operations.
+ * Holds an array of layers that can be pasted.
+ */
+let clipboard: {layers: Layer[]} = $state({layers: []});
 
-export function pasteLayerFromClipboard() {
-    if (!docs.selected || !clipboard.layer) return;
-    const name = `Copy of ${clipboard.layer.name}`;
-    const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
-    const layer = {
-        ...deepCopyLayer(clipboard.layer),
-        name,
-        id
-    };
-    docs.selected.layers.push(layer);
-    if (ui.selected) ui.selected.selectedLayers = [id];
+/**
+ * Copies the currently selected layers to the clipboard.
+ */
+export function copyLayersToClipboard() {
+    if (ui.selectedLayers.length === 0) return;
+    clipboard.layers = ui.selectedLayers.map(layer => deepCopyLayer(layer));
+}
+
+/**
+ * Pastes the layers stored in the clipboard into the currently selected document
+ * and adds a corresponding action to the action history.
+ */
+export function pasteLayersFromClipboard() {
+    if (!docs.selected || clipboard.layers.length === 0) return;
+
+    if (ui.selected) ui.selected.selectedLayers = [];
+    const actions: PostAction[] = [];
+    for (const layer of clipboard.layers) {
+        const name = `Copy of ${layer.name}`;
+        const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
+        const newLayer = {
+            ...deepCopyLayer(layer),
+            name,
+            id
+        };
+        docs.selected.layers.push(newLayer);
+        ui.selected?.selectedLayers.push(id);
+        actions.push({
+            type: "create",
+            layer: newLayer,
+            position: docs.selected.layers.length - 1
+        });
+    }
+
     postAction({
-        type: "create",
-        layer: layer,
-        position: docs.selected.layers.length - 1
+        type: "compound",
+        actions
     });
 }

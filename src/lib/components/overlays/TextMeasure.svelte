@@ -8,7 +8,7 @@
         return docs.selected.layers.filter(l => l.type === 'text');
     });
 
-    // ensure text areas are cleaned up when layers are deleted
+    /* Ensure text areas are cleaned up when layers are deleted */
     $effect(() => {
         for (const id in text.elements) {
             const layerID = id as LayerID;

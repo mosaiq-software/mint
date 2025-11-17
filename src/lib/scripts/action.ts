@@ -4,18 +4,29 @@ import docs, { matrixToTransformComponents } from "./docs.svelte";
 import ui, { setPreviousRotation, type Bounds } from "./ui.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 
+/* Types */
+
+/**
+ * An action that creates a new layer.
+ */
 type CreateAction = {
     type: 'create';
     layer: Layer;
     position: number;
 }
 
+/**
+ * An action that deletes a layer.
+ */
 type DeleteAction = {
     type: 'delete';
     layer: Layer;
     position: number;
 }
 
+/**
+ * An action that transforms a layer.
+ */
 type TransformAction = {
     type: 'transform';
     layerID: LayerID;
@@ -25,6 +36,9 @@ type TransformAction = {
     newBounds: Bounds | null;
 }
 
+/**
+ * An action that changes the canvas content of a layer.
+ */
 type ContentAction = {
     type: 'content';
     layerID: LayerID;
@@ -32,6 +46,9 @@ type ContentAction = {
     newContent: ImageData;
 }
 
+/**
+ * An action that updates properties of a layer.
+ */
 type UpdateAction = {
     type: 'update';
     layerID: LayerID;
@@ -39,6 +56,9 @@ type UpdateAction = {
     newLayer: Partial<Layer>;
 }
 
+/**
+ * An action that reorders a layer within the document's layer stack.
+ */
 type ReorderAction = {
     type: 'reorder';
     layerID: LayerID;
@@ -46,12 +66,18 @@ type ReorderAction = {
     newPosition: number;
 }
 
+/**
+ * An action that updates properties of a document.
+ */
 type DocumentAction = {
     type: 'document';
     oldDocument: Partial<Document> & {id: DocumentID};
     newDocument: Partial<Document> & {id: DocumentID};
 }
 
+/**
+ * A compound action that groups multiple actions together.
+ */
 type CompoundAction = {
     type: 'compound',
     actions: (Action | null)[]
@@ -71,10 +97,19 @@ export type Action = CreateAction
     | DocumentAction
     | CompoundAction;
 
+/**
+ * An action that creates a new layer.
+ */
 type CreatePostAction = CreateAction;
 
+/**
+ * An action that deletes a layer.
+ */
 type DeletePostAction = DeleteAction;
 
+/**
+ * An action that transforms a layer.
+ */
 type TransformPostAction = {
     type: 'transform';
     layerID: LayerID;
@@ -82,22 +117,37 @@ type TransformPostAction = {
     newBounds: Bounds | null;
 }
 
+/**
+ * An action that changes the canvas content of a layer.
+ */
 type ContentPostAction = {
     type: 'content';
     layerID: LayerID;
     newContent: ImageData;
 }
 
+/**
+ * An action that updates properties of a layer.
+ */
 type UpdatePostAction = {
     type: 'update';
     layerID: LayerID;
     newLayer: Partial<Layer>;
 }
 
+/**
+ * An action that reorders a layer within the document's layer stack.
+ */
 type ReorderPostAction = ReorderAction;
 
+/**
+ * An action that updates properties of a document.
+ */
 type DocumentPostAction = DocumentAction;
 
+/**
+ * A compound action that groups multiple actions together.
+ */
 type CompoundPostAction = {
     type: 'compound',
     actions: PostAction[]
@@ -116,13 +166,28 @@ export type PostAction = CreatePostAction
     | DocumentPostAction
     | CompoundPostAction;
 
+/* State */
+
+/** Stores all actions for each document. */
 const actions: Record<DocumentID, Action[]> = {};
+
+/** Stores snapshots of layers before actions are applied. */
 const snapshots: Record<LayerID, Layer | null> = {};
+
+/** Stores bounding box snapshots for each document. */
 const bounds: Record<DocumentID, Bounds | null> = {};
+
+/** Stores the current action index for each document. */
 const currentActionIndex: Record<DocumentID, number> = {};
 
+/* Functions */
+
+/**
+ * Converts a PostAction to a complete Action by retrieving the old state from snapshots.
+ * @param postAction A PostAction representing a change made to a layer.
+ * @returns A complete Action with old and new states, or null if conversion fails.
+ */
 function postActionToAction(postAction: PostAction): Action | null {
-    // construct a full Action from the PostAction and the snapshot
     let action: Action;
     if (postAction.type === 'create') {
         action = {
@@ -207,12 +272,8 @@ function postActionToAction(postAction: PostAction): Action | null {
 }
 
 /**
- * Completes an action by storing the new state of the layer.
- * Unmarks the layer as performing an action.
- * @param layerID 
- * @param newLayer 
- * @param documentId 
- * @returns 
+ * Adds a new action to the action stack for the currently selected document.
+ * @param postAction A PostAction representing a change made to a layer.
  */
 export function postAction(postAction: PostAction) {
     if (!docs.selected) return;
@@ -252,7 +313,7 @@ export function postAction(postAction: PostAction) {
 
 /**
  * Deep copies a layer. For canvas layers, creates a new OffscreenCanvas and copies the contents.
- * Returns a shallow copy of any other layer properties.
+ * Copies the layer transform object and matrix. Returns a shallow copy for other properties.
  * @param layer 
  * @returns 
  */
@@ -260,14 +321,12 @@ export function deepCopyLayer(layer: Layer): Layer {
     const layerCopy: Layer = { ...layer};
 
     if (layerCopy.type === 'canvas' && layer.type === 'canvas') {
-        // create a new OffscreenCanvas and copy the contents
         const canvasCopy = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
         const ctx = canvasCopy.getContext('2d');
         if (ctx) ctx.drawImage(layer.canvas, 0, 0);
         layerCopy.canvas = canvasCopy;
     }
 
-    // copy the layer transform
     layerCopy.transform = { ...layer.transform };
     layerCopy.transform.matrix = layer.transform.matrix.translate(0, 0);
 
@@ -276,7 +335,7 @@ export function deepCopyLayer(layer: Layer): Layer {
 
 /**
  * Returns the next action to be undone, if it exists.
- * @param documentId 
+ * @param documentId The ID of the document to get the undo action for.
  * @returns The action to be undone, or null if no action to undo.
  */
 export function getUndoAction(documentId: DocumentID): Action | null {
@@ -296,7 +355,7 @@ export function getUndoAction(documentId: DocumentID): Action | null {
 
 /**
  * Returns the next action to be redone, if it exists.
- * @param documentId 
+ * @param documentId The ID of the document to get the redo action for.
  * @returns The action to be redone, or null if no action to redo.
  */
 export function getRedoAction(documentId: DocumentID): Action | null {
@@ -317,8 +376,8 @@ export function getRedoAction(documentId: DocumentID): Action | null {
 
 /**
  * Updates the snapshot for a layer based on the action type and whether it's an undo or redo.
- * @param action 
- * @param type 
+ * @param action The action to update the snapshot for.
+ * @param type `'undo'` or `'redo'` to indicate which state to use for the snapshot.
  */
 export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     // update the bounds snapshot
@@ -383,6 +442,11 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     }
 }
 
+/**
+ * Updates the bounds snapshot for a document.
+ * @param documentId The ID of the document to update bounds snapshot for.
+ * @param newBounds The new bounds to snapshot, or null to clear.
+ */
 export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds | null) {
     if (newBounds === null) {
         bounds[documentId] = null;
@@ -398,8 +462,7 @@ export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds |
 
 /**
  * Applies an undo action to the document.
- * @param action 
- * @returns 
+ * @param action The action to be undone.
  */
 export function applyUndoAction(action: Action) {
     if (!docs.selected) return;
@@ -460,6 +523,11 @@ export function applyUndoAction(action: Action) {
     docs.selected.layers = [...docs.selected.layers];
 }
 
+/**
+ * Update the bounding box according to the new bounds and the
+ * number of selected layers.
+ * @param newBounds The new bounds to apply to the selected layers.
+ */
 function applyBounds(newBounds: Bounds | null) {
     if (!ui.selected) return;
 

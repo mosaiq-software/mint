@@ -7,6 +7,10 @@ import { postAction } from '../action';
 
 const resizeHitboxSize = 5;
 
+/**
+ * Text tool state, including a list of text measure elements,
+ * current text properties, dragging state, and current action.
+ */
 const text = $state({
     elements: {} as Record<LayerID, HTMLDivElement>,
     properties: {
@@ -21,19 +25,16 @@ const text = $state({
     action: "none" as "none" | "resize" | "edit",
 });
 
+/** Retrieves the currently selected text layer, or null if none or multiple are selected. */
 export function getSelectedTextLayer() {
-    if (!docs.selected) return null;
-
-    const selectedLayers = ui.selected?.selectedLayers ?? [];
-    if (selectedLayers.length !== 1) return null;
-    const selectedLayerId = selectedLayers[0];
-
-    const layer = docs.selected.layers.find(l => l.id === selectedLayerId);
-    if (layer?.type !== 'text') return null;
-    
-    return layer;
+    return (ui.selectedLayers.length == 1 && ui.selectedLayers[0].type == 'text')
+        ? ui.selectedLayers[0] : null;
 }
 
+/**
+ * The text tool implementation. Creates new text layers on pointer down,
+ * and handles resizing of existing text layers.
+ */
 export const textTool: Tool = {
     name: 'text',
     onPointerDown: (data) => {
@@ -56,11 +57,8 @@ export const textTool: Tool = {
                 position: docs.selected.layers.length - 1
             });
 
-            // focus the textarea after a short delay to ensure it's in the DOM
-            // also select the text
-            setTimeout(() => {
-                focusAndSelect();
-            }, 50);
+            // wait a short delay to ensure the layer is in the DOM
+            setTimeout(focusAndSelect, 50);
         }
     },
     onPointerMove: (data) => {

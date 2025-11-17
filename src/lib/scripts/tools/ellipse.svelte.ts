@@ -1,4 +1,4 @@
-import type { PointerEventData, Tool } from '.';
+import type { Tool } from '.';
 import { getSelectedEllipseLayer } from './utils/shape.svelte';
 import { createLayer } from '../layer';
 import type { Point } from '.';
@@ -6,6 +6,7 @@ import docs from '../docs.svelte';
 import ui from '../ui.svelte';
 import { postAction } from '../action';
 
+/** Ellipse tool state */
 const ellipse = $state({
     dragging: false,
     action: 'none' as 'none' | 'create' | 'stroke'
@@ -15,8 +16,9 @@ const p = {
     initial: { x: 0, y: 0 } as Point,
 };
 
-let selected = $derived.by(getSelectedEllipseLayer);
+let selectedEllipseLayer = $derived.by(getSelectedEllipseLayer);
 
+/** The ellipse tool implementation. Creates new ellipse layers on drag. */
 export const ellipseTool: Tool = {
     name: 'ellipse',
     onPointerDown: (data) => {
@@ -25,7 +27,7 @@ export const ellipseTool: Tool = {
             p.initial = {...data.c};
             if (ui.selected) ui.selected.selectedLayers = [];
         } else {
-            setAction(data);
+            ellipse.action = 'create';
         }
     },
     onPointerMove: (data) => {
@@ -38,43 +40,38 @@ export const ellipseTool: Tool = {
                 const width = Math.abs(dx);
                 const height = Math.abs(dy);
 
-                if (!selected && width > 0 && height > 0) {
-                    // create new ellipse layer and select it
+                if (!selectedEllipseLayer && width > 0 && height > 0) {
                     if (!docs.selected || !ui.selected) return;
                     const newLayer = createLayer('ellipse', 'New Ellipse');
                     docs.selected.layers.push(newLayer);
                     ui.selected.selectedLayers = [ newLayer.id ];
                 }
 
-                if (selected) {
-                    selected.width = width;
-                    selected.height = height;
-                    selected.transform.matrix.e = dx < 0 ? data.c.x : p.initial.x;
-                    selected.transform.matrix.f = dy < 0 ? data.c.y : p.initial.y;
+                if (selectedEllipseLayer) {
+                    selectedEllipseLayer.width = width;
+                    selectedEllipseLayer.height = height;
+                    selectedEllipseLayer.transform.matrix.e = dx < 0 ? data.c.x : p.initial.x;
+                    selectedEllipseLayer.transform.matrix.f = dy < 0 ? data.c.y : p.initial.y;
                 }
             }
         } else {
-            setAction(data);
+            ellipse.action = 'create';
         }
     },
-    onPointerUp: (data) => {
+    onPointerUp: () => {
         ellipse.dragging = false;
 
-        if (ellipse.action === 'create' && selected) {
+        if (ellipse.action === 'create' && selectedEllipseLayer) {
             ui.mode = 'select';
             ellipse.action = 'none';
 
             postAction({
                 type: 'create',
-                layer: selected!,
+                layer: selectedEllipseLayer!,
                 position: docs.selected!.layers.length - 1
             });
         }
     },
 };
-
-function setAction(_data: PointerEventData) {
-    ellipse.action = 'create';
-}
 
 export default ellipse;

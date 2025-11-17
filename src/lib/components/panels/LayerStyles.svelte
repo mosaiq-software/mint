@@ -15,11 +15,21 @@
     let opacity = $derived(selectedLayer?.opacity || 0);
     let opacityStr = $derived(opacity.toFixed(2));
 
+    /**
+     * Safely parse a float from a string, returning a fallback value if parsing fails.
+     * @param val The string to parse.
+     * @param fallback The fallback value if parsing fails.
+     * @param min The minimum value.
+     * @param max The maximum value.
+     */
     function safeParseFloat(val: string, fallback: number, min: number = Number.NEGATIVE_INFINITY, max: number = Number.POSITIVE_INFINITY) {
         const parsed = parseFloat(val);
         return (isNaN(parsed) || parsed < min || parsed > max) ? fallback : parsed;
     }
 
+    /**
+     * Causes the layer to update. Used to force an update after debouncing.
+     */
     function updateLayer() {
         const layer = docs.selected?.layers.find((l) => l.id === selectedLayerId);
         if (layer) {
@@ -27,6 +37,7 @@
         }
     }
 
+    /** Debounced application of opacity changes. */
     let debounceTimeout: ReturnType<typeof setTimeout> | null = null;
     function debouncedUpdateLayer() {
         if (debounceTimeout) return;
@@ -36,6 +47,9 @@
         }, 8);
     }
 
+    /**
+     * Adds a postAction for security.
+     */
     function addOpacityAction() {
         if (selectedLayerId) {
             postAction({

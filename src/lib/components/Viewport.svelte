@@ -4,10 +4,20 @@
     import Canvas from "./Canvas.svelte";
     import {importImageAsNewDoc} from "../scripts/importImage";
 
+    /**
+     * Prevents default dragover behavior (opening the file in
+     * the browser) when no document is open.
+     * @param e
+     */
     function handleDragOver(e: DragEvent) {
         if (!ui.selectedDocument) e.preventDefault();
     }
 
+    /**
+     * Handle dropping a file onto the viewport when no document
+     * is open. Imports the dropped image as a new document.
+     * @param e The drag event.
+     */
     function handleDrop(e: DragEvent) {
         if (ui.selectedDocument) return;
 
