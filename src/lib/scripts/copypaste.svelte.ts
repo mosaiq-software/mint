@@ -1,4 +1,4 @@
-import { type Layer, type LayerID } from "./layer";
+import {getEnumeratedLayerName, type Layer, type LayerID} from "./layer";
 import docs from "./docs.svelte";
 import { deepCopyLayer, postAction, type PostAction } from "./action";
 import ui from "./ui.svelte";
@@ -31,7 +31,7 @@ export function pasteLayersFromClipboard() {
         const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
         const newLayer = {
             ...deepCopyLayer(layer),
-            name,
+            name: getEnumeratedLayerName(name),
             id
         };
         docs.selected.layers.push(newLayer);

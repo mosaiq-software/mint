@@ -29,11 +29,14 @@
     const t = $derived(matrixToTransformComponents(m));
 
     /**
-     * Sync layer text content with textarea input
+     * Sync layer text content and name with textarea input
      * @param event Input event
      */
     function handleInput(event: Event) {
         const target = event.target as HTMLTextAreaElement;
+        if (layer.name === layer.text) {
+            layer.name = target.value;
+        }
         layer.text = target.value;
 
         // trigger reactivity 
@@ -46,12 +49,12 @@
         });
     }
 
-    /** Commit text changes on blur */
+    /** Commit text and layer name changes on blur */
     function handleBlur() {
         postAction({
             type: "update",
             layerID: layer.id,
-            newLayer: { text: layer.text },
+            newLayer: { text: layer.text, name: layer.name }
         });
     }
 </script>
