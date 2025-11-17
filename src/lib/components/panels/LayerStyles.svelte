@@ -6,10 +6,8 @@
     import ui from "../../scripts/ui.svelte";
     import { postAction } from "../../scripts/action";
 
-    const selectedLayer = $derived.by(() => {
-        if (!docs.selected) return null;
-        return docs.selected.layers.find((l) => ui.selected?.selectedLayers.includes(l.id));
-    });
+    const selectedLayer = $derived(ui.selectedLayers.length === 1 ? ui.selectedLayers[0] : null);
+
     const selectedLayerId = $derived(selectedLayer?.id);
 
     let opacity = $derived(selectedLayer?.opacity || 0);
