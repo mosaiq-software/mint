@@ -92,17 +92,18 @@
         }
     }
 
-    let layerBeingRenamed: LayerID | null = $state(null);
+    let layerBeingRenamed: Layer | null = $state(null);
     let startingIndex: number = -1;
 
     /**
      * Begin renaming a layer by triggering the input to appear.
-     * @param layerId
+     * @param layer
      * @param e The mouse event.
      */
-    function beginRenameLayer(e: MouseEvent, layerId: LayerID) {
-        if (!e.shiftKey)
-            layerBeingRenamed = layerId;
+    function beginRenameLayer(e: MouseEvent, layer: Layer) {
+        if (!e.shiftKey) {
+            layerBeingRenamed = layer;
+        }
     }
 
     /**
@@ -110,20 +111,18 @@
      */
     function handleRenameBlur() {
         if (!layerBeingRenamed || !docs.selected) return;
-        const layer = docs.selected.layers.find(l => l.id === layerBeingRenamed);
-        if (!layer) return;
 
-        layerBeingRenamed = null;
-
-        if (layer.name.trim() === "") {
-            layer.name = "Layer";
+        if (layerBeingRenamed.name === "" && layerBeingRenamed.type === "text") {
+            layerBeingRenamed.name = layerBeingRenamed.text;
         }
 
         postAction({
             type: "update",
-            layerID: layer.id,
-            newLayer: { name: layer.name }
+            layerID: layerBeingRenamed.id,
+            newLayer: { name: layerBeingRenamed.name }
         });
+
+        layerBeingRenamed = null;
     }
 
     /**
@@ -215,9 +214,9 @@
             {#each [...layerDisplayList].reverse() as layer, index}
                 <div
                     class="layer"
-                    style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
+                    style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.5}"
                     class:selected={ui.selected?.selectedLayers.includes(layer.id)}
-                    draggable={docs.selected?.layers.length >= 2 && layer.id !== layerBeingRenamed ? 'true' : undefined}
+                    draggable={docs.selected?.layers.length >= 2 && layer.id !== layerBeingRenamed?.id ? 'true' : undefined}
                     ondragstart={(event) => handleDragStart(event, layer, index)}
                     ondragend={handleDragEnd}
                     role="application"
@@ -225,20 +224,24 @@
                     <button
                         class="preview"
                         onclick={(e) => selectLayer(e, layer.id)}
-                        ondblclick={(e) => beginRenameLayer(e, layer.id)}
+                        ondblclick={(e) => beginRenameLayer(e, layer)}
                     >
                         {#if layer.type === 'canvas'}
-                            <Image size={16} />
+                            <Image size={16} style="flex-shrink: 0" />
                         {:else if layer.type === 'text'}
-                            <Type size={16} />
+                            <Type size={16} style="flex-shrink: 0" />
                         {:else if layer.type === 'rectangle'}
-                            <Square size={16} />
+                            <Square size={16} style="flex-shrink: 0" />
                         {:else if layer.type === 'ellipse'}
-                            <Circle size={16} />
+                            <Circle size={16} style="flex-shrink: 0" />
                         {/if}
-                        {#if layerBeingRenamed === layer.id}
+                        {#if layerBeingRenamed?.id === layer.id}
                             <Input
-                                    placeholder="Layer name"
+                                    placeholder={
+                                        layer.type === 'text' && layer.text.trim().length > 0
+                                        ? layer.text
+                                        : "Layer name"
+                                    }
                                     name="layer-name"
                                     bind:value={layer.name}
                                     onBlur={handleRenameBlur}

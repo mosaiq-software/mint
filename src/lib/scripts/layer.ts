@@ -97,15 +97,16 @@ export function getEnumeratedLayerName(name: string) {
  * Here, the layer name is enumerated if duplicate. This is not the case on renames.
  * @param type The type of layer to create.
  * @param name The name of the new layer.
+ * @param enumerateName Whether to enumerate the layer name.
  * @returns A new layer of the specified type with default properties.
  */
-export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', name: string): Layer {
+export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', name: string, enumerateName: boolean = true): Layer {
     if (!docs.selected || !ui.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
     const base: BaseLayer = {
         id,
-        name: getEnumeratedLayerName(name),
+        name: enumerateName ? getEnumeratedLayerName(name) : name,
         visible: true,
         opacity: 1,
         transform: {
