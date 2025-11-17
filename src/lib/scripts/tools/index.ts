@@ -6,6 +6,7 @@ import text, { textTool } from './text.svelte';
 import rectangle, { rectangleTool } from './rectangle.svelte';
 import ellipse, { ellipseTool } from './ellipse.svelte';
 import { fillTool } from './fill.svelte';
+import pan, { panTool } from './pan.svelte';
 
 /** A 2D point with x and y coordinates. */
 export interface Point {
@@ -42,7 +43,7 @@ export const tools: Record<Mode, Tool> = {
     select: selectTool, draw: drawTool,
     erase: eraseTool, text: textTool,
     rectangle: rectangleTool, ellipse: ellipseTool,
-    fill: fillTool,
+    fill: fillTool, pan: panTool
 };
 
-export { draw, select, erase, text, rectangle, ellipse };
+export { draw, select, erase, text, rectangle, ellipse, pan };

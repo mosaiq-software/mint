@@ -287,6 +287,7 @@
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
+    onpointerleave={handlePointerUp}
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
     onscroll={handleScroll}
@@ -348,6 +349,7 @@
         flex: 1;
         overflow: auto;
         position: relative;
+        user-select: none;
     }
 
     #interactive-area {
