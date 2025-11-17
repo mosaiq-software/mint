@@ -60,8 +60,9 @@
     let layerBeingRenamed: LayerID | null = $state(null);
     let startingIndex: number = -1;
 
-    function renameLayer(layerId: LayerID) {
-        layerBeingRenamed = layerId;
+    function renameLayer(e: MouseEvent, layerId: LayerID) {
+        if (!e.shiftKey)
+            layerBeingRenamed = layerId;
     }
 
     function handleRenameBlur() {
@@ -179,7 +180,7 @@
                     <button
                         class="preview"
                         onclick={(e) => selectLayer(e, layer.id)}
-                        ondblclick={() => renameLayer(layer.id)}
+                        ondblclick={(e) => renameLayer(e, layer.id)}
                     >
                         {#if layer.type === 'canvas'}
                             <Image size={16} />
