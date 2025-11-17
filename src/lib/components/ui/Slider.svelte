@@ -19,17 +19,21 @@
         onBlur = () => {}
     }: Props = $props();
 
+    /** Make sure the value reflected by the slider doesn't exceed its bounds */
+    const clampedValue = $derived(
+        value === undefined ? min : Math.min(Math.max(value, min), max)
+    );
+
     const slider = new Slider({ 
-        value, min, max, step,
+        min, max, step,
+        value: () => clampedValue,
         orientation: 'horizontal',
         onValueChange: (val) => {
-            if (value !== undefined) { value = val; onValueChange(val); }
+            if (value !== undefined) {
+                value = val;
+                onValueChange(val);
+            }
         },
-    });
-
-    /** Sync external value changes to the slider instance. */
-    $effect(() => {
-        if (value !== undefined && slider.value !== value) slider.value = value;
     });
 
     let pointerUpHandler: ((e: PointerEvent) => void) | null = null;
