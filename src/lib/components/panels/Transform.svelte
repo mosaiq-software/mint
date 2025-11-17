@@ -73,6 +73,16 @@
                     newMatrix: layer.transform.matrix,
                     newBounds: ui.selected ? ui.selected.bounds : null
                 });
+                if (layer.type === "rectangle" || layer.type === "ellipse") {
+                    actions.push({
+                        type: "update",
+                        layerID: layer.id,
+                        newLayer: {
+                            width: layer.width,
+                            height: layer.height
+                        }
+                    });
+                }
             }
         }
 

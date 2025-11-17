@@ -203,6 +203,13 @@ export const selectTool: Tool = {
                         newBounds: ui.selected ? ui.selected.bounds : null
                     });
                 } else if (select.action.type === 'scale') {
+                    actions.push({
+                        type: "transform",
+                        layerID: layer.id,
+                        newMatrix: layer.transform.matrix,
+                        newBounds: ui.selected ? ui.selected.bounds : null
+                    });
+
                     if (layer.type === 'rectangle' || layer.type === 'ellipse') {
                         actions.push({
                             type: "update",
@@ -212,13 +219,6 @@ export const selectTool: Tool = {
                                 height: layer.height
                             }
                         });
-                    } else {
-                        actions.push({
-                            type: "transform",
-                            layerID: layer.id,
-                            newMatrix: layer.transform.matrix,
-                            newBounds: ui.selected ? ui.selected.bounds : null
-                        }); 
                     }
                 }
             }
@@ -495,13 +495,15 @@ export function rotateLayers(layers: Layer[], angle: number, pivot: Point, sourc
  * @param pivot The pivot point in canvas space
  * @param angle The current rotation angle of the layers in degrees
  * @param source Whether to use the 'initial' or 'current' matrix as the base for scaling
+ * @param ignoreRotationFlip Whether to ignore flipping rotation when scaleY changes sign
  */
 export function scaleLayers(
     layers: Layer[], scaleX: number,
     scaleY: number, pivot: Point, angle: number,
-    source: 'initial' | 'current' = 'initial') {
+    source: 'initial' | 'current' = 'initial',
+    ignoreRotationFlip: boolean = false) {
     // flip rotation when scaleY changes sign
-    if (source === 'initial') {
+    if (source === 'initial' && !ignoreRotationFlip) {
         if (initial.bounds && ui.selected?.bounds) {
             const rotationDiff = Math.abs(initial.bounds.rot - ui.selected.bounds.rot);
             const isFlipped = rotationDiff > 179 && rotationDiff < 181;
@@ -517,7 +519,7 @@ export function scaleLayers(
                 setPreviousRotation(ui.selected.bounds.rot);
             }
         }
-    } else {
+    } else if (!ignoreRotationFlip) {
         if (scaleY < 0 && ui.selected?.bounds) {
             let newRot = ui.selected.bounds.rot + 180;
             while (newRot > 180) newRot -= 360;
@@ -544,13 +546,22 @@ export function scaleLayers(
             const m = matrixToTransformComponents(layer.transform.matrix);
             const width = source === 'initial' ? initial.sizes[layer.id].x : layer.width;
             const height = source === 'initial' ? initial.sizes[layer.id].y : layer.height;
-            layer.width = (width * m.scale.x);
-            layer.height = (height * m.scale.y);
+            layer.width = width * m.scale.x;
+            layer.height = height * m.scale.y;
 
             // reset scale to 1
             layer.transform.matrix = new DOMMatrix()
                 .translate(m.translate.x, m.translate.y)
                 .rotate(m.rotate);
+
+            // if width or height are negative, flip them back to positive
+            const dx = layer.width < 0 ? -1 : 1;
+            const dy = layer.height < 0 ? -1 : 1;
+            if (dx === -1 || dy === -1) {
+                const center = new DOMPoint(layer.width / 2, layer.height / 2)
+                    .matrixTransform(layer.transform.matrix);
+                scaleLayers([layer], dx, dy, center, m.rotate, 'current', true);
+            }
         }
     }
 }
