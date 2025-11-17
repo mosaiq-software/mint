@@ -37,7 +37,7 @@
     function addLayer() {
         if (!docs.selected) return;
 
-        const newLayer = createLayer("canvas", `Layer ${docs.selected.layers.length + 1}`);
+        const newLayer = createLayer("canvas", "Canvas");
         docs.selected.layers = [...docs.selected.layers, newLayer];
 
         postAction({

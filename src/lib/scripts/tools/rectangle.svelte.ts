@@ -42,7 +42,7 @@ export const rectangleTool: Tool = {
 
                 if (!selectedEllipseLayer && width > 0 && height > 0) {
                     if (!docs.selected || !ui.selected) return;
-                    const newLayer = createLayer('rectangle', 'New Rectangle');
+                    const newLayer = createLayer('rectangle', 'Rectangle');
                     docs.selected.layers.push(newLayer);
                     ui.selected.selectedLayers = [ newLayer.id ];
                 }

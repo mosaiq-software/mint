@@ -65,7 +65,36 @@ export type EllipseLayer = ShapeLayer & {
 export type Layer = CanvasLayer | TextLayer | RectangleLayer | EllipseLayer;
 
 /**
+ * Create an enumerated name from a name and an index.
+ * @param name
+ * @param index
+ * @returns The enumerated name.
+ */
+function enumerateLayerName(name: string, index: number) {
+    if (index === 1) return name;
+    return `${name} ${index}`;
+}
+
+/**
+ * Find the appropriately enumerated layer name for a new layer.
+ * Returns the first unique value of "Layer", "Layer 2", etc.
+ * @param name
+ * @returns The appropriately enumerated name.
+ */
+export function getEnumeratedLayerName(name: string) {
+    if (!docs.selected) return name;
+    for (let i = 1; i <= docs.selected.layers.length; i++) {
+        const enumeratedName = enumerateLayerName(name, i);
+        if (!docs.selected.layers.some(l => l.name === enumeratedName)) {
+            return enumeratedName;
+        }
+    }
+    return name;
+}
+
+/**
  * Creates a new layer of the specified type with default properties.
+ * Here, the layer name is enumerated if duplicate. This is not the case on renames.
  * @param type The type of layer to create.
  * @param name The name of the new layer.
  * @returns A new layer of the specified type with default properties.
@@ -76,7 +105,7 @@ export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', n
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
     const base: BaseLayer = {
         id,
-        name,
+        name: getEnumeratedLayerName(name),
         visible: true,
         opacity: 1,
         transform: {
