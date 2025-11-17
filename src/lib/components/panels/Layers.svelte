@@ -97,10 +97,12 @@
 
     /**
      * Begin renaming a layer by triggering the input to appear.
-     * @param layerId 
+     * @param layerId
+     * @param e The mouse event.
      */
-    function beginRenameLayer(layerId: LayerID) {
-        layerBeingRenamed = layerId;
+    function beginRenameLayer(e: MouseEvent, layerId: LayerID) {
+        if (!e.shiftKey)
+            layerBeingRenamed = layerId;
     }
 
     /**
@@ -223,7 +225,7 @@
                     <button
                         class="preview"
                         onclick={(e) => selectLayer(e, layer.id)}
-                        ondblclick={() => beginRenameLayer(layer.id)}
+                        ondblclick={(e) => beginRenameLayer(e, layer.id)}
                     >
                         {#if layer.type === 'canvas'}
                             <Image size={16} />
