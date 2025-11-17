@@ -5,6 +5,7 @@
     import ui from "../../scripts/ui.svelte";
     import docs from "../../scripts/docs.svelte";
     import { colorToCSS, type Color } from "../../scripts/docs.svelte";
+    import SliderWithInput from "../ui/SliderWithInput.svelte";
 
     /**
      * Get active foreground and background colors from UI state,
@@ -91,20 +92,27 @@
 <Panel title="Shape">
     <div id="container">
         <div id="controls">
-            <div class="control">
-                <div>
-                    <label for="stroke-width">Stroke Width</label>
-                    <span>{Math.round(shapeSource.strokeWidth * 10) / 10}px</span>
-                </div>
-                <Slider bind:value={shapeSource.strokeWidth} min={0} max={100} step={0.1} />
-            </div>
-            <div class="control" class:disabled={selectedShapeLayer?.type === "ellipse"}>
-                <div>
-                    <label for="feather">Corner Radius</label>
-                    <span>{Math.round(cornerRadius * 10) / 10}px</span>
-                </div>
-                <Slider value={cornerRadius} onValueChange={updateCornerRadius} min={0} max={100} step={1} />
-            </div>
+            <SliderWithInput name="Stroke Width"
+                             bind:value={shapeSource.strokeWidth}
+                             min={0}
+                             max={100}
+                             step={0.1}
+            />
+            <SliderWithInput name="Corner Radius"
+                             value={cornerRadius}
+                             min={0}
+                             max={100}
+                             step={0.1}
+                             onSliderChange={updateCornerRadius}
+                             onInputBlur={updateCornerRadius}
+            />
+<!--            <div class="control" class:disabled={selectedShapeLayer?.type === "ellipse"}>-->
+<!--                <div>-->
+<!--                    <label for="feather">Corner Radius</label>-->
+<!--                    <span>{Math.round(cornerRadius * 10) / 10}px</span>-->
+<!--                </div>-->
+<!--                <Slider value={cornerRadius} onValueChange={updateCornerRadius} min={0} max={100} step={1} />-->
+<!--            </div>-->
             <div class="control-horizontal">
                 <label for="stroke-alignment">Stroke Align</label>
                 <select bind:value={shapeSource.strokeAlign} id="stroke-alignment">

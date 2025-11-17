@@ -7,9 +7,9 @@
         max?: number,
         step?: number,
         value: number,
-        onSliderChange: (value: number) => void,
-        onSliderBlur: () => void,
-        onInputBlur: (value: number) => void,
+        onSliderChange?: (value: number) => void,
+        onSliderBlur?: () => void,
+        onInputBlur?: (value: number) => void,
     }
 
     let {
@@ -18,9 +18,9 @@
         max,
         step,
         value = $bindable(),
-        onSliderChange,
-        onSliderBlur,
-        onInputBlur
+        onSliderChange = (n: number) => {},
+        onSliderBlur = () => {},
+        onInputBlur = (n: number) => {}
     }: SliderWithInputProps = $props();
 
     let stringifiedValue = $derived(value.toFixed(2));
