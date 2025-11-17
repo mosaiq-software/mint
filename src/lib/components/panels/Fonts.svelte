@@ -23,7 +23,7 @@
     let systemFonts: string[] = $state(getUnfilteredSystemFonts());
 
     $effect(() => {
-        if (outerElement && systemFonts.length === 0 && unfilteredSystemFonts.length > 0) {
+        if (outerElement && unfilteredSystemFonts.length > 0) {
             const [{spanMeasures: nullMeasures}, ...fontInfo] = Array.from(outerElement.children)
                 .map((div, i) => {
                     const font = i === 0 ? '' : unfilteredSystemFonts[i - 1];
