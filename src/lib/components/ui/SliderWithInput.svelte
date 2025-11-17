@@ -10,6 +10,7 @@
         onSliderChange?: (value: number) => void,
         onSliderBlur?: () => void,
         onInputBlur?: (value: number) => void,
+        disabled?: boolean
     }
 
     let {
@@ -20,7 +21,8 @@
         value = $bindable(),
         onSliderChange = (n: number) => {},
         onSliderBlur = () => {},
-        onInputBlur = (n: number) => {}
+        onInputBlur = (n: number) => {},
+        disabled = false
     }: SliderWithInputProps = $props();
 
     let stringifiedValue = $derived(value.toFixed(2));
@@ -36,7 +38,7 @@
     }
 </script>
 
-<div id="slider-with-input">
+<div id="slider-with-input" class:disabled={disabled}>
     <div id="labels">
         <label for={`slider-input-${name.split(' ')[0]}`}>{name}</label>
         <Input name={name}
@@ -59,5 +61,10 @@
     #labels {
         display: flex;
         justify-content: space-between;
+    }
+
+    .disabled {
+        opacity: 0.5;
+        pointer-events: none;
     }
 </style>

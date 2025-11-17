@@ -105,6 +105,7 @@
                              step={0.1}
                              onSliderChange={updateCornerRadius}
                              onInputBlur={updateCornerRadius}
+                             disabled={selectedShapeLayer?.type === "ellipse"}
             />
 <!--            <div class="control" class:disabled={selectedShapeLayer?.type === "ellipse"}>-->
 <!--                <div>-->
