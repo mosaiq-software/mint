@@ -2,9 +2,12 @@ import {type Document, type DocumentID} from './docs.svelte';
 import {render} from "./render";
 import type {TextLayer, CanvasLayer} from "./layer";
 
+/** The current database version. Iterate for future production schemas. */
+const VERSION = 1;
+
 enum DBs {
     METADATA = 'metadata',
-    LAYERS = 'LAYERS',
+    LAYERS = 'layers',
     PREVIEWS = 'previews'
 }
 
@@ -31,17 +34,18 @@ interface DatabaseTypes {
 /**
  * Opens a local database and accesses an object store.
  * @param name The name of the database.
- * @param version The version, important if we ever create new production DB schemas...
  * @returns A promise containing the database to be worked on.
  */
-function workOnDatabase(name: DBs, version: number = 1): Promise<IDBDatabase> {
+function workOnDatabase(name: DBs): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open(name, version);
+        const request = indexedDB.open(name, VERSION);
 
         request.onupgradeneeded = (event) => {
-            const database = (event.target as IDBOpenDBRequest).result;
-            if (!database?.objectStoreNames.contains(name)) {
-                database.createObjectStore(name);
+            if (event.oldVersion === 0) {
+                const database = (event.target as IDBOpenDBRequest).result;
+                if (!database?.objectStoreNames.contains(name)) {
+                    database.createObjectStore(name);
+                }
             }
         }
 

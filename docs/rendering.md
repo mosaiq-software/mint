@@ -2,7 +2,7 @@
 Because the Canvas API takes care of almost every piece of desired rendering behavior, the rendering component of Mint is one of the simplest.
 
 ## Behavior
-Whenever the layers in a document are changed, the document is re-rendered Layers are drawn in the order they appear in `docs.selected.layers`, meaning that the last layer in the layers array is the one that will appear on top.
+Whenever the layers in a document are changed, the document is re-rendered. Layers are drawn in the order they appear in `docs.selected.layers`, meaning that the last layer in the layers array is the one that will appear on top.
 
 Before rendering each layer, the layer transform is applied to the drawing context. After rendering a layer, this transformation is popped and replaced by that of the next layer.
 

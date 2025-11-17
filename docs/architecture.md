@@ -16,3 +16,7 @@ Every layer has certain shared fields (`BaseLayer`) used by the rendering engine
 Mint relies heavily on [global reactive state](https://svelte.dev/docs/svelte/svelte-js-files) for its state management. The two most important pieces of global state are `docs.svelte.ts` and `ui.svelte.ts`, which export `docs` and `ui` respectively. Components are encouraged to modify these core state objects directly.
 
 Additionally, tools can keep track of their own global state, which can be used by panel components to modify their behavior. For example, `draw.svelte.ts` stores the current brush size and feather, which is modified by `Brush.svelte`.
+
+## Persistence
+
+Mint uses the IndexedDB API for local persistence. All elements of a document, including the Blob representing CanvasLayer image data, can be preserved across sessions on a device. All persistence operations are handled asynchronously in `persistence.svelte.ts`.
