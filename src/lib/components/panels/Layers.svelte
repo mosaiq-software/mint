@@ -99,7 +99,8 @@
         const scrollTop = layersElement.scrollTop;
         const yWithinLayers = scrollTop + (event.clientY - layersRect.top);
         const uncappedIndex = Math.floor(yWithinLayers / interLayerDiff);
-        shadowLayerIndex = Math.max(0, Math.min(uncappedIndex, layerDisplayList.length));
+        const reversedUncappedIndex = layerDisplayList.length - uncappedIndex - 1;
+        shadowLayerIndex = Math.max(0, Math.min(reversedUncappedIndex, layerDisplayList.length));
     }
 
     function updateLayerOrder() {
@@ -132,7 +133,7 @@
 
     function handleDragStart(event: DragEvent, layer: Layer, index: number) {
         layerBeingDragged = layer;
-        shadowLayerIndex = index;
+        shadowLayerIndex = layerDisplayList.length - index - 1;
         const layersElement = document.getElementById('layers');
         layersRect = layersElement?.getBoundingClientRect() ?? null;
         const layer1Rect = layersElement?.children[0]?.getBoundingClientRect();
@@ -165,7 +166,7 @@
         {#if !docs.selected}
             <div>No document selected</div>
         {:else}
-            {#each layerDisplayList as layer, index}
+            {#each [...layerDisplayList].reverse() as layer, index}
                 <div
                     class="layer"
                     style:opacity="{layer.id !== layerBeingDragged?.id ? 1 : 0.6}"
