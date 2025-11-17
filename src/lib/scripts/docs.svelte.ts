@@ -4,16 +4,26 @@ import type { Point } from './tools';
 import { populateSnapshots } from './action';
 import tabStatus, {initializeTab} from "./tabStatus.svelte.js";
 
-/* IDs */
+/* Types */
+
+/** 
+ * A unique identifier string used for documents and layers.
+ * Matches the standard UUID format (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+ */
 export type UUID = `${string}-${string}-${string}-${string}-${string}`;
 export type DocumentID = `document-${UUID}`;
 
-/* Data Structures */
+/**
+ * Stores transformation data for layers.
+ * Includes translation, rotation, and scaling information.
+ */
 export type Transform = {
-    // seems redundant, but allows for separated transforms
     matrix: DOMMatrix;
 };
 
+/**
+ * Represents a color with red, green, blue, and alpha components.
+ */
 export type Color = {
     r: number; // 0-255
     g: number; // 0-255
@@ -21,13 +31,20 @@ export type Color = {
     a: number; // 0-1
 }
 
+/**
+ * Breaks down transformation matrix into individual components.
+ * Includes translation, rotation (in degrees), and scaling factors.
+ */
 export type TransformComponents = {
     translate: Point;
     rotate: number; // in degrees
     scale: Point;
 }
 
-/* Document */
+/**
+ * Represents a document with its properties and layers.
+ * Includes unique ID, name, dimensions, and an array of layers.
+ */
 export type Document = {
     id: DocumentID;
     name: string;
@@ -36,12 +53,21 @@ export type Document = {
     layers: Layer[];
 };
 
-/* State */
+/**
+ * Stores all open documents in the application.
+ * Aliases the currently selected document using the `selected` property.
+ */
 const docs: Record<DocumentID, Document> & {selected: Document | null} = $state({
     selected: null
 });
 
 /* Functions */
+
+/**
+ * Converts a layer's transformation matrix into individual transform components.
+ * @param matrix A layer's transformation matrix.
+ * @returns 
+ */
 export function matrixToTransformComponents(matrix: DOMMatrix): TransformComponents {
     const { a, b, c, d, e, f } = matrix;
     let scaleX = Math.hypot(a, b);
@@ -58,10 +84,23 @@ export function matrixToTransformComponents(matrix: DOMMatrix): TransformCompone
     };
 }
 
+/**
+ * Converts a Color object to a CSS-compatible RGBA string.
+ * @param color A color object.
+ * @returns A CSS-compatible RGBA string.
+ */
 export function colorToCSS(color: Color): string {
     return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
 }
 
+/**
+ * Creates a new document with the specified properties.
+ * Initializes UI components and selects the new document.
+ * @param name The name of the document.
+ * @param width The width of the document.
+ * @param height The height of the document.
+ * @returns The unique identifier of the newly created document.
+ */
 export function createDocument(name: string, width: number, height: number): DocumentID {
     const id: DocumentID = `document-${crypto.randomUUID()}`;
     docs[id] = {
@@ -74,6 +113,11 @@ export function createDocument(name: string, width: number, height: number): Doc
     return id;
 }
 
+/**
+ * Selects a document by its unique identifier.
+ * Updates the global UI and document state to reflect the selected document.
+ * @param id The unique identifier of the document to select, or null to deselect.
+ */
 export function selectDocument(id: DocumentID | null) {
     ui.selectedDocument = id;
 
@@ -81,10 +125,10 @@ export function selectDocument(id: DocumentID | null) {
         ui.selected = null;
         docs.selected = null;
     } else {
-        // populate selected UI and document for easy access
         ui.selected = ui[id];
         docs.selected = docs[id];
 
+        // populate snapshots for undo/redo functionality
         populateSnapshots(docs[id].layers);
         if (!(id in tabStatus)) {
             initializeTab(id);

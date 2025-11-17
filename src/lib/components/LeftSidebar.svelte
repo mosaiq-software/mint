@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket } from "@lucide/svelte";
     import MintLogo from "./ui/MintLogo.svelte";
-    import { Popover } from "melt/builders";
-    import ui, { modesGroup } from "../scripts/ui.svelte";
+    import { Popover, RadioGroup } from "melt/builders";
+    import ui, { type Mode } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
     import { colorToCSS } from "../scripts/docs.svelte";
     import ColorPicker from "./overlays/ColorPicker.svelte";
@@ -21,6 +21,11 @@
         },
         open: getPopoverOpen,
         onOpenChange: (open) => popoverOpen = open,
+    });
+
+    const modesGroup = new RadioGroup({
+        value: () => ui.mode,
+        onValueChange: (val) => (ui.mode = val as Mode),
     });
 
     const source: {
@@ -43,6 +48,7 @@
         closeOnOutsideClick: false
     });
 
+    /** Swap the foreground and background colors of the source. */
     function swapColors() {
         if (!source) return;
 
@@ -51,6 +57,7 @@
         source.backgroundColor = fg;
     }
 
+    /** Handle clicks outside the color edit popover to close it. */
     onMount(() => {
         function handleMouseDown(event: MouseEvent) {
             const contentEl = document.getElementById(editColorPopover.ids.content);

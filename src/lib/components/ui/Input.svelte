@@ -29,6 +29,10 @@
         onBlur = (e: FocusEvent) => {}
     }: Props = $props();
 
+    /**
+     * Handle keydown events for the input field.
+     * @param e The keyboard event.
+     */
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === "Enter") {
             (e.target as HTMLInputElement).blur();

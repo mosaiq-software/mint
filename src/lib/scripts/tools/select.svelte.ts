@@ -7,10 +7,12 @@ import { setPreviousRotation } from "../ui.svelte";
 
 const scaleHandleHitboxSize = 5;
 const rotateHandleHitboxSize = 5;
-const rotateHandleOffset = 25; // distance above the bounding box
+const rotateHandleOffset = 25;
 
+/** The scale directions represented by each scale handle */
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 
+/** The current select tool action */
 export type SelectAction = {
     type: 'select'
 } | {
@@ -22,17 +24,13 @@ export type SelectAction = {
     type: 'rotate',
 }
 
+/** Select tool state */
 const select: {
     action: SelectAction,
-    dragging: boolean
+    dragging: boolean,
 } = $state({
     action: { type: 'select' },
-    dragging: false,
-    bounds: {
-        pos: { x: 0, y: 0 },
-        size: { x: 0, y: 0 },
-        rot: 0
-    }
+    dragging: false
 });
 
 const initial = {
@@ -42,6 +40,7 @@ const initial = {
     c: { x: 0, y: 0 } as Point
 }
 
+/** The select tool implementation. Handles selection, moving, scaling, and rotating layers. */
 export const selectTool: Tool = {
     name: 'select',
     onPointerDown: (data) => {
@@ -87,14 +86,10 @@ export const selectTool: Tool = {
                 setAction(data.v, data.c);
                 if (ui.selected) {
                     if (data.e.shiftKey) {
-                        if (!ui.selected.selectedLayers.includes(found)) {
-                            ui.selected.selectedLayers = [
-                                ...ui.selected.selectedLayers,
-                                found
-                            ];
-                        } else {
-                            ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== found);
-                        }
+                        // toggle selection
+                        ui.selected.selectedLayers = ui.selected.selectedLayers.includes(found)
+                            ? ui.selected.selectedLayers.filter(id => id !== found)
+                            : [...ui.selected.selectedLayers, found];
                     } else {
                         ui.selected.selectedLayers = [found];
                     }
@@ -302,6 +297,11 @@ export const selectTool: Tool = {
     }
 }
 
+/**
+ * Modifies the select tool action based on mouse position.
+ * @param v The current viewport position
+ * @param c The current canvas position
+ */
 function setAction(v: Point, c: Point) {
     if (!docs.selected) return;
 
@@ -312,6 +312,7 @@ function setAction(v: Point, c: Point) {
             .rotate(bounds.rot);
         
         const handlePositions = getScaleHandlePositions(matrix, bounds.size.x, bounds.size.y);
+
         // check if mouse is over any scale handle
         let overScaleHandle: ScaleDirection | null = null;
         for (const dir in handlePositions) {
@@ -352,6 +353,13 @@ function setAction(v: Point, c: Point) {
     select.action = { type: 'select' };
 }
 
+/**
+ * Calculates the world positions of the scale handles given a transform matrix and size.
+ * @param transform The layer's transform matrix
+ * @param width The layer's width
+ * @param height The layer's height
+ * @returns A record mapping each scale direction to its world position
+ */
 function getScaleHandlePositions(transform: DOMMatrix, width: number, height: number): Record<ScaleDirection, Point> {
     // get the corners of the bounding box after transformation
     const corners = [
@@ -374,6 +382,12 @@ function getScaleHandlePositions(transform: DOMMatrix, width: number, height: nu
     };
 }
 
+/**
+ * Calculates the position of the rotate handle given a transform matrix and width.
+ * @param transform The layer's transform matrix
+ * @param width The layer's width
+ * @returns The viewport position of the rotate handle
+ */
 function getRotateHandlePosition(transform: DOMMatrix, width: number): Point {
     // get the top center of the bounding box after transformation
     const topCenter = new DOMPoint(width / 2, 0).matrixTransform(transform);
@@ -398,6 +412,13 @@ function getRotateHandlePosition(transform: DOMMatrix, width: number): Point {
     };
 }
 
+/**
+ * Returns the pivot point (in layer space) for scaling, based on the direction.
+ * @param direction The scale direction
+ * @param width The layer width
+ * @param height The layer height
+ * @returns The pivot point in layer space
+ */
 function getScalePivotPoint(direction: ScaleDirection, width: number, height: number): Point {
     switch (direction) {
         case 'n': return { x: width / 2, y: height };
@@ -411,6 +432,13 @@ function getScalePivotPoint(direction: ScaleDirection, width: number, height: nu
     }
 }
 
+/**
+ * Translates the given layers by the specified delta in canvas space.
+ * @param layers The layers to translate
+ * @param dx The delta x in canvas space
+ * @param dy The delta y in canvas space
+ * @param source Whether to use the 'initial' or 'current' matrix as the base for translation
+ */
 export function translateLayers(layers: Layer[], dx: number, dy: number, source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
         const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
@@ -434,6 +462,13 @@ export function translateLayers(layers: Layer[], dx: number, dy: number, source:
     }
 }
 
+/**
+ * Rotates the given layers by the specified angle around the pivot point, in canvas space.
+ * @param layers The layers to rotate
+ * @param angle The rotation angle in degrees
+ * @param pivot The pivot point in canvas space
+ * @param source Whether to use the 'initial' or 'current' matrix as the base for rotation
+ */
 export function rotateLayers(layers: Layer[], angle: number, pivot: Point, source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
         const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
@@ -445,7 +480,19 @@ export function rotateLayers(layers: Layer[], angle: number, pivot: Point, sourc
     }
 }
 
-export function scaleLayers(layers: Layer[], scaleX: number, scaleY: number, pivot: Point, angle: number, source: 'initial' | 'current' = 'initial') {
+/**
+ * Scales the given layers by the specified scale factors around the pivot point, in canvas space.
+ * @param layers The layers to scale
+ * @param scaleX The scale factor in x
+ * @param scaleY The scale factor in y
+ * @param pivot The pivot point in canvas space
+ * @param angle The current rotation angle of the layers in degrees
+ * @param source Whether to use the 'initial' or 'current' matrix as the base for scaling
+ */
+export function scaleLayers(
+    layers: Layer[], scaleX: number,
+    scaleY: number, pivot: Point, angle: number,
+    source: 'initial' | 'current' = 'initial') {
     for (const layer of layers) {
         const matrix = source === 'initial' ? initial.matrices[layer.id] : layer.transform.matrix;
 

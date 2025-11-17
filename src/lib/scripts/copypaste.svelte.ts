@@ -3,13 +3,24 @@ import docs from "./docs.svelte";
 import { deepCopyLayer, postAction, type PostAction } from "./action";
 import ui from "./ui.svelte";
 
-export let clipboard: {layers: Layer[]} = $state({layers: []});
+/**
+ * Stores the clipboard data for copy-paste operations.
+ * Holds an array of layers that can be pasted.
+ */
+let clipboard: {layers: Layer[]} = $state({layers: []});
 
+/**
+ * Copies the currently selected layers to the clipboard.
+ */
 export function copyLayersToClipboard() {
     if (ui.selectedLayers.length === 0) return;
     clipboard.layers = ui.selectedLayers.map(layer => deepCopyLayer(layer));
 }
 
+/**
+ * Pastes the layers stored in the clipboard into the currently selected document
+ * and adds a corresponding action to the action history.
+ */
 export function pasteLayersFromClipboard() {
     if (!docs.selected || clipboard.layers.length === 0) return;
 

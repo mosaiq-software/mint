@@ -17,12 +17,13 @@
     let canvas: HTMLCanvasElement;
     let scrollContainer: HTMLDivElement;
     let pointerPosition = $state({ x: 0, y: 0 });
-    let selectedLayer = $derived.by(() => {
-        if (!docs.selected || !ui.selected) return null;
-        const layerId = ui.selected.selectedLayers[0];
-        return docs.selected.layers.find(l => l.id === layerId) || null;
-    });
 
+    let selectedLayer = $derived(
+        ui.selectedLayers.length === 1
+            ? ui.selectedLayers[0] : null
+    );
+
+    /** Map scale directions to cursor styles. */
     const cursorMap: Record<ScaleDirection, string> = {
         n: 'ns-resize',
         s: 'ns-resize',
@@ -34,6 +35,10 @@
         se: 'nwse-resize',
     };
 
+    /**
+     * Determine the appropriate cursor style based on the
+     * current tool and action.
+     */
     const cursor = $derived.by(() => {
         if (tool.name === 'draw' || tool.name === 'erase') {
             return 'crosshair';
@@ -64,6 +69,7 @@
         }
     });
     
+    /** Update canvas size when document changes. */
     $effect(() => {
         if (canvas && docs.selected) {
             canvas.width = docs.selected.width;
@@ -74,10 +80,12 @@
         }
     });
 
+    /** Re-render when document (or its layers) change. */
     $effect(() => {
         if (canvas && docs.selected) render(canvas, docs.selected);
     });
 
+    /** Keep scroll position in sync with ui state. */
     $effect(() => {
         if (scrollContainer && ui.selected) {
             scrollContainer.scrollLeft = ui.selected.pan.x;
@@ -85,20 +93,36 @@
         }
     });
 
+    /** Update selected layers when UI selection changes. */
     $effect(updateSelectedLayers);
+
+    /** Update document bounding box when layers change. */
     $effect(updateBoundingBox);
 
+    /**
+     * Get the viewport point from a pointer event.
+     * @param e The pointer event.
+     */
     function getViewportPoint(e: { clientX: number, clientY: number }): Point {
         const rect = canvas.getBoundingClientRect();
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
 
+    /**
+     * Get the canvas point from a viewport point.
+     * @param v The viewport point.
+     */
     function getCanvasPoint(v: Point): Point {
         if (!docs.selected || !ui.selected) return v;
         const zoom = ui.selected.zoom;
         return { x: v.x / zoom, y: v.y / zoom };
     }
 
+    /**
+     * Get the layer space point from a canvas point.
+     * @param c The canvas point.
+     * @param layerId The ID of the layer.
+     */
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
         if (!docs.selected) return null;
         const layer = docs.selected.layers.find(l => l.id === layerId);
@@ -109,6 +133,10 @@
         return { x: point.x, y: point.y };
     }
 
+    /**
+     * Send pointer down events to the current tool.
+     * @param e The pointer event.
+     */
     function handlePointerDown(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
@@ -117,6 +145,10 @@
         tool.onPointerDown?.({ v, c, l, e });
     }
 
+    /**
+     * Send pointer move events to the current tool.
+     * @param e The pointer event.
+     */
     function handlePointerMove(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
@@ -141,6 +173,10 @@
         pointerPosition = v;
     }
 
+    /**
+     * Send pointer up events to the current tool.
+     * @param e The pointer event.
+     */
     function handlePointerUp(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
@@ -149,6 +185,10 @@
         tool.onPointerUp?.({ v, c, l, e });
     }
 
+    /**
+     * Send keydown events to the current tool, and handle global shortcuts.
+     * @param e The keyboard event.
+     */
     function handleKeyDown(e: KeyboardEvent) {
         // override the input/textarea prevention iff keybind is
         // ctrl+b or ctrl+i (which affect text layers)
@@ -164,11 +204,13 @@
     let dragOver = $state(false);
     let entryCount = $state(0);
 
+    /** Handle drag enter events to show drop margins. */
     function handleDragEnter() {
         entryCount++;
         dragOver = true;
     }
 
+    /** Handle drag leave events to hide drop margins. */
     function handleDragLeave() {
         entryCount--;
         if (entryCount === 0) {
@@ -176,6 +218,10 @@
         }
     }
 
+    /**
+     * Handle image drop events, determining drop margin if any.
+     * @param e The drag event.
+     */
     function handleImageDropLocal(e: DragEvent) {
         entryCount = 0;
         dragOver = false;
@@ -188,6 +234,7 @@
         }
     }
 
+    /** Handle scroll events to update ui pan state. */
     function handleScroll() {
         if (ui.selected && scrollContainer) {
             pointerPosition = {
@@ -202,6 +249,10 @@
         }
     }
 
+    /**
+     * Handle wheel events for zooming the canvas. Zooms around
+     * the pointer position.
+     */
     function handleWheel(e: WheelEvent) {
         if (e.ctrlKey && ui.selected) {
             e.preventDefault();

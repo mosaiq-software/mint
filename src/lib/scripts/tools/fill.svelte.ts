@@ -1,27 +1,25 @@
 import type { Tool, Point } from "./index";
 import ui from "../ui.svelte";
 import docs, { type Color } from "../docs.svelte";
-import type {CanvasLayer} from "../layer";
-import {postAction} from "../action";
+import { postAction } from "../action";
 
+/**
+ * Fill tool implementation using span filling algorithm. Fills all
+ * contiguous pixels of the same color as the clicked pixel with
+ * the current foreground color of the selected canvas layer.
+ */
 export const fillTool: Tool = {
     name: 'fill',
     onPointerDown: (data) => {
-        // if a layer is selected, ensure it's a canvas layer
-        if (!ui.selectedDocument || !data.l) return;
-        const selectedLayers = ui.selected?.selectedLayers ?? [];
-        if (selectedLayers.length === 0) return;
-
-        if (!docs.selected) return;
-
-        const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-        if (!layer || layer.type !== 'canvas') return;
+        if (!ui.selectedDocument || !data.l || !docs.selected) return;
+        if (ui.selectedLayers.length !== 1 || ui.selectedLayers[0].type !== 'canvas') return;
+        const layer = ui.selectedLayers[0];
 
         const l: Point = {x: Math.floor(data.l.x), y: Math.floor(data.l.y)};
 
         const ctx = layer.canvas.getContext('2d');
-        const width = layer.canvas.width, height = layer.canvas.height;
         if (!ctx) return;
+        const width = layer.canvas.width, height = layer.canvas.height;
         const srcColorData = ctx.getImageData(l.x, l.y, 1, 1).data;
 
         function imageDataToColor(data: ImageDataArray): Color {
@@ -76,8 +74,8 @@ export const fillTool: Tool = {
             imageData.data[pointIndex * 4 + 3] = dstColor.a;
         }
 
+        // span filling algorithm. just trust me OK?
         // https://en.wikipedia.org/wiki/Flood_fill#Span_filling
-        // just trust OK?
 
         interface QueueEntry {x1: number, x2: number, y: number, dy: number}
         const queue: QueueEntry[] = [

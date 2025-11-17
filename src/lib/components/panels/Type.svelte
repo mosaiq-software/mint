@@ -12,9 +12,21 @@
 
     const textLayer = $derived(getSelectedTextLayer());
     const p: TextProperties = $derived(textLayer ? textLayer : text.properties);
+
+    /**
+     * Get the foreground color for the text preview, either from the
+     * selected text layer or from the global UI state. Default to
+     * black if no document is open.
+     */
     const foregroundColor = $derived(
-        textLayer ? textLayer.foregroundColor : ui.selected ? ui.selected.foregroundColor : { r: 0, g: 0, b: 0, a: 1 }
+        textLayer ? textLayer.foregroundColor : ui.selected
+            ? ui.selected.foregroundColor : { r: 0, g: 0, b: 0, a: 1 }
     );
+
+    /**
+     * Get a suitable background color for the text preview,
+     * contrasting with the text color.
+     */
     const previewBackgroundColor = $derived.by(() => {
         // calculate the avg. brightness of the foreground color
         const c = foregroundColor;
@@ -22,6 +34,7 @@
         return brightness < 128 ? "var(--c-txt)" : "var(--c-bg)";
     });
 
+    /** Add an undo/redo action for changing the font family. */
     function handleFontFamilyChange() {
         if (textLayer) {
             postAction({
@@ -33,6 +46,11 @@
     }
 
     let fontSize = $derived(p.fontSize.toString());
+
+    /**
+     * Handle changes to the font size input field.
+     * Adds an undo/redo action if a text layer is modified.
+     */
     function handleFontSizeChange() {
         const value = parseInt(fontSize);
         if (isNaN(value)) return;
@@ -49,6 +67,11 @@
     }
 
     let lineHeight = $derived(p.lineHeight.toString());
+
+    /**
+     * Handle changes to the line height input field.
+     * Adds an undo/redo action if a text layer is modified.
+     */
     function handleLineHeightChange() {
         const value = parseFloat(lineHeight);
         if (isNaN(value)) return;
@@ -63,6 +86,7 @@
         }
     }
 
+    /** Add an undo/redo action for bold toggle */
     function handleBoldToggle() {
         if (textLayer) {
             postAction({
@@ -73,6 +97,7 @@
         }
     }
 
+    /** Add an undo/redo action for italic toggle */
     function handleItalicToggle() {
         if (textLayer) {
             postAction({
@@ -82,7 +107,6 @@
             });
         }
     }
-
 </script>
 
 <Panel title="Type">

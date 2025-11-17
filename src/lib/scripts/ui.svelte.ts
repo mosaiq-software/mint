@@ -1,19 +1,26 @@
 import type { DocumentID, Color } from "./docs.svelte";
 import docs, { matrixToTransformComponents } from "./docs.svelte";
 import type { Layer, LayerID } from "./layer";
-import {RadioGroup} from "melt/builders";
 import type { Point } from "./tools";
 import { updateBoundsSnapshot } from "./action";
 
+/** Available interaction modes (tools) */
 export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill'] as const;
+
+/** Interaction modes (tools) */
 export type Mode = typeof modes[number];
 
+/**
+ * Bounding box of the selected layers,
+ * including position, size, and rotation.
+ */
 export type Bounds = {
     pos: Point,
     size: Point,
     rot: number
 }
 
+/** UI attributes for a single document */
 type UIAttributes = {
     selectedLayers: LayerID[];
     foregroundColor: Color;
@@ -23,6 +30,7 @@ type UIAttributes = {
     bounds: Bounds | null;
 }
 
+/** Properties for the global UI state. */
 type UI  = Record<DocumentID, UIAttributes> & {
     mode: Mode;
     selected: UIAttributes | null;
@@ -34,6 +42,12 @@ type UI  = Record<DocumentID, UIAttributes> & {
     }
 }
 
+/**
+ * The global UI state. Includes per-document UI attributes,
+ * the current interaction mode, selected layers, and viewport size.
+ * Includes an alias for the currently selected document's UI attributes
+ * (`selected`).
+ * */
 const ui: UI = $state({
     mode: 'select',
     selectedDocument: null,
@@ -45,6 +59,7 @@ const ui: UI = $state({
     }
 });
 
+/** Initializes the UI attributes for a newly opened document. */
 export function initializeUIForDocument(id: DocumentID) {
     ui[id] = {
         selectedLayers: [],
@@ -56,6 +71,7 @@ export function initializeUIForDocument(id: DocumentID) {
     }
 }
 
+/** Updates the selected layers array based on the selected layer IDs. */
 export function updateSelectedLayers() {
     if (!docs.selected) {
         ui.selectedLayers = [];
@@ -71,9 +87,16 @@ export function updateSelectedLayers() {
     ui.selectedLayers = selectedLayers;
 }
 
+// Bounding box tracking
 let previousSelectedDocument: DocumentID | null = null;
 let previousSelectedLayerIDs: LayerID[] = [];
 let previousRotation = 0;
+
+/**
+ * Updates the bounding box to surround the selected layers.
+ * Maintains rotation unless a new layer is selected or deselected.
+ * Adopts the rotation of the selected layers if they all share the same rotation.
+ * */
 export function updateBoundingBox() {
     if (!ui.selected) return;
 
@@ -157,10 +180,20 @@ export function updateBoundingBox() {
     }
 }
 
+/**
+ * Sets the previous rotation used for bounding box calculations.
+ * Useful when manually adjusting rotation.
+ * @param rot The new previous rotation value.
+ */
 export function setPreviousRotation(rot: number) {
     previousRotation = rot;
 }
 
+/**
+ * Zooms in or out around a specific point (in canvas space) in the viewport.
+ * @param zoomFactor The factor to zoom by.
+ * @param point The point (in canvas space) to zoom around.
+ */
 export function zoomAroundPoint(zoomFactor: number, point: Point) {
     if (!ui.selected) return;
 
@@ -184,6 +217,10 @@ export function zoomAroundPoint(zoomFactor: number, point: Point) {
     };
 }
 
+/**
+ * Zooms in or out around the center of the viewport.
+ * @param zoomFactor The factor to zoom by.
+ */
 export function zoomAroundCenter(zoomFactor: number) {
     if (!ui.selected) return;
 
@@ -201,10 +238,5 @@ export function zoomAroundCenter(zoomFactor: number) {
         y: 30 + center.y * ui.selected.zoom - h / 2
     };
 }
-
-export const modesGroup = new RadioGroup({
-    value: () => ui.mode,
-    onValueChange: (val) => (ui.mode = val as Mode),
-});
 
 export default ui;

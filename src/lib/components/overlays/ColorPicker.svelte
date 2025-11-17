@@ -4,11 +4,17 @@
 
     let { color = $bindable() }: { color: Color } = $props();
     let hue: number = $state(0);
+
+    /** Derive saturation and lightness from color */
     let sl = $derived.by(() => {
         const newC = rgbToHsl(color.r, color.g, color.b);
         return { s: newC.s, l: newC.l };
     });
     
+    /** 
+     * When the color changes externally, update hue and alpha slider positions.
+     * Prevent updating hue if saturation is near zero (to avoid hue jumps).
+     */
     $effect(() => {
         const newC = rgbToHsl(color.r, color.g, color.b);
         if (newC.s > 0.001) {
@@ -19,13 +25,16 @@
         aSlider.value = color.a;
     });
 
+    /** Update color based on current hue, saturation, and lightness */
     function updateColor() {
         color = {...hslToRgb(hue, sl.s, sl.l), a: color.a};
     };
 
+    /** Redraw saturation-lightness square when hue changes */
     let slCanvas: HTMLCanvasElement;
-    $effect(() => drawSLSquare(hue));
+    $effect(drawSLSquare);
 
+    /** Hue slider */
     const hSlider = new Slider({
         min: 0,
         max: 1,
@@ -39,6 +48,7 @@
         },
     });
 
+    /** Alpha slider */
     const aSlider = new Slider({
         value: 1,
         min: 0,
@@ -55,9 +65,8 @@
     /**
      * Draw the saturation-lightness square for a given hue
      * @param canvas HTMLCanvasElement
-     * @param hue number (0 to 1)
      */
-    function drawSLSquare(hue: number) {
+    function drawSLSquare() {
         if (!slCanvas) return;
 
         const ctx = slCanvas.getContext('2d');
@@ -102,6 +111,10 @@
         updateColor();
     }
 
+    /**
+     * Convert Color to hex string
+     * @param c Color
+     */
     function colorToHex(c: Color) {
         const toHex = (n: number) => {
             const hex = Math.round(n).toString(16);
@@ -110,7 +123,13 @@
         return `#${toHex(c.r)}${toHex(c.g)}${toHex(c.b)}`;
     }
 
-    // https://gist.github.com/mjackson/5311256
+    /**
+     * Helper function for HSL to RGB conversion
+     * https://gist.github.com/mjackson/5311256
+     * @param p Parameter p ("minumum" RGB component value)
+     * @param q Parameter q ("maximum" RGB component value)
+     * @param t Parameter t (adjusted hue)
+     */
     function hue2rgb(p: number, q: number, t: number) {
         if (t < 0) t += 1;
         if (t > 1) t -= 1;
@@ -120,6 +139,12 @@
         return p;
     }
 
+    /**
+     * Convert HSL to RGB
+     * @param h Hue
+     * @param s Saturation
+     * @param l Lightness
+     */
     function hslToRgb(h: number, s: number, l: number) {
         let r, g, b;
 
@@ -137,6 +162,12 @@
         return { r: r * 255, g: g * 255, b: b * 255 };
     }
 
+    /**
+     * Convert RGB to HSL
+     * @param r Red component (0-255)
+     * @param g Green component (0-255)
+     * @param b Blue component (0-255)
+     */
     function rgbToHsl(r: number, g: number, b: number) {
         r /= 255, g /= 255, b /= 255;
 
@@ -270,7 +301,7 @@
         position: relative;
         width: 100%;
         height: 10px;
-        border-left: 5px solid var(--c-mid);
+        border-left: 5px solid var(--c-pop);
         border-radius: var(--r-full);
     }
 
