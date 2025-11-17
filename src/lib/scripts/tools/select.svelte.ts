@@ -203,6 +203,13 @@ export const selectTool: Tool = {
                         newBounds: ui.selected ? ui.selected.bounds : null
                     });
                 } else if (select.action.type === 'scale') {
+                    actions.push({
+                        type: "transform",
+                        layerID: layer.id,
+                        newMatrix: layer.transform.matrix,
+                        newBounds: ui.selected ? ui.selected.bounds : null
+                    });
+                    
                     if (layer.type === 'rectangle' || layer.type === 'ellipse') {
                         actions.push({
                             type: "update",
@@ -212,13 +219,6 @@ export const selectTool: Tool = {
                                 height: layer.height
                             }
                         });
-                    } else {
-                        actions.push({
-                            type: "transform",
-                            layerID: layer.id,
-                            newMatrix: layer.transform.matrix,
-                            newBounds: ui.selected ? ui.selected.bounds : null
-                        }); 
                     }
                 }
             }
@@ -544,8 +544,8 @@ export function scaleLayers(
             const m = matrixToTransformComponents(layer.transform.matrix);
             const width = source === 'initial' ? initial.sizes[layer.id].x : layer.width;
             const height = source === 'initial' ? initial.sizes[layer.id].y : layer.height;
-            layer.width = (width * m.scale.x);
-            layer.height = (height * m.scale.y);
+            layer.width = Math.abs(width * m.scale.x);
+            layer.height = Math.abs(height * m.scale.y);
 
             // reset scale to 1
             layer.transform.matrix = new DOMMatrix()
