@@ -5,11 +5,10 @@
     import docs from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
     import { postAction } from "../../scripts/action";
+    import SliderWithInput from "../ui/SliderWithInput.svelte";
 
-    const selectedLayer = $derived.by(() => {
-        if (!docs.selected) return null;
-        return docs.selected.layers.find((l) => ui.selected?.selectedLayers.includes(l.id));
-    });
+    const selectedLayer = $derived(ui.selectedLayers.length === 1 ? ui.selectedLayers[0] : null);
+
     const selectedLayerId = $derived(selectedLayer?.id);
 
     let opacity = $derived(selectedLayer?.opacity || 0);
@@ -62,29 +61,41 @@
 </script>
 
 <Panel title="Layer Styles" disabled={!selectedLayer}>
-    <div>
-        <div class="label">Opacity: </div>
-        <Input
-            name="r" labelPosition="side" disabled={!selectedLayer} variant="underline"
-            style="flex-grow: 1; flex-shrink: 0"
-            bind:value={opacityStr}
-            onBlur={() => {
-                if (!selectedLayer) return;
-                opacity = safeParseFloat(opacityStr, selectedLayer?.opacity, 0, 1);
-                opacityStr = opacity.toFixed(2);
-                updateLayer();
-                addOpacityAction();
-            }}
-        >
-            <div></div>
-        </Input>
-        <Slider
-            min={0} max={1} step={0.01}
-            bind:value={opacity}
-            onValueChange={debouncedUpdateLayer}
-            onBlur={addOpacityAction}
-        />
-    </div>
+    <SliderWithInput
+        name="Opacity"
+        bind:value={opacity}
+        min={0}
+        max={1}
+        step={0.01}
+        onInputBlur={() => {
+            if (!selectedLayer) return;
+            opacity = safeParseFloat(opacityStr, selectedLayer?.opacity, 0, 1);
+            opacityStr = opacity.toFixed(2);
+            updateLayer();
+            addOpacityAction();
+        }}
+        onSliderChange={debouncedUpdateLayer}
+        onSliderBlur={addOpacityAction}
+    />
+<!--    <div>-->
+<!--        <div class="label">Opacity: </div>-->
+<!--        <Input-->
+<!--            name="r" labelPosition="side" disabled={!selectedLayer} variant="underline"-->
+<!--            style="flex-grow: 1; flex-shrink: 0"-->
+<!--            bind:value={opacityStr}-->
+<!--            onBlur={() => {-->
+<!--                -->
+<!--            }}-->
+<!--        >-->
+<!--            <div></div>-->
+<!--        </Input>-->
+<!--        <Slider-->
+<!--            min={0} max={1} step={0.01}-->
+<!--            bind:value={opacity}-->
+<!--            onValueChange={debouncedUpdateLayer}-->
+<!--            onBlur={addOpacityAction}-->
+<!--        />-->
+<!--    </div>-->
 </Panel>
 
 <style>

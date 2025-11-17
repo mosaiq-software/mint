@@ -2,7 +2,7 @@ import type { EllipseLayer, RectangleLayer } from "../../layer";
 import ui from "../../ui.svelte";
 
 export const shape = $state({
-    strokeWidth: 2,
+    strokeWidth: 10,
     strokeAlign: 'center' as 'center' | 'inside' | 'outside',
     cornerRadius: 0,
 });
