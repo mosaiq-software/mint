@@ -10,7 +10,7 @@
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
-    import { handleShortcuts } from "../scripts/shortcut";
+    import { handleShortcuts, handleMouseDown, handleMouseUp } from "../scripts/shortcut";
     import { updateBoundingBox } from "../scripts/ui.svelte"
 ;
     let tool = $derived(tools[ui.mode]);
@@ -341,7 +341,11 @@
     <TextMeasure />
 </div>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window
+    onkeydown={handleKeyDown}
+    onmousedown={handleMouseDown}
+    onmouseup={handleMouseUp}
+/>
 
 <style>
     #scroll-container {
