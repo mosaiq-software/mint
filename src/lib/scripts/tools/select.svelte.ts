@@ -84,7 +84,7 @@ export const selectTool: Tool = {
             }
 
             if (found) {
-                setAction(data.v, data.c);
+                setAction(data.v, data.c, data.e);
                 if (ui.selected) {
                     if (data.e.shiftKey) {
                         if (!ui.selected.selectedLayers.includes(found)) {
@@ -190,7 +190,7 @@ export const selectTool: Tool = {
             }
         } else {
             // determine action based on mouse position
-            setAction(data.v, data.c);
+            setAction(data.v, data.c, data.e);
         }
     },
     onPointerUp: (data) => {
@@ -237,7 +237,7 @@ export const selectTool: Tool = {
         }
 
         // after mouse up, determine action based on mouse position
-        setAction(data.v, data.c);
+        setAction(data.v, data.c, data.e);
     },
     onKeyDown: (e) => {
         if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -302,7 +302,7 @@ export const selectTool: Tool = {
     }
 }
 
-function setAction(v: Point, c: Point) {
+function setAction(v: Point, c: Point, e: MouseEvent) {
     if (!docs.selected) return;
 
     if (ui.selected?.bounds) {
@@ -335,6 +335,12 @@ function setAction(v: Point, c: Point) {
         const dist = Math.hypot(v.x - rotateHandle.x, v.y - rotateHandle.y);
         if (dist < rotateHandleHitboxSize) {
             select.action = { type: 'rotate' };
+            return;
+        }
+
+        // if shift is selected, use select, not move
+        if (e.shiftKey) {
+            select.action = { type: 'select' };
             return;
         }
 
