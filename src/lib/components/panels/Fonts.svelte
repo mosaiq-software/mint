@@ -3,12 +3,20 @@
 
     let { fontFamily = $bindable("Arial") } = $props();
 
+    /** Fonts native to common OS types.
+     * Windows and MacOS lists sourced from https://stackoverflow.com/a/62755574.
+     * Linux fonts sourced from various machines.
+     */
     const FONTS: Record<string, string[]> = {
         'Windows': ["Arial", "Arial Black", "Bahnschrift", "Calibri", "Cambria", "Candara", "Comic Sans MS", "Consolas", "Constantia", "Corbel", "Courier New", "Ebrima", "Franklin Gothic Medium", "Gabriola", "Gadugi", "General Sans", "Georgia", "Impact", "Ink Free", "Javanese Text", "Leelawadee UI", "Lucida Console", "Lucida Sans Unicode", "Malgun Gothic", "Marlett", "Microsoft Himalaya", "Microsoft JhengHei", "Microsoft New Tai Lue", "Microsoft PhagsPa", "Microsoft Sans Serif", "Microsoft Tai Le", "Microsoft YaHei", "Microsoft Yi Baiti", "MingLiU-ExtB", "Mongolian Baiti", "MS Gothic", "MV Boli", "Myanmar Text", "Nirmala UI", "Palatino Linotype", "Segoe MDL2 Assets", "Segoe Print", "Segoe Script", "Segoe UI",  "SimSun", "Sitka", "Sylfaen", "Tahoma", "Times New Roman", "Trebuchet MS", "Verdana", "Webdings", "Yu Gothic"],
         'MacOS': ["American Typewriter", "Andale Mono", "Arial", "Arial Black", "Arial Narrow", "Arial Rounded MT Bold", "Arial Unicode MS", "Avenir", "Avenir Next", "Avenir Next Condensed", "Baskerville", "Big Caslon", "Bodoni 72", "Bradley Hand", "Brush Script MT", "Chalkboard", "Chalkboard SE", "Chalkduster", "Charter", "Cochin", "Comic Sans MS", "Copperplate", "Courier", "Courier New", "Didot", "DIN Alternate", "DIN Condensed", "Futura", "General Sans", "Geneva", "Georgia", "Gill Sans", "Helvetica", "Helvetica Neue", "Herculanum", "Hoefler Text", "Impact", "Lucida Grande", "Luminari", "Marker Felt", "Menlo", "Microsoft Sans Serif", "Monaco", "Noteworthy", "Optima", "Palatino", "Papyrus", "Phosphate", "Rockwell", "Savoye LET", "SignPainter", "Skia", "Snell Roundhand", "Tahoma", "Times", "Times New Roman", "Trattatello", "Trebuchet MS", "Verdana", "Zapfino"],
         'Linux': ["Arial", "Arial Black", "C059", "Cantarell", "Comic Sans MS", "Courier New", "D050000L", "DejaVu Sans", "DejaVu Sans Mono", "DejaVu Serif", "FreeMono", "FreeSans", "FreeSerif", "General Sans", "Georgia", "Impact", "Liberation Mono", "Liberation Sans", "Liberation Serif", "Microsoft Sans Serif", "Nimbus Mono PS", "Nimbus Roman", "Nimbus Sans", "Nimbus Sans Narrow", "Noto Color Emoji", "Noto Mono", "Noto Sans", "Noto Serif", "P052", "Standard Symbols PS", "Tahoma", "Times New Roman", "Trebuchet MS", "Ubuntu", "Ubuntu Mono", "URW Bookman", "URW Gothic", "Verdana", "Z003"]
     };
 
+    /**
+     * Get FONTS corresponding to the user's current OS.
+     * @return A list of fonts.
+     */
     function getUnfilteredSystemFonts() {
         const agent = navigator.userAgent;
         if (/Win/.test(agent)) return FONTS['Windows'];
@@ -22,6 +30,13 @@
 
     let systemFonts: string[] = $state(getUnfilteredSystemFonts());
 
+    /**
+     * Determines the subset of unfilteredSystemFonts available on the user's system
+     * using logic inspired by: https://stackoverflow.com/a/3368855.
+     * Each font is used to display the same string several times
+     * with a different fallback font each time; the ones found to be
+     * using the fallbacks are omitted.
+     */
     $effect(() => {
         if (outerElement && unfilteredSystemFonts.length > 0) {
             const [{spanMeasures: nullMeasures}, ...fontInfo] = Array.from(outerElement.children)
@@ -71,6 +86,11 @@
         );
     });
 
+    /**
+     * The list of system fonts filtered by exact search and also including
+     * the typed search query as an option.
+     * This allows the user to input custom fonts.
+     */
     const filtered = $derived.by(() => {
         return [
             ...(
