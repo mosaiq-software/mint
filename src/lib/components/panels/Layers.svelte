@@ -211,6 +211,13 @@
         {#if !docs.selected}
             <div>No document selected</div>
         {:else}
+            <div id="add">
+                <button id="add-layer" disabled={!docs.selected} onclick={addLayer}>
+                    <ButtonVisual size="small" style="subtle" width="full" disabled={!docs.selected}>
+                        <Plus />
+                    </ButtonVisual>
+                </button>
+            </div>
             {#each [...layerDisplayList].reverse() as layer, index}
                 <div
                     class="layer"
@@ -267,13 +274,6 @@
                 </div>
             {/each}
         {/if}
-        <div id="add">
-            <button id="add-layer" disabled={!docs.selected} onclick={addLayer}>
-                <ButtonVisual size="small" style="subtle" width="full" disabled={!docs.selected}>
-                    <Plus />
-                </ButtonVisual>
-            </button>
-        </div>
     </div>
 </Panel>
 
