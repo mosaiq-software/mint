@@ -3,7 +3,7 @@ import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
-import { copyLayerToClipboard, pasteLayerFromClipboard } from "./copyPaste.svelte";
+import { copyLayersToClipboard, pasteLayersFromClipboard } from "./copyPaste.svelte";
 import type {TextLayer} from "./layer";
 
 /**
@@ -80,13 +80,11 @@ function toggleTextProperty<K extends keyof TextLayer>(property: K) {
 
 /** Handles copying the currently selected layer to the clipboard. */
 function handleCopy() {
-    if (ui.selectedLayers.length !== 1) return;
-    copyLayerToClipboard(ui.selectedLayers[0]);
+    copyLayersToClipboard();
 }
 
-/** Handles pasting the layer from the clipboard into the current document. */
 function handlePaste() {
-    pasteLayerFromClipboard();
+    pasteLayersFromClipboard();
 }
 
 /** Handles saving the currently selected document to the database. */

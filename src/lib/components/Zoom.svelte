@@ -77,4 +77,8 @@
         height: 100%;
         border-left: var(--s-xs) solid var(--c-mid);
     }
+
+    #zoom select {
+        width: 80px;
+    }
 </style>

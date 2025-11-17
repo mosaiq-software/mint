@@ -13,6 +13,7 @@
     import Input from "./ui/Input.svelte";
     import { ButtonVisual } from "./ui";
     import { initializeUIForDocument } from "../scripts/ui.svelte";
+    import tabStatus from "../scripts/tabStatus.svelte";
 
     const { doc, rerenderDocs }: {
         doc: Document & { preview: OffscreenCanvas, lastModified: number },
@@ -65,6 +66,8 @@
     async function deleteDoc() {
         await deleteDocumentFromDB(doc);
         rerenderDocs();
+        delete docs[doc.id];
+        delete tabStatus[doc.id];
     }
 
     /**
