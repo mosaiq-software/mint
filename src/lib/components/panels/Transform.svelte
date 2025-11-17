@@ -112,20 +112,32 @@
         }, 8); // ~1 frame at 60Hz
     }
 
-    /** Flip the selected layers horizontally. */
-    function flipH() {
+    /** Flip the selected layers horizontally or vertically. */
+    function flip(direction: 'h' | 'v') {
         if (ui.selected?.bounds) {
             const center = getBoundsCenter(ui.selected.bounds);
-            scaleLayers(ui.selectedLayers, -1, 1, center, r, 'current');
+            scaleLayers(
+                ui.selectedLayers,
+                direction === 'h' ? -1 : 1,
+                direction === 'v' ? -1 : 1,
+                center, r, 'current'
+            );
         }
-    }
 
-    /** Flip the selected layers vertically. */
-    function flipV() {
-        if (ui.selected?.bounds) {
-            const center = getBoundsCenter(ui.selected.bounds);
-            scaleLayers(ui.selectedLayers, 1, -1, center, r, 'current');
+        const actions: PostAction[] = [];
+        for (const layer of ui.selectedLayers) {
+            actions.push({
+                type: "transform",
+                layerID: layer.id,
+                newMatrix: layer.transform.matrix,
+                newBounds: ui.selected ? ui.selected.bounds : null
+            });
         }
+
+        postAction({
+            type: "compound",
+            actions: actions
+        });
     }
 </script>
 
@@ -170,12 +182,12 @@
             onSliderChange={debouncedApplyTransform}
             onSliderBlur={() => applyTransform(true)}
         />
-        <button onclick={() => flipH()}>
+        <button onclick={() => flip('h')}>
             <IconButtonVisual label="Flip horizontally">
                 <FlipHorizontal2 size={16} />
             </IconButtonVisual>
         </button>
-        <button onclick={() => flipV()}>
+        <button onclick={() => flip('v')}>
             <IconButtonVisual label="Flip vertically">
                 <FlipVertical2 size={16} />
             </IconButtonVisual>
