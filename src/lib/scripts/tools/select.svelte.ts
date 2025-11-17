@@ -495,13 +495,13 @@ export function rotateLayers(layers: Layer[], angle: number, pivot: Point, sourc
  * @param pivot The pivot point in canvas space
  * @param angle The current rotation angle of the layers in degrees
  * @param source Whether to use the 'initial' or 'current' matrix as the base for scaling
+ * @param ignoreRotationFlip Whether to ignore flipping rotation when scaleY changes sign
  */
 export function scaleLayers(
     layers: Layer[], scaleX: number,
     scaleY: number, pivot: Point, angle: number,
     source: 'initial' | 'current' = 'initial',
     ignoreRotationFlip: boolean = false) {
-
     // flip rotation when scaleY changes sign
     if (source === 'initial' && !ignoreRotationFlip) {
         if (initial.bounds && ui.selected?.bounds) {
