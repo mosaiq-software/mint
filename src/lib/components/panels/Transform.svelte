@@ -158,7 +158,8 @@
             <div class="label">H:</div>
         </Input>
     </div>
-    <SliderWithInput
+    <div>
+        <SliderWithInput
             name="Rotation"
             bind:value={r}
             min={-180} max={180} step={1}
@@ -168,20 +169,17 @@
             }}
             onSliderChange={debouncedApplyTransform}
             onSliderBlur={() => applyTransform(true)}
-    />
-    <div>
-        <div style="justify-content: flex-end">
-            <button onclick={() => flipH()}>
-                <IconButtonVisual label="Flip horizontally">
-                    <FlipHorizontal2 size={16} />
-                </IconButtonVisual>
-            </button>
-            <button onclick={() => flipV()}>
-                <IconButtonVisual label="Flip vertically">
-                    <FlipVertical2 size={16} />
-                </IconButtonVisual>
-            </button>
-        </div>
+        />
+        <button onclick={() => flipH()}>
+            <IconButtonVisual label="Flip horizontally">
+                <FlipHorizontal2 size={16} />
+            </IconButtonVisual>
+        </button>
+        <button onclick={() => flipV()}>
+            <IconButtonVisual label="Flip vertically">
+                <FlipVertical2 size={16} />
+            </IconButtonVisual>
+        </button>
     </div>
 </Panel>
 
