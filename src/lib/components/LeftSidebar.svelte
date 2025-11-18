@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket } from "@lucide/svelte";
-    import MintLogo from "./ui/MintLogo.svelte";
+    import MintLogo from "./ui/svgs/MintLogo.svelte";
     import { Popover, RadioGroup } from "melt/builders";
     import ui, { type Mode } from "../scripts/ui.svelte";
     import docs, { type Color } from "../scripts/docs.svelte";
