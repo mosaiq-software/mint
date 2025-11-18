@@ -12,7 +12,7 @@
         line-height: 1.5;
     }
 
-    img, picture, video, canvas, svg {
+    img, picture, video, canvas, svg:not(#about *) {
         display: block;
         max-inline-size: 100%;
     }
