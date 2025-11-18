@@ -27,6 +27,8 @@
 <div id="outer" class:closed={!open}
      onclick={handleOuterClick}
      onkeydown={handleKeyDown}
+     role="button"
+     tabindex="0"
 >
     <div id="modal">
 
