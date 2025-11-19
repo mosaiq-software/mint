@@ -459,8 +459,7 @@
     }
 
     section {
-        padding: var(--s-lg);
-        padding-right: 0;
+        padding-left: var(--s-lg);
         border-left: var(--s-xs) solid var(--c-mid);
     }
 
