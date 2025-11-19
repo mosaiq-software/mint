@@ -6,4 +6,6 @@ COPY . /app
 
 WORKDIR /app
 
-CMD ["npm", "run", "build"]
+RUN npm install
+
+CMD ["npm", "run", "build:prod"]

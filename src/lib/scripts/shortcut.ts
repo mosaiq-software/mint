@@ -3,7 +3,7 @@ import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
-import { copyLayersToClipboard, pasteLayersFromClipboard } from "./copyPaste.svelte";
+import { copyLayersToClipboard, pasteLayersFromClipboard } from "./copypaste.svelte";
 import type { TextLayer } from "./layer";
 
 /**
