@@ -4,8 +4,8 @@
     import RotateHandleIcon from "./ui/svgs/RotateHandleIcon.svelte";
     import ScaleHandleIcon from "./ui/svgs/ScaleHandleIcon.svelte";
     import {
-        ArrowDown, ArrowLeft, ArrowRight, ArrowUp,
-        MousePointer2, Brush, Eraser, Type, PaintBucket,
+        ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Hand,
+        MousePointer2, Brush, Eraser, Type, PaintBucket, Mouse,
         Square, Circle, Plus, X, SquareDashed, MoveHorizontal
     } from "@lucide/svelte";
 
@@ -374,17 +374,34 @@
                                 </p>
                             </td>
                         </tr>
+                        <tr>
+                            <td>
+                                Pan (<span class="icon-wrapper"><Hand size={16} /></span>)
+                            </td>
+                            <td><kbd title="Middle mouse button"><Mouse size={12} /></kbd></td>
+                            <td>
+                                <p>
+                                    Click and drag to pan the canvas.
+                                </p>
+                            </td>
+                        </tr>
                         </tbody>
                     </table>
                 </section>
             </section>
-            <h2 class="heading">See Mint in action</h2>
-            <p>Here's where images go OK?</p>
             <h2 class="heading">Contributing to Mint</h2>
             <section>
                 <p>
-                    Mint is an open-source project and welcomes contributions from outside developers.
-                    To contribute to Mint, please give us monayyy.
+                    Mint is an open-source project and welcomes
+                    contributions from outside developers.
+                </p>
+                <p>
+                    If you are interested in contributing to Mint,
+                    please visit our
+                    <a href="https://github.com/mosaiq-software/mint" target="_blank">GitHub</a>
+                    and open a pull request.
+                    If you find a bug, please feel free to open an issue
+                    with instructions for recreating the bug.
                 </p>
                 <h3 class="heading">Technologies</h3>
                 <section>
