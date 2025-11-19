@@ -1,0 +1,12 @@
+services:
+    build-job:
+        build: .
+        restart: no
+        volumes:
+            - type: bind
+              source: ${NSM_WWW_PATH}
+              target: /www
+              bind:
+                  create_host_path: true
+        env_file:
+            - .env
