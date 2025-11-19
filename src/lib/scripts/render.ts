@@ -22,8 +22,11 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
 
         ctx.save();
         ctx.globalAlpha = layer.opacity;
-        ctx.setTransform(layer.transform.matrix);
-        
+        if (layer.type !== 'rectangle' && layer.type !== 'ellipse')
+            ctx.setTransform(layer.transform.matrix);
+        else
+            ctx.setTransform(new DOMMatrix());
+
         if (layer.type === 'canvas') {
             // draw the layer's canvas onto the main canvas
             // taking into account the layer's transform
@@ -46,76 +49,92 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
                 ctx.fillText(line, 0, index * lineHeight);
             });
         } else if (layer.type === 'rectangle') {
-            // draw rectangle
+            // draw rectangle on its own layer to prevent outline-fill overlap
             const w = Math.abs(layer.width);
             const h = Math.abs(layer.height);
             const r = Math.min(layer.cornerRadius, w / 2, h / 2);
 
-            ctx.fillStyle = colorToCSS(layer.foregroundColor);
-            ctx.beginPath();
+            const shapeCanvas = new OffscreenCanvas(doc.width, doc.height);
+            const shapeCtx = shapeCanvas.getContext('2d');
+            if (!shapeCtx) continue;
+
+            shapeCtx.setTransform(layer.transform.matrix);
+
+            shapeCtx.fillStyle = colorToCSS(layer.foregroundColor);
+            shapeCtx.beginPath();
             
-            constructRoundedRectPath(ctx, 0, 0, w, h, r);
-            ctx.closePath();
-            ctx.fill();
+            constructRoundedRectPath(shapeCtx, 0, 0, w, h, r);
+            shapeCtx.closePath();
+            shapeCtx.fill();
 
             if (layer.strokeWidth > 0) {
                 const sw = layer.strokeWidth;
-                ctx.fillStyle = colorToCSS(layer.backgroundColor);
-                ctx.beginPath();
+                shapeCtx.fillStyle = colorToCSS(layer.backgroundColor);
+                shapeCtx.beginPath();
 
                 if (layer.strokeAlign === 'inside') {
                     const ep = 0.5;
-                    constructRoundedRectPath(ctx, -ep, -ep, w + ep * 2, h + ep * 2, r);
+                    constructRoundedRectPath(shapeCtx, -ep, -ep, w + ep * 2, h + ep * 2, r);
                     if (sw < w / 2 && sw < h / 2) {
-                        constructRoundedRectPath(ctx, sw, sw, w - 2 * sw, h - 2 * sw, Math.max(0, r - sw));
+                        constructRoundedRectPath(shapeCtx, sw, sw, w - 2 * sw, h - 2 * sw, Math.max(0, r - sw));
                     }
                 } else if (layer.strokeAlign === 'center') {
-                    constructRoundedRectPath(ctx, -sw / 2, -sw / 2, w + sw, h + sw, r + sw / 2);
+                    constructRoundedRectPath(shapeCtx, -sw / 2, -sw / 2, w + sw, h + sw, r + sw / 2);
                     if (sw < w && sw < h) {
-                        constructRoundedRectPath(ctx, sw / 2, sw / 2, w - sw, h - sw, Math.max(0, r - sw / 2));
+                        constructRoundedRectPath(shapeCtx, sw / 2, sw / 2, w - sw, h - sw, Math.max(0, r - sw / 2));
                     }
                 } else if (layer.strokeAlign === 'outside') {
-                    constructRoundedRectPath(ctx, -sw, -sw, w + 2 * sw, h + 2 * sw, r + sw);
-                    constructRoundedRectPath(ctx, 0, 0, w, h, r);
+                    constructRoundedRectPath(shapeCtx, -sw, -sw, w + 2 * sw, h + 2 * sw, r + sw);
+                    constructRoundedRectPath(shapeCtx, 0, 0, w, h, r);
                 }
 
-                ctx.closePath();
-                ctx.fill('evenodd');
+                shapeCtx.closePath();
+                shapeCtx.fill('evenodd');
+
+                ctx.drawImage(shapeCanvas, 0, 0);
             }
         } else if (layer.type === 'ellipse') {
-            // draw ellipse
+            // draw ellipse on its own layer to prevent outline-fill overlap
             const w = Math.abs(layer.width);
             const h = Math.abs(layer.height);
 
-            ctx.fillStyle = colorToCSS(layer.foregroundColor);
-            ctx.beginPath();
-            ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.fill();
+            const shapeCanvas = new OffscreenCanvas(doc.width, doc.height);
+            const shapeCtx = shapeCanvas.getContext('2d');
+            if (!shapeCtx) continue;
+
+            shapeCtx.setTransform(layer.transform.matrix);
+
+            shapeCtx.fillStyle = colorToCSS(layer.foregroundColor);
+            shapeCtx.beginPath();
+            shapeCtx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+            shapeCtx.closePath();
+            shapeCtx.fill();
 
             if (layer.strokeWidth > 0) {
                 const sw = layer.strokeWidth;
-                ctx.fillStyle = colorToCSS(layer.backgroundColor);
-                ctx.beginPath();
+                shapeCtx.fillStyle = colorToCSS(layer.backgroundColor);
+                shapeCtx.beginPath();
 
                 if (layer.strokeAlign === 'inside') {
                     const ep = 0.5;
-                    ctx.ellipse(w / 2, h / 2, w / 2 + ep, h / 2 + ep, 0, 0, Math.PI * 2);
+                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + ep, h / 2 + ep, 0, 0, Math.PI * 2);
                     if (sw < w / 2 && sw < h / 2) {
-                        ctx.ellipse(w / 2, h / 2, w / 2 - sw, h / 2 - sw, 0, 0, Math.PI * 2);
+                        shapeCtx.ellipse(w / 2, h / 2, w / 2 - sw, h / 2 - sw, 0, 0, Math.PI * 2);
                     }
                 } else if (layer.strokeAlign === 'center') {
-                    ctx.ellipse(w / 2, h / 2, w / 2 + sw / 2, h / 2 + sw / 2, 0, 0, Math.PI * 2);
+                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + sw / 2, h / 2 + sw / 2, 0, 0, Math.PI * 2);
                     if (sw < w && sw < h) {
-                        ctx.ellipse(w / 2, h / 2, w / 2 - sw / 2, h / 2 - sw / 2, 0, 0, Math.PI * 2);
+                        shapeCtx.ellipse(w / 2, h / 2, w / 2 - sw / 2, h / 2 - sw / 2, 0, 0, Math.PI * 2);
                     }
                 } else if (layer.strokeAlign === 'outside') {
-                    ctx.ellipse(w / 2, h / 2, w / 2 + sw, h / 2 + sw, 0, 0, Math.PI * 2);
-                    ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + sw, h / 2 + sw, 0, 0, Math.PI * 2);
+                    shapeCtx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
                 }
 
-                ctx.closePath();
-                ctx.fill('evenodd');
+                shapeCtx.closePath();
+                shapeCtx.fill('evenodd');
+
+                ctx.drawImage(shapeCanvas, 0, 0);
             }
         }
         
@@ -176,7 +195,7 @@ function getWrappedLines(element: HTMLElement): string[] {
  * @param height The height of the rectangle.
  * @param radius The corner radius.
  */
-function constructRoundedRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+function constructRoundedRectPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
     const r = Math.min(radius, Math.abs(width / 2), Math.abs(height / 2));
 
     ctx.moveTo(x + r, y);

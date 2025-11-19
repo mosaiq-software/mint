@@ -4,7 +4,7 @@ import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
 import { copyLayersToClipboard, pasteLayersFromClipboard } from "./copyPaste.svelte";
-import type {TextLayer} from "./layer";
+import type { TextLayer } from "./layer";
 
 /**
  * Handles keyboard shortcuts for various application actions.
@@ -122,4 +122,21 @@ function handleRedo() {
 function handleZoom(action: 'in' | 'out') {
     if (action === 'in') zoomAroundCenter(1.1);
     else zoomAroundCenter(1 / 1.1);
+}
+
+let previousMode: Mode = 'select';
+
+/** Handles mouse down events to switch to pan mode on middle mouse button press. */
+export function handleMouseDown(event: MouseEvent) {
+    if (event.button !== 1) return;
+
+    previousMode = ui.mode;
+    ui.mode = 'pan';
+}
+
+/** Handles mouse up events to restore the previous mode after panning. */
+export function handleMouseUp(event: MouseEvent) {
+    if (event.button !== 1) return;
+
+    ui.mode = previousMode;
 }

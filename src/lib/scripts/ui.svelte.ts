@@ -5,7 +5,7 @@ import type { Point } from "./tools";
 import { updateBoundsSnapshot } from "./action";
 
 /** Available interaction modes (tools) */
-export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill'] as const;
+export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill', 'pan'] as const;
 
 /** Interaction modes (tools) */
 export type Mode = typeof modes[number];
