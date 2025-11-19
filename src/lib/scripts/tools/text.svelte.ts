@@ -1,7 +1,7 @@
-import type { Tool } from '.';
+import type { PointerEventData, Tool } from '.';
 import docs from '../docs.svelte';
 import ui from '../ui.svelte';
-import { createLayer, type LayerID, type TextProperties } from '../layer';
+import { createLayer, type LayerID, type TextLayer, type TextProperties } from '../layer';
 import { focusAndSelect } from '../../components/overlays/TextEdit.svelte';
 import { postAction } from '../action';
 
@@ -44,7 +44,9 @@ export const textTool: Tool = {
 
         // check if a text layer is already selected
         const selectedTextLayer = getSelectedTextLayer();
-        if (!selectedTextLayer) {
+        if (selectedTextLayer) {
+            setAction(selectedTextLayer, data);
+        } else {
             // create a new text layer
             const layer = createLayer('text', 'Text', false);
             layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
@@ -73,29 +75,7 @@ export const textTool: Tool = {
                 layer.height = Math.max(20, data.l.y);
             }
         } else {
-            // determine if cursor is near the bottom right corner for resizing
-            let point = new DOMPoint(layer.width, layer.height);
-            point = layer.transform.matrix.transformPoint(point);
-            const zoom = ui.selected?.zoom ?? 1;
-            point.x *= zoom;
-            point.y *= zoom;
-
-            const dx = data.v.x - point.x;
-            const dy = data.v.y - point.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-
-            if (distance <= resizeHitboxSize) {
-                text.action = "resize";
-            } else if (
-                data.l.x < layer.width &&
-                data.l.y < layer.height &&
-                data.l.x > 0 &&
-                data.l.y > 0
-            ) {
-                text.action = "edit";
-            } else {
-                text.action = "none";
-            }
+            setAction(layer, data);
         }
     },
     onPointerUp: () => {
@@ -110,6 +90,39 @@ export const textTool: Tool = {
                 newLayer: { width: layer.width, height: layer.height },
             });
         }
+    }
+}
+
+/**
+ * Sets the current action (edit, resize, none) based on pointer position.
+ * @param layer The text layer.
+ * @param data Pointer event data.
+ * @returns
+ */
+function setAction(layer: TextLayer, data: PointerEventData) {
+    if (!data.l) return;
+
+    let point = new DOMPoint(layer.width, layer.height);
+    point = layer.transform.matrix.transformPoint(point);
+    const zoom = ui.selected?.zoom ?? 1;
+    point.x *= zoom;
+    point.y *= zoom;
+
+    const dx = data.v.x - point.x;
+    const dy = data.v.y - point.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance <= resizeHitboxSize) {
+        text.action = "resize";
+    } else if (
+        data.l.x < layer.width &&
+        data.l.y < layer.height &&
+        data.l.x > 0 &&
+        data.l.y > 0
+    ) {
+        text.action = "edit";
+    } else {
+        text.action = "none";
     }
 }
 
