@@ -261,7 +261,7 @@
 
             const cursor = getCanvasPoint(pointerPosition);
             const oldPan = { ...ui.selected.pan };
-            const zoomFactor = 1 - e.deltaY / 100;
+            const zoomFactor = 1 - Math.min(Math.max(e.deltaY, -20), 20) / 100;
 
             zoomAroundPoint(zoomFactor, cursor);
 
