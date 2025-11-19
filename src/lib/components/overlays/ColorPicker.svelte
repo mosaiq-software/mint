@@ -1,6 +1,8 @@
 <script lang="ts">
+    import { postAction } from "../../scripts/action";
     import type { Color } from "../../scripts/docs.svelte";
     import { Slider } from "melt/builders";
+    import ui from "../../scripts/ui.svelte";
 
     let { color = $bindable() }: { color: Color } = $props();
     let hue: number = $state(0);
@@ -37,7 +39,7 @@
     /** Hue slider */
     const hSlider = new Slider({
         min: 0,
-        max: 1,
+        max: 0.999,
         step: 1 / 360,
         orientation: 'horizontal',
         onValueChange: (val) => {
@@ -109,6 +111,26 @@
             l: Math.min(Math.max(1 - y / rect.height, 0), 1)
         };
         updateColor();
+    }
+
+    /** 
+     * Add an undo/redo action to the currently selected layer.
+     * Does not apply an action if multiple layers are selected,
+     * or if the selected layer is a canvas.
+    */
+    function applyColor() {
+        if (ui.selectedLayers.length === 1) {
+            const layer = ui.selectedLayers[0];
+            if (layer.type === "canvas") return;
+            postAction({
+                type: "update",
+                layerID: layer.id,
+                newLayer: {
+                    foregroundColor: layer.foregroundColor,
+                    backgroundColor: layer.backgroundColor,
+                }
+            });
+        }
     }
 
     /**
@@ -192,6 +214,29 @@
 
         return { h, s, l}
     }
+
+    let pointerUpHandler: ((e: PointerEvent) => void) | null = null;
+
+    /**
+     * Handle focus on the slider thumb to track pointer up events.
+     * @param id ID of the slider thumb element
+     */
+    function handleFocus(id: string) {
+        pointerUpHandler = (e) => {
+            document.getElementById(id)?.blur();
+        };
+        document.addEventListener('pointerup', pointerUpHandler);
+    }
+
+    /** Handle blur on the slider thumb to clean up event listeners. */
+    function handleBlur() {
+        if (pointerUpHandler) {
+            document.removeEventListener('pointerup', pointerUpHandler);
+            pointerUpHandler = null;
+        }
+
+        applyColor();
+    }
 </script>
 
 <div id="color-picker">
@@ -203,6 +248,10 @@
             height={200}
             onpointermove={handleSLPointer}
             onpointerdown={handleSLPointer}
+            onpointerup={applyColor}
+            onpointerleave={(e) => {
+                if (e.buttons === 1) applyColor();
+            }}
         ></canvas>
         <div
             id="sl-indicator"
@@ -211,16 +260,23 @@
     </div>
     <div class="h-slider">
         <div class="h-slider-track" {...hSlider.root}>
-            <div class="slider-indicator" {...hSlider.thumb}></div>
+            <div
+                class="slider-indicator" {...hSlider.thumb}
+                onblur={handleBlur}
+                onfocus={() => handleFocus(hSlider.thumb.id)}
+            ></div>
         </div>
     </div>
     <div class="a-slider"
         style:background={`linear-gradient(to right, rgba(${color.r}, ${color.g}, ${color.b}, 0) 0%, rgba(${color.r}, ${color.g}, ${color.b}, 1) 100%)`}
         style:border-right={`5px solid rgb(${color.r}, ${color.g}, ${color.b})`}
     >
-        <div class="a-slider-track" {...aSlider.root}
-        >
-            <div class="slider-indicator" {...aSlider.thumb}></div>
+        <div class="a-slider-track" {...aSlider.root}>
+            <div
+                class="slider-indicator" {...aSlider.thumb}
+                onblur={handleBlur}
+                onfocus={() => handleFocus(aSlider.thumb.id)}
+            ></div>
         </div>
     </div>
     <div id="codes">
