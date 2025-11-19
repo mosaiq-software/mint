@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket } from "@lucide/svelte";
+    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket, Hand } from "@lucide/svelte";
     import MintLogo from "./ui/MintLogo.svelte";
     import { Popover, RadioGroup } from "melt/builders";
     import ui, { type Mode } from "../scripts/ui.svelte";
@@ -124,6 +124,11 @@
         <div {...modesGroup.getItem("ellipse").attrs}>
             <Tool name="Ellipse" keybind="C" selected={modesGroup.value === "ellipse"}>
                 <Circle />
+            </Tool>
+        </div>
+        <div {...modesGroup.getItem("pan").attrs}>
+            <Tool name="Pan" keybind="MMB" selected={modesGroup.value === "pan"}>
+                <Hand />
             </Tool>
         </div>
     </div>

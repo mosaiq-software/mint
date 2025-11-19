@@ -10,7 +10,7 @@
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
-    import { handleShortcuts } from "../scripts/shortcut";
+    import { handleShortcuts, handleMouseDown, handleMouseUp } from "../scripts/shortcut";
     import { updateBoundingBox } from "../scripts/ui.svelte"
 ;
     let tool = $derived(tools[ui.mode]);
@@ -261,7 +261,7 @@
 
             const cursor = getCanvasPoint(pointerPosition);
             const oldPan = { ...ui.selected.pan };
-            const zoomFactor = 1 - e.deltaY / 100;
+            const zoomFactor = 1 - Math.min(Math.max(e.deltaY, -20), 20) / 100;
 
             zoomAroundPoint(zoomFactor, cursor);
 
@@ -287,6 +287,7 @@
     onpointerdown={handlePointerDown}
     onpointermove={handlePointerMove}
     onpointerup={handlePointerUp}
+    onpointerleave={handlePointerUp}
     ondragenter={handleDragEnter}
     ondragleave={handleDragLeave}
     onscroll={handleScroll}
@@ -340,7 +341,11 @@
     <TextMeasure />
 </div>
 
-<svelte:window onkeydown={handleKeyDown} />
+<svelte:window
+    onkeydown={handleKeyDown}
+    onmousedown={handleMouseDown}
+    onmouseup={handleMouseUp}
+/>
 
 <style>
     #scroll-container {
@@ -348,6 +353,7 @@
         flex: 1;
         overflow: auto;
         position: relative;
+        user-select: none;
     }
 
     #interactive-area {
