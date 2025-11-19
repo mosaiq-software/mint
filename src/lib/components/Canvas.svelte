@@ -271,6 +271,20 @@
             };
         }
     }
+
+    /**
+     * Handle touch start to prevent scrolling when drawing/interacting
+     */
+    function handleTouchStart(e: TouchEvent) {
+        e.preventDefault();
+    }
+
+    /**
+     * Handle touch move to prevent scrolling during drawing/interaction
+     */
+    function handleTouchMove(e: TouchEvent) {
+        e.preventDefault();
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -292,6 +306,8 @@
     ondragleave={handleDragLeave}
     onscroll={handleScroll}
     onwheel={handleWheel}
+    ontouchstart={handleTouchStart}
+    ontouchmove={handleTouchMove}
 >
     <div id="interactive-area"
         role="application"
@@ -354,6 +370,7 @@
         overflow: auto;
         position: relative;
         user-select: none;
+        touch-action: none;
     }
 
     #interactive-area {
