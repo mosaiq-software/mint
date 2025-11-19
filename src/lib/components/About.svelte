@@ -447,6 +447,18 @@
                         <li>and <a href="https://lucide.dev/" target="_blank">Lucide</a> for icons.</li>
                     </ul>
                 </section>
+                <h3 class="heading">Licensing</h3>
+                <section>
+                    <p>
+                        Mint is licensed under the
+                        <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank">GPL-3 License</a>.
+                        You can find the full license text in the "LICENSE" file in the root of the repository.
+                    </p>
+                    <p>
+                        Mint also uses General Sans as its primary typeface, which uses Indian Type Foundry's
+                        <a href="https://www.fontshare.com/licenses/itf-ffl" target="_blank">Free Font License</a>.
+                    </p>
+                </section>
             </section>
         </div>
     </div>
