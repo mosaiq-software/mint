@@ -12,6 +12,7 @@
     const isMacLike = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent);
     const ctrl = isMacLike ? '⌘' : 'Ctrl';
     const keySVGSize = 12;
+    import { onMount } from 'svelte';
 
     let {open = $bindable()}: {open: boolean} = $props();
 
@@ -22,6 +23,28 @@
     function handleKeyDown(event: KeyboardEvent) {
         if (event.key === 'Escape') open = false;
     }
+
+    let aboutElement: HTMLDivElement | null = $state(null);
+    let headings: {id: string, text: string, priority: number}[] = $state([]);
+
+    onMount(() => {
+        if (aboutElement) {
+            headings = Array.from(aboutElement.querySelectorAll('h2, h3'))
+                .map((h, i) => {
+                    const id = `heading-${i}`;
+                    h.id = id;
+                    return {
+                        id,
+                        text: (h as HTMLElement).innerText,
+                        priority: h.tagName.toLowerCase() === 'h2' ? 0 : 1
+                    };
+            });
+        }
+    });
+
+    function scrollAboutToId(id: string) {
+        aboutElement?.querySelector(`#${id}`)?.scrollIntoView({behavior: 'smooth'});
+    }
 </script>
 
 <div id="outer" class:closed={!open}
@@ -31,8 +54,18 @@
      tabindex="0"
 >
     <div id="modal">
-
-        <div id="about">
+        <div id="toc">
+            {#each headings as heading}
+                <p
+                    style:padding-left={`calc(var(--s-lg) * ${heading.priority})`}
+                >
+                    <button onclick={() => scrollAboutToId(heading.id)}>
+                        {heading.text}
+                    </button>
+                </p>
+            {/each}
+        </div>
+        <div id="about" bind:this={aboutElement}>
             <h2 class="heading">
                 <MintLogo color="var(--c-acc)" />
                 Mint
@@ -420,8 +453,14 @@
 </div>
 
 <style>
+    #toc {
+        width: 30%;
+        overflow-y: auto;
+    }
+
     section {
-        padding-left: var(--s-lg);
+        padding: var(--s-lg);
+        padding-right: 0;
         border-left: var(--s-xs) solid var(--c-mid);
     }
 
