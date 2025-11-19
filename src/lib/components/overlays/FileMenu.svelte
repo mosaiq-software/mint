@@ -6,8 +6,20 @@
     import {Popover} from 'melt/builders';
     import {ChevronRight} from '@lucide/svelte';
     import {render} from '../../scripts/render';
+    import About from "../About.svelte";
 
     let { open = $bindable() } = $props<{ open: boolean }>();
+
+    let aboutOpen = $state(false);
+
+    /**
+     * Whenever the FileMenu is closed (i.e. via Escape),
+     * close the "about" modal also.
+     */
+    $effect(() => {
+        if (open === false)
+            aboutOpen = false;
+    });
 
     let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
     let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
@@ -124,15 +136,19 @@
                 >Height:</Input>
             </div>
         </div>
-        <h2>File</h2>
+        <h2>Document</h2>
         <button onclick={saveAndClose}>Save</button>
         <button {...exportsPopover.trigger} class="arrowed">
             <span>Export as...</span>
             <ChevronRight style="opacity: 0.5" size={16} />
         </button>
-    {:else}
-        <div>Open a doc to get started.</div>
     {/if}
+    <h2>Mint</h2>
+    <button onclick={() => aboutOpen = true} class="arrowed">
+        <span>About Mint</span>
+        <ChevronRight style="opacity: 0.5" size={16} />
+    </button>
+    <About bind:open={aboutOpen} />
     <div {...exportsPopover.content} class="popover">
         <div {...exportsPopover.arrow}></div>
         <div class="menu">
