@@ -23,33 +23,35 @@
 
 <div {...accordion.root} id="sidebar">
     {#each items as item}
-        <h2 {...item.heading}>
-            <button {...item.trigger}>
-                <span>
-                    {item.item.title}
-                </span>
-                <i style:transform={item.isExpanded ? 'rotate(90deg)' : ''}>
-                    <ChevronRight size={16} />
-                </i>
-            </button>
-        </h2>
-        <div {...item.content}
-             class:content={true}
-             class:closed={!item.isExpanded}
-        >
-            {#if item.item.title === 'Type'}
-                <Type />
-            {:else if item.item.title === 'Brush'}
-                <Brush />
-            {:else if item.item.title === 'Shape'}
-                <Shape />
-            {:else if item.item.title === 'Layers'}
-                <Layers />
-            {:else if item.item.title === 'Layer Styles'}
-                <LayerStyles />
-            {:else if item.item.title === 'Transform'}
-                <Transform />
-            {/if}
+        <div id="item">
+            <h2 {...item.heading}>
+                <button {...item.trigger}>
+                    <span>
+                        {item.item.title}
+                    </span>
+                    <i style:transform={item.isExpanded ? 'rotate(90deg)' : ''}>
+                        <ChevronRight size={16} />
+                    </i>
+                </button>
+            </h2>
+            <div {...item.content}
+                class:content={true}
+                class:closed={!item.isExpanded}
+            >
+                {#if item.item.title === 'Type'}
+                    <Type />
+                {:else if item.item.title === 'Brush'}
+                    <Brush />
+                {:else if item.item.title === 'Shape'}
+                    <Shape />
+                {:else if item.item.title === 'Layers'}
+                    <Layers />
+                {:else if item.item.title === 'Layer Styles'}
+                    <LayerStyles />
+                {:else if item.item.title === 'Transform'}
+                    <Transform />
+                {/if}
+            </div>
         </div>
     {/each}
 </div>
@@ -93,5 +95,17 @@
 
     .content {
         padding: var(--s-md);
+    }
+
+    @media (aspect-ratio < 1/1) {
+        #sidebar {
+            flex-direction: row;
+            width: 100%;
+            height: 200px;
+        }
+
+        .content {
+            min-width: 200px;
+        }
     }
 </style>

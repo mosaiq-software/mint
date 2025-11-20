@@ -81,4 +81,10 @@
     #zoom select {
         width: 80px;
     }
+
+    @media (aspect-ratio < 1/1) {
+        #zoom {
+            width: auto;
+        }
+    }
 </style>

@@ -67,4 +67,17 @@
         flex-grow: 1;
         min-height: 0;
     }
+
+    @media (aspect-ratio < 1/1) {
+        #upper {
+            flex-direction: column;
+            height: 100%;
+            min-width: 0;
+        }
+
+        #middle {
+            min-height: 0;
+            width: 100%;
+        }
+    }
 </style>

@@ -175,4 +175,10 @@
         text-overflow: ellipsis;
         display: block;
     }
+
+    @media (pointer: coarse) {
+        .ellipsis {
+            opacity: 1;
+        }
+    }
 </style>

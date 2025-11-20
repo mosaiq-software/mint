@@ -9,7 +9,7 @@ import { postAction } from '../action';
 /** Rectangle tool state */
 const rectangle = $state({
     dragging: false,
-    action: 'none' as 'none' | 'create' | 'corner' | 'stroke'
+    action: 'create' as 'create' | 'corner' | 'stroke'
 });
 
 const p = {
@@ -63,7 +63,6 @@ export const rectangleTool: Tool = {
 
         if (rectangle.action === 'create' && selectedEllipseLayer) {
             ui.mode = 'select';
-            rectangle.action = 'none';
 
             postAction({
                 type: 'create',

@@ -46,6 +46,7 @@ export const selectTool: Tool = {
     onPointerDown: (data) => {
         select.dragging = true;
         if (!docs.selected) return;
+        setAction(data.v, data.c, data.e);
 
         if (select.action.type === 'select') {
             // traverse layers from top to bottom to find the first shape under the cursor
