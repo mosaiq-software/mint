@@ -186,6 +186,7 @@
         justify-content: space-between;
         width: calc(var(--s-sm) * 4 + 24);
         flex-shrink: 0;
+        overflow: scroll;
     }
 
     #tools {
@@ -227,5 +228,25 @@
 
     #swap-colors {
         cursor: pointer;
+    }
+
+    @media (aspect-ratio < 1/1) {
+        #left-sidebar, #tools {
+            flex-direction: row;
+        }
+
+        #colors {
+            flex-direction: row;
+            margin-bottom: 0;
+        }
+
+        #color-foreground {
+            margin-top: 0;
+            margin-left: -13px;
+        }
+
+        #swap-colors {
+            transform: rotate(90deg);
+        }
     }
 </style>

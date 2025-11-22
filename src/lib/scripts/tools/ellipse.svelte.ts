@@ -9,7 +9,7 @@ import { postAction } from '../action';
 /** Ellipse tool state */
 const ellipse = $state({
     dragging: false,
-    action: 'none' as 'none' | 'create' | 'stroke'
+    action: 'create' as 'create' | 'stroke'
 });
 
 const p = {
@@ -63,7 +63,6 @@ export const ellipseTool: Tool = {
 
         if (ellipse.action === 'create' && selectedEllipseLayer) {
             ui.mode = 'select';
-            ellipse.action = 'none';
 
             postAction({
                 type: 'create',

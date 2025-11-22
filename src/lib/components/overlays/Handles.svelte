@@ -111,7 +111,6 @@
         top: -30px;
         left: 50%;
         transform: translateX(-50%);
-        pointer-events: auto;
         display: flex;
         flex-direction: column;
         align-items: center;
