@@ -1,5 +1,5 @@
 import docs, { matrixToTransformComponents } from "../docs.svelte";
-import ui, { type Bounds } from "../ui.svelte";
+import ui, { type Bounds, getBoundsCenter } from "../ui.svelte";
 import type { Tool, Point } from ".";
 import { translateLayerBy, type Layer, type LayerID } from "../layer";
 import { postAction, type PostAction } from "../action";
@@ -8,6 +8,7 @@ import { setPreviousRotation } from "../ui.svelte";
 const scaleHandleHitboxSize = 5;
 const rotateHandleHitboxSize = 5;
 const rotateHandleOffset = 25;
+const snapThreshold = 10;
 
 /** The scale directions represented by each scale handle */
 export type ScaleDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
@@ -26,11 +27,15 @@ export type SelectAction = {
 
 /** Select tool state */
 const select: {
-    action: SelectAction,
-    dragging: boolean,
+    action: SelectAction;
+    dragging: boolean;
+    snappedX: boolean;
+    snappedY: boolean;
 } = $state({
     action: { type: 'select' },
-    dragging: false
+    dragging: false,
+    snappedX: false,
+    snappedY: false,
 });
 
 const initial = {
@@ -130,7 +135,34 @@ export const selectTool: Tool = {
                 const dx = data.c.x - initial.c.x;
                 const dy = data.c.y - initial.c.y;
 
-                translateLayers(ui.selectedLayers, dx, dy);
+                // calc new center
+                const initialCenter = getBoundsCenter(initial.bounds!);
+                const proposedCenter = {
+                    x: initialCenter.x + dx,
+                    y: initialCenter.y + dy,
+                };
+
+                const canvasCenter = {
+                    x: docs.selected!.width / 2,
+                    y: docs.selected!.height / 2,
+                };
+
+                let snappedCenter = { ...proposedCenter };
+                select.snappedX = false;
+                select.snappedY = false;
+                if (Math.abs(proposedCenter.x - canvasCenter.x) < snapThreshold / ui.selected!.zoom) {
+                    snappedCenter.x = canvasCenter.x;
+                    select.snappedX = true;
+                }
+                if (Math.abs(proposedCenter.y - canvasCenter.y) < snapThreshold / ui.selected!.zoom) {
+                    snappedCenter.y = canvasCenter.y;
+                    select.snappedY = true;
+                }
+
+                const snappedDx = snappedCenter.x - initialCenter.x;
+                const snappedDy = snappedCenter.y - initialCenter.y;
+
+                translateLayers(ui.selectedLayers, snappedDx, snappedDy);
             } else if (select.action.type === 'scale') {
                 const dir = select.action.direction;
 
@@ -187,10 +219,14 @@ export const selectTool: Tool = {
         } else {
             // determine action based on mouse position
             setAction(data.v, data.c, data.e);
+            select.snappedX = false;
+            select.snappedY = false;
         }
     },
     onPointerUp: (data) => {
         select.dragging = false;
+        select.snappedX = false;
+        select.snappedY = false;
 
         // if action is scale/move/rotate, record post-action state
         if (docs.selected) {

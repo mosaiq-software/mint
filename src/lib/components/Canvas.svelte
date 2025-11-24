@@ -348,7 +348,13 @@
                     <DropMargin side="right" />
                 {/if}
                 <Handles />
-                {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+                {#if select.snappedX}
+                    <div class="snap-line vertical"></div>
+                {/if}
+                {#if select.snappedY}
+                    <div class="snap-line horizontal"></div>
+                {/if}
+                {#if tool.name === "text" && selectedLayer?.type === "text"}
                     <TextEdit bind:layer={selectedLayer} />
                 {/if}
             </div>
@@ -398,9 +404,28 @@
         pointer-events: none;
         border: 1px solid var(--c-sec);
         border-radius: var(--r-full);
-        transform: translate(
-            calc(-50%),
-            calc(-50%)
-        );
+        transform: translate(calc(-50%), calc(-50%));
+    }
+
+    .snap-line {
+        position: absolute;
+        pointer-events: none;
+        border: 1px dashed var(--c-acc);
+    }
+
+    .snap-line.vertical {
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        transform: translateX(-0.5px);
+    }
+
+    .snap-line.horizontal {
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        transform: translateY(-0.5px);
     }
 </style>
