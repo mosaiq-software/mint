@@ -147,15 +147,14 @@ export const selectTool: Tool = {
                     y: docs.selected!.height / 2,
                 };
 
-                // snap
                 let snappedCenter = { ...proposedCenter };
                 select.snappedX = false;
                 select.snappedY = false;
-                if (Math.abs(proposedCenter.x - canvasCenter.x) < snapThreshold) {
+                if (Math.abs(proposedCenter.x - canvasCenter.x) < snapThreshold / ui.selected!.zoom) {
                     snappedCenter.x = canvasCenter.x;
                     select.snappedX = true;
                 }
-                if (Math.abs(proposedCenter.y - canvasCenter.y) < snapThreshold) {
+                if (Math.abs(proposedCenter.y - canvasCenter.y) < snapThreshold / ui.selected!.zoom) {
                     snappedCenter.y = canvasCenter.y;
                     select.snappedY = true;
                 }
