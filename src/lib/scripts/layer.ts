@@ -15,7 +15,7 @@ export type TextProperties = {
     bold: boolean;
     italic: boolean;
     underline: boolean;
-}
+};
 
 /** Base properties shared by all layer types. */
 type BaseLayer = {
@@ -26,39 +26,40 @@ type BaseLayer = {
     transform: Transform;
     foregroundColor: Color;
     backgroundColor: Color;
-}
+};
 
 /** A layer storing pixel data. */
 export type CanvasLayer = BaseLayer & {
-    type: 'canvas';
+    type: "canvas";
     canvas: OffscreenCanvas;
 };
 
 /** A layer storing text content and styling. */
-export type TextLayer = BaseLayer & TextProperties & {
-    type: 'text';
-    text: string;
-    width: number;
-    height: number;
-};
+export type TextLayer = BaseLayer &
+    TextProperties & {
+        type: "text";
+        text: string;
+        width: number;
+        height: number;
+    };
 
 /** A layer representing a shape (rectangle or ellipse). */
 export type ShapeLayer = BaseLayer & {
     width: number;
     height: number;
     strokeWidth: number;
-    strokeAlign: 'center' | 'inside' | 'outside';
+    strokeAlign: "center" | "inside" | "outside";
 };
 
 /** A rectangle shape layer. */
 export type RectangleLayer = ShapeLayer & {
-    type: 'rectangle';
+    type: "rectangle";
     cornerRadius: number;
 };
 
 /** An ellipse shape layer. */
 export type EllipseLayer = ShapeLayer & {
-    type: 'ellipse';
+    type: "ellipse";
 };
 
 /** A layer in a document. */
@@ -85,7 +86,7 @@ export function getEnumeratedLayerName(name: string) {
     if (!docs.selected) return name;
     for (let i = 1; i <= docs.selected.layers.length; i++) {
         const enumeratedName = enumerateLayerName(name, i);
-        if (!docs.selected.layers.some(l => l.name === enumeratedName)) {
+        if (!docs.selected.layers.some((l) => l.name === enumeratedName)) {
             return enumeratedName;
         }
     }
@@ -100,7 +101,11 @@ export function getEnumeratedLayerName(name: string) {
  * @param enumerateName Whether to enumerate the layer name.
  * @returns A new layer of the specified type with default properties.
  */
-export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', name: string, enumerateName: boolean = true): Layer {
+export function createLayer(
+    type: "canvas" | "text" | "rectangle" | "ellipse",
+    name: string,
+    enumerateName: boolean = true,
+): Layer {
     if (!docs.selected || !ui.selected) throw new Error("No document selected");
 
     const id: LayerID = `layer-${crypto.randomUUID()}` as LayerID;
@@ -110,46 +115,49 @@ export function createLayer(type: 'canvas' | 'text' | 'rectangle' | 'ellipse', n
         visible: true,
         opacity: 1,
         transform: {
-            matrix: new DOMMatrix()
+            matrix: new DOMMatrix(),
         },
         foregroundColor: ui.selected.foregroundColor,
-        backgroundColor: ui.selected.backgroundColor
+        backgroundColor: ui.selected.backgroundColor,
     };
 
-    if (type === 'canvas') {
+    if (type === "canvas") {
         return {
             ...base,
-            type: 'canvas',
-            canvas: new OffscreenCanvas(docs.selected.width, docs.selected.height)
+            type: "canvas",
+            canvas: new OffscreenCanvas(
+                docs.selected.width,
+                docs.selected.height,
+            ),
         };
-    } else if (type === 'text') {
+    } else if (type === "text") {
         return {
             ...base,
-            type: 'text',
-            text: 'Text',
+            type: "text",
+            text: "Text",
             width: text.properties.fontSize * 5,
             height: text.properties.fontSize * 1.2,
-            ...text.properties
+            ...text.properties,
         };
-    } else if (type === 'rectangle') {
+    } else if (type === "rectangle") {
         return {
             ...base,
-            type: 'rectangle',
+            type: "rectangle",
             width: 0,
             height: 0,
             strokeWidth: shape.strokeWidth,
             strokeAlign: shape.strokeAlign,
-            cornerRadius: shape.cornerRadius
-        }
-    } else if (type === 'ellipse') {
+            cornerRadius: shape.cornerRadius,
+        };
+    } else if (type === "ellipse") {
         return {
             ...base,
-            type: 'ellipse',
+            type: "ellipse",
             width: 0,
             height: 0,
             strokeWidth: shape.strokeWidth,
-            strokeAlign: shape.strokeAlign
-        }
+            strokeAlign: shape.strokeAlign,
+        };
     } else {
         throw new Error(`Unknown layer type: ${type}`);
     }

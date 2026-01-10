@@ -1,23 +1,29 @@
 <script lang="ts">
-    import docs, { type Document, selectDocument } from '../scripts/docs.svelte';
+    import docs, {
+        type Document,
+        selectDocument,
+    } from "../scripts/docs.svelte";
     import {
         getPreviewSize,
         PREVIEW_MAX_SIZE,
         getDocumentFromDB,
         deleteDocumentFromDB,
-        updateDocumentMetadata
+        updateDocumentMetadata,
     } from "../scripts/persistence.svelte";
-    import IconButtonVisual from './ui/IconButtonVisual.svelte';
-    import { Ellipsis } from '@lucide/svelte';
+    import IconButtonVisual from "./ui/IconButtonVisual.svelte";
+    import { Ellipsis } from "@lucide/svelte";
     import { Popover } from "melt/builders";
     import Input from "./ui/Input.svelte";
     import { ButtonVisual } from "./ui";
     import { initializeUIForDocument } from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte";
 
-    const { doc, rerenderDocs }: {
-        doc: Document & { preview: OffscreenCanvas, lastModified: number },
-        rerenderDocs: () => void
+    const {
+        doc,
+        rerenderDocs,
+    }: {
+        doc: Document & { preview: OffscreenCanvas; lastModified: number };
+        rerenderDocs: () => void;
     } = $props();
 
     let canvas: HTMLCanvasElement;
@@ -29,23 +35,27 @@
     function getDateString() {
         const date = new Date(doc.lastModified);
         const now = new Date();
-        const dateIsToday = date.getFullYear() === now.getFullYear() &&
+        const dateIsToday =
+            date.getFullYear() === now.getFullYear() &&
             date.getMonth() === now.getMonth() &&
             date.getDate() === now.getDate();
         if (!dateIsToday) {
             return date.toLocaleDateString();
         } else {
-            return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            return date.toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit",
+            });
         }
     }
 
     $effect(() => {
         if (canvas && doc.preview) {
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext("2d");
             if (!ctx) return;
             ctx.drawImage(doc.preview, 0, 0);
         }
-    })
+    });
 
     /**
      * Open the document as a tab.
@@ -77,9 +87,8 @@
     async function handleDocNameBlur() {
         if (name.length > 0) {
             doc.name = name;
-            if (docs[doc.id])
-                docs[doc.id].name = name;
-            await updateDocumentMetadata({id: doc.id, name: doc.name});
+            if (docs[doc.id]) docs[doc.id].name = name;
+            await updateDocumentMetadata({ id: doc.id, name: doc.name });
             rerenderDocs();
         } else name = doc.name;
     }
@@ -87,8 +96,16 @@
 
 <div class="wrapper">
     <button class="button" onclick={selectDoc}>
-        <span class="canvas-wrapper" style="width: {PREVIEW_MAX_SIZE}px; height: {PREVIEW_MAX_SIZE}px">
-            <canvas bind:this={canvas} width={width} height={height} style="width: {width}px; height: {height}px"></canvas>
+        <span
+            class="canvas-wrapper"
+            style="width: {PREVIEW_MAX_SIZE}px; height: {PREVIEW_MAX_SIZE}px"
+        >
+            <canvas
+                bind:this={canvas}
+                {width}
+                {height}
+                style="width: {width}px; height: {height}px"
+            ></canvas>
         </span>
         <span class="text title" title={doc.name}>{doc.name}</span>
         <span class="text secondary">{getDateString()}</span>
@@ -102,12 +119,12 @@
     <div {...popover.content} class="popover">
         <div {...popover.arrow}></div>
         <Input
-                type="text"
-                name="doc-name"
-                placeholder="Name"
-                bind:value={name}
-                onBlur={() => handleDocNameBlur()}
-        >Name:</Input>
+            type="text"
+            name="doc-name"
+            placeholder="Name"
+            bind:value={name}
+            onBlur={() => handleDocNameBlur()}>Name:</Input
+        >
         <button {...warningPopover.trigger} class="warning-button">
             <ButtonVisual color="danger">Delete</ButtonVisual>
         </button>
@@ -158,7 +175,7 @@
     }
 
     canvas {
-        background: #E5E5E5;
+        background: #e5e5e5;
     }
 
     .title {

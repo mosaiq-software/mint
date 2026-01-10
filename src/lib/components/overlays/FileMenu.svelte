@@ -1,11 +1,11 @@
 <script lang="ts">
-    import Input from '../ui/Input.svelte';
+    import Input from "../ui/Input.svelte";
     import docs from "../../scripts/docs.svelte";
-    import {handleSave} from "../../scripts/shortcut";
-    import {postAction} from "../../scripts/action";
-    import {Popover} from 'melt/builders';
-    import {ChevronRight} from '@lucide/svelte';
-    import {render} from '../../scripts/render';
+    import { handleSave } from "../../scripts/shortcut";
+    import { postAction } from "../../scripts/action";
+    import { Popover } from "melt/builders";
+    import { ChevronRight } from "@lucide/svelte";
+    import { render } from "../../scripts/render";
     import About from "../About.svelte";
 
     let { open = $bindable() } = $props<{ open: boolean }>();
@@ -17,12 +17,15 @@
      * close the "about" modal also.
      */
     $effect(() => {
-        if (open === false)
-            aboutOpen = false;
+        if (open === false) aboutOpen = false;
     });
 
-    let widthStr: string = $derived(docs.selected ? docs.selected.width.toString() : '');
-    let heightStr: string = $derived(docs.selected ? docs.selected.height.toString() : '');
+    let widthStr: string = $derived(
+        docs.selected ? docs.selected.width.toString() : "",
+    );
+    let heightStr: string = $derived(
+        docs.selected ? docs.selected.height.toString() : "",
+    );
 
     /**
      * Saves and closes the file menu.
@@ -37,7 +40,7 @@
      * @param type 'width' or 'height'
      * @param dimStr A string representing the input dimension.
      */
-    function handleCanvasSizeBlur(type: 'width' | 'height', dimStr: string) {
+    function handleCanvasSizeBlur(type: "width" | "height", dimStr: string) {
         if (!docs.selected) return dimStr;
 
         let dim = parseInt(dimStr);
@@ -45,40 +48,46 @@
             return `${docs.selected[type]}`;
         } else {
             postAction({
-                type: 'document',
-                oldDocument: {id: docs.selected.id, [type]: docs.selected[type]},
-                newDocument: {id: docs.selected.id, [type]: dim}
+                type: "document",
+                oldDocument: {
+                    id: docs.selected.id,
+                    [type]: docs.selected[type],
+                },
+                newDocument: { id: docs.selected.id, [type]: dim },
             });
             docs.selected[type] = dim;
             return dimStr;
         }
     }
 
-    const exportsPopover = new Popover({floatingConfig: {computePosition: {placement: 'right-start'}}});
+    const exportsPopover = new Popover({
+        floatingConfig: { computePosition: { placement: "right-start" } },
+    });
 
     /**
      * Exports the selected document to the user's device.
      * @param filetype The filetype to use.
      */
-    function handleExport(filetype: 'png' | 'jpg' | 'webp') {
+    function handleExport(filetype: "png" | "jpg" | "webp") {
         if (!docs.selected) return;
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = docs.selected.width;
         canvas.height = docs.selected.height;
-        if (filetype === 'jpg') { // add off-white bg for opaque files
-            const ctx = canvas.getContext('2d');
+        if (filetype === "jpg") {
+            // add off-white bg for opaque files
+            const ctx = canvas.getContext("2d");
             if (ctx) {
-                ctx.fillStyle = '#E5E5E5';
+                ctx.fillStyle = "#E5E5E5";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
         }
         render(canvas, docs.selected, false);
         const dataURL = {
-            'png': () => canvas.toDataURL('image/png'),
-            'jpg': () => canvas.toDataURL('image/jpeg', 0.9),
-            'webp': () => canvas.toDataURL('image/webp', 0.9),
+            png: () => canvas.toDataURL("image/png"),
+            jpg: () => canvas.toDataURL("image/jpeg", 0.9),
+            webp: () => canvas.toDataURL("image/webp", 0.9),
         }[filetype]();
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.download = `${docs.selected.name}.${filetype}`;
         a.href = dataURL;
         a.click();
@@ -86,7 +95,7 @@
         open = false;
     }
 
-    let name = $derived(docs.selected ? docs.selected.name : '');
+    let name = $derived(docs.selected ? docs.selected.name : "");
 
     /**
      * Updates the document name when edited.
@@ -95,9 +104,9 @@
         if (!docs.selected) return;
         if (name.length > 0) {
             postAction({
-                type: 'document',
-                oldDocument: {id: docs.selected.id, name: docs.selected.name},
-                newDocument: {id: docs.selected.id, name}
+                type: "document",
+                oldDocument: { id: docs.selected.id, name: docs.selected.name },
+                newDocument: { id: docs.selected.id, name },
             });
             docs.selected.name = name;
         } else name = docs.selected.name;
@@ -113,8 +122,8 @@
                 name="doc-name"
                 placeholder="Name"
                 bind:value={name}
-                onBlur={() => handleDocNameBlur()}
-            >Name:</Input>
+                onBlur={() => handleDocNameBlur()}>Name:</Input
+            >
             <div id="canvas-size">
                 <Input
                     type="number"
@@ -122,18 +131,18 @@
                     placeholder="Width"
                     bind:value={widthStr}
                     onBlur={() => {
-                        widthStr = handleCanvasSizeBlur('width', widthStr)
-                    }}
-                >Width:</Input>
+                        widthStr = handleCanvasSizeBlur("width", widthStr);
+                    }}>Width:</Input
+                >
                 <Input
                     type="number"
                     name="canvas-height"
                     placeholder="Height"
                     bind:value={heightStr}
                     onBlur={() => {
-                        heightStr = handleCanvasSizeBlur('height', heightStr)
-                    }}
-                >Height:</Input>
+                        heightStr = handleCanvasSizeBlur("height", heightStr);
+                    }}>Height:</Input
+                >
             </div>
         </div>
         <h2>Document</h2>
@@ -144,7 +153,7 @@
         </button>
     {/if}
     <h2>Mint</h2>
-    <button onclick={() => aboutOpen = true} class="arrowed">
+    <button onclick={() => (aboutOpen = true)} class="arrowed">
         <span>About Mint</span>
         <ChevronRight style="opacity: 0.5" size={16} />
     </button>
@@ -152,9 +161,9 @@
     <div {...exportsPopover.content} class="popover">
         <div {...exportsPopover.arrow}></div>
         <div class="menu">
-            <button onclick={() => handleExport('png')}>.PNG</button>
-            <button onclick={() => handleExport('jpg')}>.JPG</button>
-            <button onclick={() => handleExport('webp')}>.WEBP</button>
+            <button onclick={() => handleExport("png")}>.PNG</button>
+            <button onclick={() => handleExport("jpg")}>.JPG</button>
+            <button onclick={() => handleExport("webp")}>.WEBP</button>
         </div>
     </div>
 </div>
@@ -183,5 +192,4 @@
     h2 {
         cursor: default;
     }
-
 </style>

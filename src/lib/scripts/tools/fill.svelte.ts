@@ -9,17 +9,22 @@ import { postAction } from "../action";
  * the current foreground color of the selected canvas layer.
  */
 export const fillTool: Tool = {
-    name: 'fill',
+    name: "fill",
     onPointerDown: (data) => {
         if (!ui.selectedDocument || !data.l || !docs.selected) return;
-        if (ui.selectedLayers.length !== 1 || ui.selectedLayers[0].type !== 'canvas') return;
+        if (
+            ui.selectedLayers.length !== 1 ||
+            ui.selectedLayers[0].type !== "canvas"
+        )
+            return;
         const layer = ui.selectedLayers[0];
 
-        const l: Point = {x: Math.floor(data.l.x), y: Math.floor(data.l.y)};
+        const l: Point = { x: Math.floor(data.l.x), y: Math.floor(data.l.y) };
 
-        const ctx = layer.canvas.getContext('2d');
+        const ctx = layer.canvas.getContext("2d");
         if (!ctx) return;
-        const width = layer.canvas.width, height = layer.canvas.height;
+        const width = layer.canvas.width,
+            height = layer.canvas.height;
         const srcColorData = ctx.getImageData(l.x, l.y, 1, 1).data;
 
         function imageDataToColor(data: ImageDataArray): Color {
@@ -27,18 +32,21 @@ export const fillTool: Tool = {
                 r: data[0],
                 g: data[1],
                 b: data[2],
-                a: data[3]
+                a: data[3],
             };
         }
 
         const srcColor = imageDataToColor(srcColorData);
-        const unroundedDstColor = {...layer.foregroundColor, a: layer.foregroundColor.a * 255};
+        const unroundedDstColor = {
+            ...layer.foregroundColor,
+            a: layer.foregroundColor.a * 255,
+        };
         const dstColor: Color = {
             r: Math.round(unroundedDstColor.r),
             g: Math.round(unroundedDstColor.g),
             b: Math.round(unroundedDstColor.b),
-            a: Math.round(unroundedDstColor.a)
-        }
+            a: Math.round(unroundedDstColor.a),
+        };
 
         function areColorsEqual(a: Color, b: Color) {
             return a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
@@ -55,7 +63,7 @@ export const fillTool: Tool = {
                 g: imageData.data[pointIndex * 4 + 1],
                 b: imageData.data[pointIndex * 4 + 2],
                 a: imageData.data[pointIndex * 4 + 3],
-            }
+            };
         }
 
         function isFillable(p: Point) {
@@ -77,39 +85,49 @@ export const fillTool: Tool = {
         // span filling algorithm. just trust me OK?
         // https://en.wikipedia.org/wiki/Flood_fill#Span_filling
 
-        interface QueueEntry {x1: number, x2: number, y: number, dy: number}
+        interface QueueEntry {
+            x1: number;
+            x2: number;
+            y: number;
+            dy: number;
+        }
         const queue: QueueEntry[] = [
-            {x1: l.x, x2: l.x, y: l.y, dy: 1},
-            {x1: l.x, x2: l.x, y: l.y - 1, dy: -1}
+            { x1: l.x, x2: l.x, y: l.y, dy: 1 },
+            { x1: l.x, x2: l.x, y: l.y - 1, dy: -1 },
         ];
 
         while (queue.length > 0) {
             const entry = queue.shift();
             if (!entry) continue;
-            let {x1, x2, y, dy} = entry;
+            let { x1, x2, y, dy } = entry;
             let x = x1;
-            if (isFillable({x, y})) {
-                while (isFillable({x: x - 1, y})) {
-                    fillPoint({x: x - 1, y});
+            if (isFillable({ x, y })) {
+                while (isFillable({ x: x - 1, y })) {
+                    fillPoint({ x: x - 1, y });
                     x -= 1;
                 }
                 if (x < x1) {
-                    queue.push({x1: x, x2: x1 - 1, y: y - dy, dy: -1 * dy});
+                    queue.push({ x1: x, x2: x1 - 1, y: y - dy, dy: -1 * dy });
                 }
             }
             while (x1 <= x2) {
-                while (isFillable({x: x1, y})) {
-                    fillPoint({x: x1, y});
+                while (isFillable({ x: x1, y })) {
+                    fillPoint({ x: x1, y });
                     x1 = x1 + 1;
                 }
                 if (x1 > x) {
-                    queue.push({x1: x, x2: x1 - 1, y: y + dy, dy});
+                    queue.push({ x1: x, x2: x1 - 1, y: y + dy, dy });
                 }
                 if (x1 - 1 > x2) {
-                    queue.push({x1: x2 + 1, x2: x1 - 1, y: y - dy, dy: -1 * dy});
+                    queue.push({
+                        x1: x2 + 1,
+                        x2: x1 - 1,
+                        y: y - dy,
+                        dy: -1 * dy,
+                    });
                 }
                 x1 = x1 + 1;
-                while (x1 < x2 && !isFillable({x: x1, y})) {
+                while (x1 < x2 && !isFillable({ x: x1, y })) {
                     x1++;
                 }
                 x = x1;
@@ -121,8 +139,13 @@ export const fillTool: Tool = {
         postAction({
             type: "content",
             layerID: layer.id,
-            newContent: ctx.getImageData(0, 0, layer.canvas.width, layer.canvas.height)
+            newContent: ctx.getImageData(
+                0,
+                0,
+                layer.canvas.width,
+                layer.canvas.height,
+            ),
         });
         docs.selected.layers = [...docs.selected.layers];
-    }
-}
+    },
+};

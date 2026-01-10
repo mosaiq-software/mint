@@ -1,9 +1,14 @@
-import type { PointerEventData, Tool } from '.';
-import docs from '../docs.svelte';
-import ui from '../ui.svelte';
-import { createLayer, type LayerID, type TextLayer, type TextProperties } from '../layer';
-import { focusAndSelect } from '../../components/overlays/TextEdit.svelte';
-import { postAction } from '../action';
+import type { PointerEventData, Tool } from ".";
+import docs from "../docs.svelte";
+import ui from "../ui.svelte";
+import {
+    createLayer,
+    type LayerID,
+    type TextLayer,
+    type TextProperties,
+} from "../layer";
+import { focusAndSelect } from "../../components/overlays/TextEdit.svelte";
+import { postAction } from "../action";
 
 const resizeHitboxSize = 5;
 
@@ -14,12 +19,12 @@ const resizeHitboxSize = 5;
 const text = $state({
     elements: {} as Record<LayerID, HTMLDivElement>,
     properties: {
-        fontFamily: 'Arial',
+        fontFamily: "Arial",
         fontSize: 24,
         lineHeight: 1.2,
         bold: false,
         italic: false,
-        underline: false
+        underline: false,
     } as TextProperties,
     dragging: false,
     action: "none" as "none" | "resize" | "edit",
@@ -27,8 +32,9 @@ const text = $state({
 
 /** Retrieves the currently selected text layer, or null if none or multiple are selected. */
 export function getSelectedTextLayer() {
-    return (ui.selectedLayers.length == 1 && ui.selectedLayers[0].type == 'text')
-        ? ui.selectedLayers[0] : null;
+    return ui.selectedLayers.length == 1 && ui.selectedLayers[0].type == "text"
+        ? ui.selectedLayers[0]
+        : null;
 }
 
 /**
@@ -36,7 +42,7 @@ export function getSelectedTextLayer() {
  * and handles resizing of existing text layers.
  */
 export const textTool: Tool = {
-    name: 'text',
+    name: "text",
     onPointerDown: (data) => {
         text.dragging = true;
 
@@ -48,15 +54,18 @@ export const textTool: Tool = {
             setAction(selectedTextLayer, data);
         } else {
             // create a new text layer
-            const layer = createLayer('text', 'Text', false);
-            layer.transform.matrix = new DOMMatrix().translate(data.c.x, data.c.y);
+            const layer = createLayer("text", "Text", false);
+            layer.transform.matrix = new DOMMatrix().translate(
+                data.c.x,
+                data.c.y,
+            );
             docs.selected.layers.push(layer);
             if (ui.selected) ui.selected.selectedLayers = [layer.id];
 
             postAction({
                 type: "create",
                 layer,
-                position: docs.selected.layers.length - 1
+                position: docs.selected.layers.length - 1,
             });
 
             // wait a short delay to ensure the layer is in the DOM
@@ -90,8 +99,8 @@ export const textTool: Tool = {
                 newLayer: { width: layer.width, height: layer.height },
             });
         }
-    }
-}
+    },
+};
 
 /**
  * Sets the current action (edit, resize, none) based on pointer position.

@@ -2,7 +2,7 @@
     import ui from "../scripts/ui.svelte";
     import Welcome from "./Welcome.svelte";
     import Canvas from "./Canvas.svelte";
-    import {importImageAsNewDoc} from "../scripts/importImage";
+    import { importImageAsNewDoc } from "../scripts/importImage";
 
     /**
      * Prevents default dragover behavior (opening the file in
@@ -29,10 +29,11 @@
     }
 </script>
 
-<div id="viewport"
-     ondragover={handleDragOver}
-     ondrop={handleDrop}
-     role="application"
+<div
+    id="viewport"
+    ondragover={handleDragOver}
+    ondrop={handleDrop}
+    role="application"
 >
     {#if !ui.selectedDocument}
         <Welcome />

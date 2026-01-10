@@ -1,8 +1,13 @@
 <script lang="ts">
-    import { ChevronLeft, ChevronUp, ChevronDown, ChevronRight } from "@lucide/svelte";
+    import {
+        ChevronLeft,
+        ChevronUp,
+        ChevronDown,
+        ChevronRight,
+    } from "@lucide/svelte";
 
     interface DropMarginProps {
-        side: "top" | "bottom" | "left" | "right"
+        side: "top" | "bottom" | "left" | "right";
     }
     const { side }: DropMarginProps = $props();
 
@@ -16,10 +21,10 @@
         left: `top: -1px; right: 100%`,
         top: `left: -1px; bottom: 100%`,
         right: `top: -1px; left: 100%`,
-        bottom: `left: -1px; top: 100%`
+        bottom: `left: -1px; top: 100%`,
     }[side];
 
-    const borderRadiusSize = 'var(--s-lg)';
+    const borderRadiusSize = "var(--s-lg)";
 
     const borderRadius = {
         left: `border-top-left-radius: ${borderRadiusSize}; border-bottom-left-radius: ${borderRadiusSize}`,
@@ -28,11 +33,12 @@
         bottom: `border-bottom-left-radius: ${borderRadiusSize}; border-bottom-right-radius: ${borderRadiusSize}`,
     }[side];
 
-    const marginSize = 'calc(var(--s-xl) - var(--s-sm))';
+    const marginSize = "calc(var(--s-xl) - var(--s-sm))";
 
-    const sizing = (side === 'top' || side === 'bottom')
-        ? `width: calc(100% + 2px); height: ${marginSize}`
-        : `height: calc(100% + 2px); width: ${marginSize}`;
+    const sizing =
+        side === "top" || side === "bottom"
+            ? `width: calc(100% + 2px); height: ${marginSize}`
+            : `height: calc(100% + 2px); width: ${marginSize}`;
 
     let dragOver = $state(false);
 
@@ -78,11 +84,11 @@
     ondragover={(e) => e.preventDefault()}
     ondrop={handleDrop}
 >
-    {#if side === 'left'}
+    {#if side === "left"}
         <ChevronLeft class="dropmargin-chevron" />
-    {:else if side === 'top'}
+    {:else if side === "top"}
         <ChevronUp class="dropmargin-chevron" />
-    {:else if side === 'right'}
+    {:else if side === "right"}
         <ChevronRight class="dropmargin-chevron" />
     {:else}
         <ChevronDown class="dropmargin-chevron" />

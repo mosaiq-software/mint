@@ -14,11 +14,16 @@
         showLabel = false,
         selected = false,
         children,
-        paddingSMd = false
+        paddingSMd = false,
     }: Props = $props();
 </script>
 
-<div class="icon-button" class:selected={selected} class:padding-smd={paddingSMd} aria-label={label}>
+<div
+    class="icon-button"
+    class:selected
+    class:padding-smd={paddingSMd}
+    aria-label={label}
+>
     {#if children}
         {@render children()}
     {/if}

@@ -1,12 +1,12 @@
-import type { Mode } from '../ui.svelte';
-import select, { selectTool } from './select.svelte';
-import draw, { drawTool } from './draw.svelte';
-import erase, { eraseTool } from './erase.svelte';
-import text, { textTool } from './text.svelte';
-import rectangle, { rectangleTool } from './rectangle.svelte';
-import ellipse, { ellipseTool } from './ellipse.svelte';
-import { fillTool } from './fill.svelte';
-import pan, { panTool } from './pan.svelte';
+import type { Mode } from "../ui.svelte";
+import select, { selectTool } from "./select.svelte";
+import draw, { drawTool } from "./draw.svelte";
+import erase, { eraseTool } from "./erase.svelte";
+import text, { textTool } from "./text.svelte";
+import rectangle, { rectangleTool } from "./rectangle.svelte";
+import ellipse, { ellipseTool } from "./ellipse.svelte";
+import { fillTool } from "./fill.svelte";
+import pan, { panTool } from "./pan.svelte";
 
 /** A 2D point with x and y coordinates. */
 export interface Point {
@@ -40,10 +40,14 @@ export interface Tool {
 
 /** A record mapping tool modes to their implementations. */
 export const tools: Record<Mode, Tool> = {
-    select: selectTool, draw: drawTool,
-    erase: eraseTool, text: textTool,
-    rectangle: rectangleTool, ellipse: ellipseTool,
-    fill: fillTool, pan: panTool
+    select: selectTool,
+    draw: drawTool,
+    erase: eraseTool,
+    text: textTool,
+    rectangle: rectangleTool,
+    ellipse: ellipseTool,
+    fill: fillTool,
+    pan: panTool,
 };
 
 export { draw, select, erase, text, rectangle, ellipse, pan };

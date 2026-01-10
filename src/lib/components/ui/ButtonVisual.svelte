@@ -2,20 +2,20 @@
     import type { Snippet } from "svelte";
 
     interface Props {
-        size?: 'small' | 'medium' | 'large';
-        color?: 'text' | 'accent' | 'success' | 'danger' | 'warning';
-        style?: 'solid' | 'outline' | 'subtle';
-        width?: 'full' | 'auto';
+        size?: "small" | "medium" | "large";
+        color?: "text" | "accent" | "success" | "danger" | "warning";
+        style?: "solid" | "outline" | "subtle";
+        width?: "full" | "auto";
         disabled?: boolean;
         loading?: boolean;
         children: Snippet;
     }
 
     const {
-        size = 'medium',
-        color = 'accent',
-        style = 'solid',
-        width = 'auto',
+        size = "medium",
+        color = "accent",
+        style = "solid",
+        width = "auto",
         disabled = false,
         loading = false,
         children,
@@ -24,8 +24,8 @@
 
 <div
     class={`button-visual size-${size} color-${color} style-${style} width-${width}`}
-    class:disabled={disabled}
-    class:loading={loading}
+    class:disabled
+    class:loading
 >
     {@render children()}
 </div>
@@ -38,7 +38,10 @@
         border-radius: var(--r-md);
         font-weight: 500;
         cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        transition:
+            background-color 0.2s,
+            border-color 0.2s,
+            color 0.2s;
     }
 
     .button-visual.size-small {

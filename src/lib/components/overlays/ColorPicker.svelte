@@ -12,8 +12,8 @@
         const newC = rgbToHsl(color.r, color.g, color.b);
         return { s: newC.s, l: newC.l };
     });
-    
-    /** 
+
+    /**
      * When the color changes externally, update hue and alpha slider positions.
      * Prevent updating hue if saturation is near zero (to avoid hue jumps).
      */
@@ -29,8 +29,8 @@
 
     /** Update color based on current hue, saturation, and lightness */
     function updateColor() {
-        color = {...hslToRgb(hue, sl.s, sl.l), a: color.a};
-    };
+        color = { ...hslToRgb(hue, sl.s, sl.l), a: color.a };
+    }
 
     /** Redraw saturation-lightness square when hue changes */
     let slCanvas: HTMLCanvasElement;
@@ -41,7 +41,7 @@
         min: 0,
         max: 0.999,
         step: 1 / 360,
-        orientation: 'horizontal',
+        orientation: "horizontal",
         onValueChange: (val) => {
             if (Math.abs(hue - val) > 0.001 && Math.abs(hue - val) < 0.999) {
                 hue = val;
@@ -56,12 +56,12 @@
         min: 0,
         max: 1,
         step: 0.01,
-        orientation: 'horizontal',
+        orientation: "horizontal",
         onValueChange: (val) => {
             if (Math.abs(color.a - val) > 0.001) {
                 color = { ...color, a: val };
             }
-        }
+        },
     });
 
     /**
@@ -71,7 +71,7 @@
     function drawSLSquare() {
         if (!slCanvas) return;
 
-        const ctx = slCanvas.getContext('2d');
+        const ctx = slCanvas.getContext("2d");
         if (!ctx) return;
 
         const { width, height } = slCanvas;
@@ -81,13 +81,13 @@
         for (let y = 0; y < height; y++) {
             const l = 1 - y / height;
             for (let x = 0; x < width; x++) {
-            const s = x / width;
-            const {r, g, b} = hslToRgb(hue, s, l);
-            const i = (y * width + x) * 4;
-            data[i] = r;
-            data[i + 1] = g;
-            data[i + 2] = b;
-            data[i + 3] = 255;
+                const s = x / width;
+                const { r, g, b } = hslToRgb(hue, s, l);
+                const i = (y * width + x) * 4;
+                data[i] = r;
+                data[i + 1] = g;
+                data[i + 2] = b;
+                data[i + 3] = 255;
             }
         }
 
@@ -108,16 +108,16 @@
 
         sl = {
             s: Math.min(Math.max(x / rect.width, 0), 1),
-            l: Math.min(Math.max(1 - y / rect.height, 0), 1)
+            l: Math.min(Math.max(1 - y / rect.height, 0), 1),
         };
         updateColor();
     }
 
-    /** 
+    /**
      * Add an undo/redo action to the currently selected layer.
      * Does not apply an action if multiple layers are selected,
      * or if the selected layer is a canvas.
-    */
+     */
     function applyColor() {
         if (ui.selectedLayers.length === 1) {
             const layer = ui.selectedLayers[0];
@@ -128,7 +128,7 @@
                 newLayer: {
                     foregroundColor: layer.foregroundColor,
                     backgroundColor: layer.backgroundColor,
-                }
+                },
             });
         }
     }
@@ -140,7 +140,7 @@
     function colorToHex(c: Color) {
         const toHex = (n: number) => {
             const hex = Math.round(n).toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
+            return hex.length === 1 ? "0" + hex : hex;
         };
         return `#${toHex(c.r)}${toHex(c.g)}${toHex(c.b)}`;
     }
@@ -155,9 +155,9 @@
     function hue2rgb(p: number, q: number, t: number) {
         if (t < 0) t += 1;
         if (t > 1) t -= 1;
-        if (t < 1/6) return p + (q - p) * 6 * t;
-        if (t < 1/2) return q;
-        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        if (t < 1 / 6) return p + (q - p) * 6 * t;
+        if (t < 1 / 2) return q;
+        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
         return p;
     }
 
@@ -176,9 +176,9 @@
             let q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             let p = 2 * l - q;
 
-            r = hue2rgb(p, q, h + 1/3);
+            r = hue2rgb(p, q, h + 1 / 3);
             g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1/3);
+            b = hue2rgb(p, q, h - 1 / 3);
         }
 
         return { r: r * 255, g: g * 255, b: b * 255 };
@@ -191,9 +191,10 @@
      * @param b Blue component (0-255)
      */
     function rgbToHsl(r: number, g: number, b: number) {
-        r /= 255, g /= 255, b /= 255;
+        ((r /= 255), (g /= 255), (b /= 255));
 
-        let max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let max = Math.max(r, g, b),
+            min = Math.min(r, g, b);
         let h: number, s: number, l: number;
         h = s = l = (max + min) / 2;
 
@@ -204,15 +205,21 @@
             s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
 
             switch (max) {
-                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                case g: h = (b - r) / d + 2; break;
-                case b: h = (r - g) / d + 4; break;
+                case r:
+                    h = (g - b) / d + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    h = (b - r) / d + 2;
+                    break;
+                case b:
+                    h = (r - g) / d + 4;
+                    break;
             }
 
             h /= 6;
         }
 
-        return { h, s, l}
+        return { h, s, l };
     }
 
     let pointerUpHandler: ((e: PointerEvent) => void) | null = null;
@@ -225,13 +232,13 @@
         pointerUpHandler = (e) => {
             document.getElementById(id)?.blur();
         };
-        document.addEventListener('pointerup', pointerUpHandler);
+        document.addEventListener("pointerup", pointerUpHandler);
     }
 
     /** Handle blur on the slider thumb to clean up event listeners. */
     function handleBlur() {
         if (pointerUpHandler) {
-            document.removeEventListener('pointerup', pointerUpHandler);
+            document.removeEventListener("pointerup", pointerUpHandler);
             pointerUpHandler = null;
         }
 
@@ -261,26 +268,33 @@
     <div class="h-slider">
         <div class="h-slider-track" {...hSlider.root}>
             <div
-                class="slider-indicator" {...hSlider.thumb}
+                class="slider-indicator"
+                {...hSlider.thumb}
                 onblur={handleBlur}
                 onfocus={() => handleFocus(hSlider.thumb.id)}
             ></div>
         </div>
     </div>
-    <div class="a-slider"
+    <div
+        class="a-slider"
         style:background={`linear-gradient(to right, rgba(${color.r}, ${color.g}, ${color.b}, 0) 0%, rgba(${color.r}, ${color.g}, ${color.b}, 1) 100%)`}
         style:border-right={`5px solid rgb(${color.r}, ${color.g}, ${color.b})`}
     >
         <div class="a-slider-track" {...aSlider.root}>
             <div
-                class="slider-indicator" {...aSlider.thumb}
+                class="slider-indicator"
+                {...aSlider.thumb}
                 onblur={handleBlur}
                 onfocus={() => handleFocus(aSlider.thumb.id)}
             ></div>
         </div>
     </div>
     <div id="codes">
-        <div>rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(color.b)})</div>
+        <div>
+            rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(
+                color.b,
+            )})
+        </div>
         <div>hsl({hue.toFixed(2)}, {sl.s.toFixed(2)}, {sl.l.toFixed(2)})</div>
         <div>hex: {colorToHex(color)}</div>
         <div>{(color.a * 100).toFixed(0)}%</div>

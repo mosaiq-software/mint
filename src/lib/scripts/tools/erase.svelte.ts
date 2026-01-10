@@ -3,7 +3,12 @@ import docs from "../docs.svelte";
 import ui from "../ui.svelte";
 import { postAction } from "../action";
 import draw from "./draw.svelte";
-import { getSelectedDrawLayer, createStamp, interpolateStrokePoints, takeLayerSnapshot } from "./utils/brush";
+import {
+    getSelectedDrawLayer,
+    createStamp,
+    interpolateStrokePoints,
+    takeLayerSnapshot,
+} from "./utils/brush";
 
 /** Erase tool state */
 export const erase = $state({
@@ -22,20 +27,22 @@ let layerSnapshot = null as ImageData | null;
 const strokeCanvas = $derived(
     drawLayer
         ? new OffscreenCanvas(drawLayer.canvas.width, drawLayer.canvas.height)
-        : null
+        : null,
 );
 
-/** 
+/**
  * Draws the stamp at point p onto the stroke canvas and erases
  * it from the draw layer. Composites by taking max alpha.
  * @param p The point to erase the stamp at, in layer space.
  */
 function eraseStamp(p: Point) {
     if (!drawLayer || !strokeCanvas) return;
-    const ctx = strokeCanvas.getContext('2d');
+    const ctx = strokeCanvas.getContext("2d");
     if (!ctx) return;
 
-    const color = drawLayer ? drawLayer.foregroundColor : { r: 0, g: 0, b: 0, a: 1 };
+    const color = drawLayer
+        ? drawLayer.foregroundColor
+        : { r: 0, g: 0, b: 0, a: 1 };
 
     if (!stroke.stamp) return;
 
@@ -50,8 +57,10 @@ function eraseStamp(p: Point) {
         const offsetY = y - radius;
 
         const existingData = ctx.getImageData(
-            offsetX, offsetY,
-            draw.brushSize, draw.brushSize
+            offsetX,
+            offsetY,
+            draw.brushSize,
+            draw.brushSize,
         );
 
         // blend: add rgb, max alpha
@@ -59,7 +68,7 @@ function eraseStamp(p: Point) {
             const existingAlpha = existingData.data[j + 3];
             const newAlpha = stroke.stamp.data[j + 3] * color.a;
             const maxAlpha = Math.max(existingAlpha, newAlpha);
-            
+
             if (maxAlpha > 0) {
                 existingData.data[j] = 0;
                 existingData.data[j + 1] = 0;
@@ -72,24 +81,29 @@ function eraseStamp(p: Point) {
     }
 
     // composite snapshot onto drawLayer.canvas
-    const drawCtx = drawLayer.canvas.getContext('2d');
+    const drawCtx = drawLayer.canvas.getContext("2d");
     if (!drawCtx) return;
 
     if (layerSnapshot) {
         drawCtx.putImageData(layerSnapshot, 0, 0);
     } else {
-        drawCtx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
+        drawCtx.clearRect(
+            0,
+            0,
+            drawLayer.canvas.width,
+            drawLayer.canvas.height,
+        );
     }
 
     // apply erase from strokeCanvas
-    drawCtx.globalCompositeOperation = 'destination-out';
+    drawCtx.globalCompositeOperation = "destination-out";
     drawCtx.drawImage(strokeCanvas, 0, 0);
-    drawCtx.globalCompositeOperation = 'source-over';
+    drawCtx.globalCompositeOperation = "source-over";
 }
 
 /** The erase tool implementation. Erases brush strokes on canvas layers. */
 export const eraseTool: Tool = {
-    name: 'erase',
+    name: "erase",
     onPointerDown: (data) => {
         draw.drawing = true;
 
@@ -101,8 +115,10 @@ export const eraseTool: Tool = {
 
             if (!docs.selected) return;
 
-            const layer = docs.selected.layers.find(l => l.id === selectedLayers[0]);
-            if (!layer || layer.type !== 'canvas') return;
+            const layer = docs.selected.layers.find(
+                (l) => l.id === selectedLayers[0],
+            );
+            if (!layer || layer.type !== "canvas") return;
         }
 
         stroke.stamp = createStamp(draw.brushSize, draw.brushFeather);
@@ -123,30 +139,41 @@ export const eraseTool: Tool = {
     },
     onPointerUp: (data) => {
         if (!draw.drawing || !data.l || !drawLayer) return;
-        
+
         eraseStamp(data.l);
         draw.drawing = false;
         stroke.current = data.l;
         stroke.stamp = null;
 
-        const ctx = strokeCanvas?.getContext('2d');
+        const ctx = strokeCanvas?.getContext("2d");
         if (ctx && drawLayer) {
-            ctx.clearRect(0, 0, drawLayer.canvas.width, drawLayer.canvas.height);
+            ctx.clearRect(
+                0,
+                0,
+                drawLayer.canvas.width,
+                drawLayer.canvas.height,
+            );
         }
         layerSnapshot = null;
-        
-        if (drawLayer) postAction({
-            type: "content",
-            layerID: drawLayer.id,
-            newContent: drawLayer.canvas
-                .getContext('2d')!
-                .getImageData(0, 0, drawLayer.canvas.width, drawLayer.canvas.height)
-        });
+
+        if (drawLayer)
+            postAction({
+                type: "content",
+                layerID: drawLayer.id,
+                newContent: drawLayer.canvas
+                    .getContext("2d")!
+                    .getImageData(
+                        0,
+                        0,
+                        drawLayer.canvas.width,
+                        drawLayer.canvas.height,
+                    ),
+            });
 
         // force update
         if (!docs.selected) return;
         docs.selected.layers = [...docs.selected.layers];
-    }
-}
+    },
+};
 
 export default draw;
