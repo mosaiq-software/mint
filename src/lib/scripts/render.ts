@@ -1,6 +1,6 @@
-import { type Document } from './docs.svelte';
-import { text } from './tools';
-import { colorToCSS } from './docs.svelte';
+import { type Document } from "./docs.svelte";
+import { text } from "./tools";
+import { colorToCSS } from "./docs.svelte";
 
 /**
  * Renders the given document onto the provided canvas. Iterates through each
@@ -10,28 +10,30 @@ import { colorToCSS } from './docs.svelte';
  * @param doc The document to render.
  * @param clear Whether to clear the canvas before rendering. Default is true.
  */
-export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean = true) {
-    const ctx = canvas.getContext('2d');
+export function render(
+    canvas: HTMLCanvasElement,
+    doc: Document,
+    clear: boolean = true,
+) {
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    if (clear)
-        ctx.clearRect(0, 0, doc.width, doc.height);
+    if (clear) ctx.clearRect(0, 0, doc.width, doc.height);
 
     for (const layer of doc.layers) {
         if (!layer.visible) continue;
 
         ctx.save();
         ctx.globalAlpha = layer.opacity;
-        if (layer.type !== 'rectangle' && layer.type !== 'ellipse')
+        if (layer.type !== "rectangle" && layer.type !== "ellipse")
             ctx.setTransform(layer.transform.matrix);
-        else
-            ctx.setTransform(new DOMMatrix());
+        else ctx.setTransform(new DOMMatrix());
 
-        if (layer.type === 'canvas') {
+        if (layer.type === "canvas") {
             // draw the layer's canvas onto the main canvas
             // taking into account the layer's transform
             ctx.drawImage(layer.canvas, 0, 0);
-        } else if (layer.type === 'text') {
+        } else if (layer.type === "text") {
             const element = text.elements[layer.id];
             const lines = getWrappedLines(element);
 
@@ -39,30 +41,30 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
             ctx.beginPath();
             ctx.rect(0, 0, layer.width, layer.height);
             ctx.clip();
-            
-            ctx.font = `${layer.bold ? 'bold ' : ''}${layer.italic ? 'italic ' : ''}${layer.fontSize}px ${layer.fontFamily}`;
+
+            ctx.font = `${layer.bold ? "bold " : ""}${layer.italic ? "italic " : ""}${layer.fontSize}px ${layer.fontFamily}`;
             ctx.fillStyle = colorToCSS(layer.foregroundColor);
-            ctx.textBaseline = 'top';
+            ctx.textBaseline = "top";
 
             const lineHeight = layer.fontSize * layer.lineHeight;
             lines.forEach((line, index) => {
                 ctx.fillText(line, 0, index * lineHeight);
             });
-        } else if (layer.type === 'rectangle') {
+        } else if (layer.type === "rectangle") {
             // draw rectangle on its own layer to prevent outline-fill overlap
             const w = Math.abs(layer.width);
             const h = Math.abs(layer.height);
             const r = Math.min(layer.cornerRadius, w / 2, h / 2);
 
             const shapeCanvas = new OffscreenCanvas(doc.width, doc.height);
-            const shapeCtx = shapeCanvas.getContext('2d');
+            const shapeCtx = shapeCanvas.getContext("2d");
             if (!shapeCtx) continue;
 
             shapeCtx.setTransform(layer.transform.matrix);
 
             shapeCtx.fillStyle = colorToCSS(layer.foregroundColor);
             shapeCtx.beginPath();
-            
+
             constructRoundedRectPath(shapeCtx, 0, 0, w, h, r);
             shapeCtx.closePath();
             shapeCtx.fill();
@@ -72,34 +74,69 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
                 shapeCtx.fillStyle = colorToCSS(layer.backgroundColor);
                 shapeCtx.beginPath();
 
-                if (layer.strokeAlign === 'inside') {
+                if (layer.strokeAlign === "inside") {
                     const ep = 0.5;
-                    constructRoundedRectPath(shapeCtx, -ep, -ep, w + ep * 2, h + ep * 2, r);
+                    constructRoundedRectPath(
+                        shapeCtx,
+                        -ep,
+                        -ep,
+                        w + ep * 2,
+                        h + ep * 2,
+                        r,
+                    );
                     if (sw < w / 2 && sw < h / 2) {
-                        constructRoundedRectPath(shapeCtx, sw, sw, w - 2 * sw, h - 2 * sw, Math.max(0, r - sw));
+                        constructRoundedRectPath(
+                            shapeCtx,
+                            sw,
+                            sw,
+                            w - 2 * sw,
+                            h - 2 * sw,
+                            Math.max(0, r - sw),
+                        );
                     }
-                } else if (layer.strokeAlign === 'center') {
-                    constructRoundedRectPath(shapeCtx, -sw / 2, -sw / 2, w + sw, h + sw, r + sw / 2);
+                } else if (layer.strokeAlign === "center") {
+                    constructRoundedRectPath(
+                        shapeCtx,
+                        -sw / 2,
+                        -sw / 2,
+                        w + sw,
+                        h + sw,
+                        r + sw / 2,
+                    );
                     if (sw < w && sw < h) {
-                        constructRoundedRectPath(shapeCtx, sw / 2, sw / 2, w - sw, h - sw, Math.max(0, r - sw / 2));
+                        constructRoundedRectPath(
+                            shapeCtx,
+                            sw / 2,
+                            sw / 2,
+                            w - sw,
+                            h - sw,
+                            Math.max(0, r - sw / 2),
+                        );
                     }
-                } else if (layer.strokeAlign === 'outside') {
-                    constructRoundedRectPath(shapeCtx, -sw, -sw, w + 2 * sw, h + 2 * sw, r + sw);
+                } else if (layer.strokeAlign === "outside") {
+                    constructRoundedRectPath(
+                        shapeCtx,
+                        -sw,
+                        -sw,
+                        w + 2 * sw,
+                        h + 2 * sw,
+                        r + sw,
+                    );
                     constructRoundedRectPath(shapeCtx, 0, 0, w, h, r);
                 }
 
                 shapeCtx.closePath();
-                shapeCtx.fill('evenodd');
+                shapeCtx.fill("evenodd");
 
                 ctx.drawImage(shapeCanvas, 0, 0);
             }
-        } else if (layer.type === 'ellipse') {
+        } else if (layer.type === "ellipse") {
             // draw ellipse on its own layer to prevent outline-fill overlap
             const w = Math.abs(layer.width);
             const h = Math.abs(layer.height);
 
             const shapeCanvas = new OffscreenCanvas(doc.width, doc.height);
-            const shapeCtx = shapeCanvas.getContext('2d');
+            const shapeCtx = shapeCanvas.getContext("2d");
             if (!shapeCtx) continue;
 
             shapeCtx.setTransform(layer.transform.matrix);
@@ -115,29 +152,77 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
                 shapeCtx.fillStyle = colorToCSS(layer.backgroundColor);
                 shapeCtx.beginPath();
 
-                if (layer.strokeAlign === 'inside') {
+                if (layer.strokeAlign === "inside") {
                     const ep = 0.5;
-                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + ep, h / 2 + ep, 0, 0, Math.PI * 2);
+                    shapeCtx.ellipse(
+                        w / 2,
+                        h / 2,
+                        w / 2 + ep,
+                        h / 2 + ep,
+                        0,
+                        0,
+                        Math.PI * 2,
+                    );
                     if (sw < w / 2 && sw < h / 2) {
-                        shapeCtx.ellipse(w / 2, h / 2, w / 2 - sw, h / 2 - sw, 0, 0, Math.PI * 2);
+                        shapeCtx.ellipse(
+                            w / 2,
+                            h / 2,
+                            w / 2 - sw,
+                            h / 2 - sw,
+                            0,
+                            0,
+                            Math.PI * 2,
+                        );
                     }
-                } else if (layer.strokeAlign === 'center') {
-                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + sw / 2, h / 2 + sw / 2, 0, 0, Math.PI * 2);
+                } else if (layer.strokeAlign === "center") {
+                    shapeCtx.ellipse(
+                        w / 2,
+                        h / 2,
+                        w / 2 + sw / 2,
+                        h / 2 + sw / 2,
+                        0,
+                        0,
+                        Math.PI * 2,
+                    );
                     if (sw < w && sw < h) {
-                        shapeCtx.ellipse(w / 2, h / 2, w / 2 - sw / 2, h / 2 - sw / 2, 0, 0, Math.PI * 2);
+                        shapeCtx.ellipse(
+                            w / 2,
+                            h / 2,
+                            w / 2 - sw / 2,
+                            h / 2 - sw / 2,
+                            0,
+                            0,
+                            Math.PI * 2,
+                        );
                     }
-                } else if (layer.strokeAlign === 'outside') {
-                    shapeCtx.ellipse(w / 2, h / 2, w / 2 + sw, h / 2 + sw, 0, 0, Math.PI * 2);
-                    shapeCtx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+                } else if (layer.strokeAlign === "outside") {
+                    shapeCtx.ellipse(
+                        w / 2,
+                        h / 2,
+                        w / 2 + sw,
+                        h / 2 + sw,
+                        0,
+                        0,
+                        Math.PI * 2,
+                    );
+                    shapeCtx.ellipse(
+                        w / 2,
+                        h / 2,
+                        w / 2,
+                        h / 2,
+                        0,
+                        0,
+                        Math.PI * 2,
+                    );
                 }
 
                 shapeCtx.closePath();
-                shapeCtx.fill('evenodd');
+                shapeCtx.fill("evenodd");
 
                 ctx.drawImage(shapeCanvas, 0, 0);
             }
         }
-        
+
         ctx.restore();
     }
 }
@@ -146,7 +231,7 @@ export function render(canvas: HTMLCanvasElement, doc: Document, clear: boolean 
  * Given an HTML element containing text, returns an array of strings,
  * each representing a line of text as rendered in the element.
  * This function uses the DOM to measure where lines break.
- * @param element 
+ * @param element
  * @returns A list of strings, each representing a line of text
  */
 function getWrappedLines(element: HTMLElement): string[] {
@@ -154,7 +239,7 @@ function getWrappedLines(element: HTMLElement): string[] {
     const node = element.firstChild;
     if (!node || node.nodeType !== Node.TEXT_NODE) return lines;
 
-    const text = node.textContent || '';
+    const text = node.textContent || "";
     if (!text) return lines;
 
     let start = 0;
@@ -195,7 +280,14 @@ function getWrappedLines(element: HTMLElement): string[] {
  * @param height The height of the rectangle.
  * @param radius The corner radius.
  */
-function constructRoundedRectPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+function constructRoundedRectPath(
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number,
+) {
     const r = Math.min(radius, Math.abs(width / 2), Math.abs(height / 2));
 
     ctx.moveTo(x + r, y);

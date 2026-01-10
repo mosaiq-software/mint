@@ -9,16 +9,23 @@
     import { ChevronRight } from "@lucide/svelte";
 
     type Item = AccordionItem<{
-        title: string,
+        title: string;
     }>;
 
     const toolNames = [
-        'Type', 'Brush', 'Shape', 'Layers', 'Layer Styles', 'Transform'
+        "Type",
+        "Brush",
+        "Shape",
+        "Layers",
+        "Layer Styles",
+        "Transform",
     ];
 
-    const accordion = new Accordion({multiple: true, value: toolNames});
+    const accordion = new Accordion({ multiple: true, value: toolNames });
 
-    const items: Item[] = toolNames.map(title => accordion.getItem({title, id: title}));
+    const items: Item[] = toolNames.map((title) =>
+        accordion.getItem({ title, id: title }),
+    );
 </script>
 
 <div {...accordion.root} id="sidebar">
@@ -29,26 +36,27 @@
                     <span>
                         {item.item.title}
                     </span>
-                    <i style:transform={item.isExpanded ? 'rotate(90deg)' : ''}>
+                    <i style:transform={item.isExpanded ? "rotate(90deg)" : ""}>
                         <ChevronRight size={16} />
                     </i>
                 </button>
             </h2>
-            <div {...item.content}
+            <div
+                {...item.content}
                 class:content={true}
                 class:closed={!item.isExpanded}
             >
-                {#if item.item.title === 'Type'}
+                {#if item.item.title === "Type"}
                     <Type />
-                {:else if item.item.title === 'Brush'}
+                {:else if item.item.title === "Brush"}
                     <Brush />
-                {:else if item.item.title === 'Shape'}
+                {:else if item.item.title === "Shape"}
                     <Shape />
-                {:else if item.item.title === 'Layers'}
+                {:else if item.item.title === "Layers"}
                     <Layers />
-                {:else if item.item.title === 'Layer Styles'}
+                {:else if item.item.title === "Layer Styles"}
                     <LayerStyles />
-                {:else if item.item.title === 'Transform'}
+                {:else if item.item.title === "Transform"}
                     <Transform />
                 {/if}
             </div>
@@ -63,7 +71,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        overflow-y: scroll;
+        overflow-y: auto;
         flex-shrink: 0;
     }
 

@@ -1,6 +1,9 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
-    import ui, { updateSelectedLayers, zoomAroundPoint } from "../scripts/ui.svelte";
+    import ui, {
+        updateSelectedLayers,
+        zoomAroundPoint,
+    } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
@@ -10,29 +13,31 @@
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
     import { handleImageDrop } from "../scripts/importImage";
     import DropMargin from "./overlays/DropMargin.svelte";
-    import { handleShortcuts, handleMouseDown, handleMouseUp } from "../scripts/shortcut";
-    import { updateBoundingBox } from "../scripts/ui.svelte"
-;
+    import {
+        handleShortcuts,
+        handleMouseDown,
+        handleMouseUp,
+    } from "../scripts/shortcut";
+    import { updateBoundingBox } from "../scripts/ui.svelte";
     let tool = $derived(tools[ui.mode]);
     let canvas: HTMLCanvasElement;
     let scrollContainer: HTMLDivElement;
     let pointerPosition = $state({ x: 0, y: 0 });
 
     let selectedLayer = $derived(
-        ui.selectedLayers.length === 1
-            ? ui.selectedLayers[0] : null
+        ui.selectedLayers.length === 1 ? ui.selectedLayers[0] : null,
     );
 
     /** Map scale directions to cursor styles. */
     const cursorMap: Record<ScaleDirection, string> = {
-        n: 'ns-resize',
-        s: 'ns-resize',
-        e: 'ew-resize',
-        w: 'ew-resize',
-        ne: 'nesw-resize',
-        sw: 'nesw-resize',
-        nw: 'nwse-resize',
-        se: 'nwse-resize',
+        n: "ns-resize",
+        s: "ns-resize",
+        e: "ew-resize",
+        w: "ew-resize",
+        ne: "nesw-resize",
+        sw: "nesw-resize",
+        nw: "nwse-resize",
+        se: "nwse-resize",
     };
 
     /**
@@ -40,43 +45,43 @@
      * current tool and action.
      */
     const cursor = $derived.by(() => {
-        if (tool.name === 'draw' || tool.name === 'erase') {
-            return 'crosshair';
-        } else if (tool.name === 'select') {
-            if (select.action.type === 'move') {
-                return 'move';
-            } else if (select.action.type === 'scale') {
+        if (tool.name === "draw" || tool.name === "erase") {
+            return "crosshair";
+        } else if (tool.name === "select") {
+            if (select.action.type === "move") {
+                return "move";
+            } else if (select.action.type === "scale") {
                 return cursorMap[select.action.direction];
-            } else if (select.action.type === 'rotate') {
+            } else if (select.action.type === "rotate") {
                 if (select.dragging) {
-                    return 'grabbing';
+                    return "grabbing";
                 } else {
-                    return 'grab';
+                    return "grab";
                 }
             } else {
-                return 'default';
+                return "default";
             }
-        } else if (tool.name === 'text') {
-            if (text.action === 'resize') {
-                return 'nwse-resize';
-            } else if (text.action === 'edit') {
-                return 'text';
+        } else if (tool.name === "text") {
+            if (text.action === "resize") {
+                return "nwse-resize";
+            } else if (text.action === "edit") {
+                return "text";
             } else {
-                return 'default';
+                return "default";
             }
         } else {
-            return 'default';
+            return "default";
         }
     });
-    
+
     /** Update canvas size when document changes. */
     $effect(() => {
         if (canvas && docs.selected) {
             canvas.width = docs.selected.width;
             canvas.height = docs.selected.height;
 
-            canvas.style.width = docs.selected.width + 'px';
-            canvas.style.height = docs.selected.height + 'px';
+            canvas.style.width = docs.selected.width + "px";
+            canvas.style.height = docs.selected.height + "px";
         }
     });
 
@@ -103,7 +108,7 @@
      * Get the viewport point from a pointer event.
      * @param e The pointer event.
      */
-    function getViewportPoint(e: { clientX: number, clientY: number }): Point {
+    function getViewportPoint(e: { clientX: number; clientY: number }): Point {
         const rect = canvas.getBoundingClientRect();
         return { x: e.clientX - rect.left, y: e.clientY - rect.top };
     }
@@ -125,9 +130,9 @@
      */
     function getLayerSpacePoint(c: Point, layerId: string): Point | null {
         if (!docs.selected) return null;
-        const layer = docs.selected.layers.find(l => l.id === layerId);
+        const layer = docs.selected.layers.find((l) => l.id === layerId);
         if (!layer) return null;
-        
+
         const invMatrix = layer.transform.matrix.inverse();
         const point = new DOMPoint(c.x, c.y).matrixTransform(invMatrix);
         return { x: point.x, y: point.y };
@@ -140,7 +145,9 @@
     function handlePointerDown(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
-        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
+        const l = selectedLayer
+            ? getLayerSpacePoint(c, selectedLayer.id)
+            : null;
 
         tool.onPointerDown?.({ v, c, l, e });
     }
@@ -152,15 +159,17 @@
     function handlePointerMove(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
-        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
+        const l = selectedLayer
+            ? getLayerSpacePoint(c, selectedLayer.id)
+            : null;
 
         // // handle multiple move events per frame
         // const events = e.getCoalescedEvents();
         // if (events.length > 0) {
         //     for (const event of events) {
-        //         const coalescedP = { 
-        //             x: event.clientX - rect.left, 
-        //             y: event.clientY - rect.top 
+        //         const coalescedP = {
+        //             x: event.clientX - rect.left,
+        //             y: event.clientY - rect.top
         //         };
         //         const coalescedL = layer ? getLayerSpacePoint(coalescedP, layer) : null;
         //         tool.onPointerMove?.({ c: coalescedP, l: coalescedL, e: event });
@@ -180,7 +189,9 @@
     function handlePointerUp(e: PointerEvent) {
         const v = getViewportPoint(e);
         const c = getCanvasPoint(v);
-        const l = selectedLayer ? getLayerSpacePoint(c, selectedLayer.id) : null;
+        const l = selectedLayer
+            ? getLayerSpacePoint(c, selectedLayer.id)
+            : null;
 
         tool.onPointerUp?.({ v, c, l, e });
     }
@@ -192,10 +203,12 @@
     function handleKeyDown(e: KeyboardEvent) {
         // override the input/textarea prevention iff keybind is
         // ctrl+b or ctrl+i (which affect text layers)
-        if (e.target
-            && ((e.target as HTMLElement).tagName !== 'INPUT'
-            && (e.target as HTMLElement).tagName !== 'TEXTAREA')
-            || (e.ctrlKey && ['b', 'i'].includes(e.key))) {
+        if (
+            (e.target &&
+                (e.target as HTMLElement).tagName !== "INPUT" &&
+                (e.target as HTMLElement).tagName !== "TEXTAREA") ||
+            (e.ctrlKey && ["b", "i"].includes(e.key))
+        ) {
             tool.onKeyDown?.(e);
             handleShortcuts(e);
         }
@@ -225,7 +238,8 @@
     function handleImageDropLocal(e: DragEvent) {
         entryCount = 0;
         dragOver = false;
-        const margin = e.target && (e.target as HTMLElement).closest('.drop-margin');
+        const margin =
+            e.target && (e.target as HTMLElement).closest(".drop-margin");
         if (margin) {
             const side = margin.classList.item(1) || undefined;
             handleImageDrop(e, side);
@@ -238,13 +252,19 @@
     function handleScroll() {
         if (ui.selected && scrollContainer) {
             pointerPosition = {
-                x: pointerPosition.x + scrollContainer.scrollLeft - ui.selected.pan.x,
-                y: pointerPosition.y + scrollContainer.scrollTop - ui.selected.pan.y
+                x:
+                    pointerPosition.x +
+                    scrollContainer.scrollLeft -
+                    ui.selected.pan.x,
+                y:
+                    pointerPosition.y +
+                    scrollContainer.scrollTop -
+                    ui.selected.pan.y,
             };
-            
+
             ui.selected.pan = {
                 x: scrollContainer.scrollLeft,
-                y: scrollContainer.scrollTop
+                y: scrollContainer.scrollTop,
             };
         }
     }
@@ -266,8 +286,12 @@
             zoomAroundPoint(zoomFactor, cursor);
 
             pointerPosition = {
-                x: pointerPosition.x + (ui.selected.pan.x - oldPan.x) * zoomFactor,
-                y: pointerPosition.y + (ui.selected.pan.y - oldPan.y) * zoomFactor
+                x:
+                    pointerPosition.x +
+                    (ui.selected.pan.x - oldPan.x) * zoomFactor,
+                y:
+                    pointerPosition.y +
+                    (ui.selected.pan.y - oldPan.y) * zoomFactor,
             };
         }
     }
@@ -309,28 +333,40 @@
     ontouchstart={handleTouchStart}
     ontouchmove={handleTouchMove}
 >
-    <div id="interactive-area"
+    <div
+        id="interactive-area"
         role="application"
         ondragover={(e) => e.preventDefault()}
         ondrop={handleImageDropLocal}
-        style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
-        style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
+        style:width={docs.selected && ui.selected
+            ? docs.selected.width * ui.selected.zoom + "px"
+            : "800px"}
+        style:height={docs.selected && ui.selected
+            ? docs.selected.height * ui.selected.zoom + "px"
+            : "600px"}
     >
         <div
             id="canvas-area"
-            style:width={docs.selected && ui.selected ? docs.selected.width * ui.selected.zoom + 'px' : '800px'}
-            style:height={docs.selected && ui.selected ? docs.selected.height * ui.selected.zoom + 'px' : '600px'}
+            style:width={docs.selected && ui.selected
+                ? docs.selected.width * ui.selected.zoom + "px"
+                : "800px"}
+            style:height={docs.selected && ui.selected
+                ? docs.selected.height * ui.selected.zoom + "px"
+                : "600px"}
         >
             <canvas
                 bind:this={canvas}
                 aria-hidden="true"
-                style:transform={ui.selected ? `scale(${ui.selected.zoom})` : 'scale(1)'}
+                style:transform={ui.selected
+                    ? `scale(${ui.selected.zoom})`
+                    : "scale(1)"}
             ></canvas>
             <div id="canvas-instructions" class="sr-only">
-                Interactive drawing canvas. Click and drag to draw. Use keyboard shortcuts for additional tools.
+                Interactive drawing canvas. Click and drag to draw. Use keyboard
+                shortcuts for additional tools.
             </div>
             <div id="overlay-area">
-                {#if tool.name === 'draw' || tool.name === 'erase'}
+                {#if tool.name === "draw" || tool.name === "erase"}
                     <div
                         id="draw-cursor"
                         style={`
@@ -348,7 +384,13 @@
                     <DropMargin side="right" />
                 {/if}
                 <Handles />
-                {#if tool.name === 'text' && selectedLayer?.type === 'text'}
+                {#if select.snappedX}
+                    <div class="snap-line vertical"></div>
+                {/if}
+                {#if select.snappedY}
+                    <div class="snap-line horizontal"></div>
+                {/if}
+                {#if tool.name === "text" && selectedLayer?.type === "text"}
                     <TextEdit bind:layer={selectedLayer} />
                 {/if}
             </div>
@@ -398,9 +440,28 @@
         pointer-events: none;
         border: 1px solid var(--c-sec);
         border-radius: var(--r-full);
-        transform: translate(
-            calc(-50%),
-            calc(-50%)
-        );
+        transform: translate(calc(-50%), calc(-50%));
+    }
+
+    .snap-line {
+        position: absolute;
+        pointer-events: none;
+        border: 1px dashed var(--c-acc);
+    }
+
+    .snap-line.vertical {
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        transform: translateX(-0.5px);
+    }
+
+    .snap-line.horizontal {
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        transform: translateY(-0.5px);
     }
 </style>

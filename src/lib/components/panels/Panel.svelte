@@ -1,6 +1,15 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
-    const { title, disabled, children }: { title?: string, disabled?: boolean, children: Snippet, scrollable?: boolean} = $props();
+    const {
+        title,
+        disabled,
+        children,
+    }: {
+        title?: string;
+        disabled?: boolean;
+        children: Snippet;
+        scrollable?: boolean;
+    } = $props();
 </script>
 
 <div id="panel" class:disabled={disabled ?? false}>

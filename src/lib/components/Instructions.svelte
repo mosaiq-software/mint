@@ -1,18 +1,28 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
-    import {SquareDashed, ArrowLeft, ArrowRight, ArrowUp, ArrowDown} from "@lucide/svelte";
+    import {
+        SquareDashed,
+        ArrowLeft,
+        ArrowRight,
+        ArrowUp,
+        ArrowDown,
+    } from "@lucide/svelte";
     import tabStatus from "../scripts/tabStatus.svelte";
     import RotateHandleIcon from "./ui/svgs/RotateHandleIcon.svelte";
     import ScaleHandleIcon from "./ui/svgs/ScaleHandleIcon.svelte";
 
     const isMacLike = /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent);
-    const ctrl = isMacLike ? '⌘' : 'Ctrl';
+    const ctrl = isMacLike ? "⌘" : "Ctrl";
 
     const keybindConnector = " + ";
     const keySVGSize = 12;
 
-    const selectedLayer = $derived(docs.selected?.layers.find(l => l.id === ui.selected?.selectedLayers[0]));
+    const selectedLayer = $derived(
+        docs.selected?.layers.find(
+            (l) => l.id === ui.selected?.selectedLayers[0],
+        ),
+    );
 </script>
 
 {#if docs.selected}
@@ -62,8 +72,12 @@
             {:else if ui.mode === "text"}
                 {#if selectedLayer?.type === "text"}
                     <p>Type in layer to edit text</p>
-                    <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>B</kbd> for bold</p>
-                    <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>I</kbd> for italics</p>
+                    <p>
+                        <kbd>{ctrl}</kbd>{keybindConnector}<kbd>B</kbd> for bold
+                    </p>
+                    <p>
+                        <kbd>{ctrl}</kbd>{keybindConnector}<kbd>I</kbd> for italics
+                    </p>
                 {:else}
                     <p>Click to make a text layer</p>
                 {/if}
@@ -93,7 +107,9 @@
 {/if}
 
 <style>
-    i, kbd, svg {
+    i,
+    kbd,
+    svg {
         display: inline-block;
         vertical-align: middle;
     }
@@ -104,7 +120,7 @@
     }
 
     p:not(:last-child)::after {
-        content: '•';
+        content: "•";
         color: var(--c-off);
         padding: 0 var(--s-sm);
     }

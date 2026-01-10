@@ -1,9 +1,18 @@
-import { getUndoAction, getRedoAction, updateSnapshot, applyUndoAction, applyRedoAction } from "./action";
+import {
+    getUndoAction,
+    getRedoAction,
+    updateSnapshot,
+    applyUndoAction,
+    applyRedoAction,
+} from "./action";
 import docs from "./docs.svelte";
 import { saveDocumentToDB } from "./persistence.svelte";
 import tabStatus from "./tabStatus.svelte.js";
 import ui, { zoomAroundCenter, type Mode } from "./ui.svelte";
-import { copyLayersToClipboard, pasteLayersFromClipboard } from "./copypaste.svelte";
+import {
+    copyLayersToClipboard,
+    pasteLayersFromClipboard,
+} from "./copypaste.svelte";
 import type { TextLayer } from "./layer";
 
 /**
@@ -13,54 +22,54 @@ import type { TextLayer } from "./layer";
 export function handleShortcuts(event: KeyboardEvent) {
     if (event.ctrlKey || event.metaKey) {
         switch (event.key) {
-            case 'z':
+            case "z":
                 event.preventDefault();
                 handleUndo();
                 break;
-            case 'y':
+            case "y":
                 event.preventDefault();
                 handleRedo();
                 break;
-            case 's':
+            case "s":
                 event.preventDefault();
                 handleSave();
                 break;
-            case 'b':
+            case "b":
                 event.preventDefault();
                 event.stopPropagation();
-                toggleTextProperty('bold');
+                toggleTextProperty("bold");
                 break;
-            case 'i':
+            case "i":
                 event.preventDefault();
                 event.stopPropagation();
-                toggleTextProperty('italic');
+                toggleTextProperty("italic");
                 break;
-            case 'c':
+            case "c":
                 event.preventDefault();
                 handleCopy();
                 break;
-            case 'v':
+            case "v":
                 event.preventDefault();
                 handlePaste();
                 break;
-            case '=':
+            case "=":
                 event.preventDefault();
-                handleZoom('in');
+                handleZoom("in");
                 break;
-            case '-':
+            case "-":
                 event.preventDefault();
-                handleZoom('out');
+                handleZoom("out");
                 break;
         }
     } else {
         const newMode = {
-            's': 'select',
-            'd': 'draw',
-            'e': 'erase',
-            't': 'text',
-            'f': 'fill',
-            'r': 'rectangle',
-            'c': 'ellipse',
+            s: "select",
+            d: "draw",
+            e: "erase",
+            t: "text",
+            f: "fill",
+            r: "rectangle",
+            c: "ellipse",
         }[event.key];
         if (newMode) ui.mode = newMode as Mode;
     }
@@ -73,7 +82,11 @@ export function handleShortcuts(event: KeyboardEvent) {
 function toggleTextProperty<K extends keyof TextLayer>(property: K) {
     if (ui.selectedLayers.length !== 1) return;
     const layer = ui.selectedLayers[0];
-    if (layer.type === 'text' && property in layer && typeof layer[property] === 'boolean') {
+    if (
+        layer.type === "text" &&
+        property in layer &&
+        typeof layer[property] === "boolean"
+    ) {
         layer[property] = !layer[property] as TextLayer[K];
     }
 }
@@ -91,7 +104,7 @@ function handlePaste() {
 export function handleSave() {
     if (!docs.selected) return;
 
-    saveDocumentToDB(docs.selected).then(r => {
+    saveDocumentToDB(docs.selected).then((r) => {
         tabStatus[r.id].actionsSinceSave = 0;
     });
 }
@@ -103,7 +116,7 @@ function handleUndo() {
     const action = getUndoAction(docs.selected.id);
     if (!action) return;
 
-    updateSnapshot(action, 'undo');
+    updateSnapshot(action, "undo");
     applyUndoAction(action);
 }
 
@@ -114,24 +127,24 @@ function handleRedo() {
     const action = getRedoAction(docs.selected.id);
     if (!action) return;
 
-    updateSnapshot(action, 'redo');
+    updateSnapshot(action, "redo");
     applyRedoAction(action);
 }
 
 /** Handles zooming in or out around the center of the viewport. */
-function handleZoom(action: 'in' | 'out') {
-    if (action === 'in') zoomAroundCenter(1.1);
+function handleZoom(action: "in" | "out") {
+    if (action === "in") zoomAroundCenter(1.1);
     else zoomAroundCenter(1 / 1.1);
 }
 
-let previousMode: Mode = 'select';
+let previousMode: Mode = "select";
 
 /** Handles mouse down events to switch to pan mode on middle mouse button press. */
 export function handleMouseDown(event: MouseEvent) {
     if (event.button !== 1) return;
 
     previousMode = ui.mode;
-    ui.mode = 'pan';
+    ui.mode = "pan";
 }
 
 /** Handles mouse up events to restore the previous mode after panning. */

@@ -16,18 +16,20 @@
         max = 100,
         step = 1,
         onValueChange = () => {},
-        onBlur = () => {}
+        onBlur = () => {},
     }: Props = $props();
 
     /** Make sure the value reflected by the slider doesn't exceed its bounds */
     const clampedValue = $derived(
-        value === undefined ? min : Math.min(Math.max(value, min), max)
+        value === undefined ? min : Math.min(Math.max(value, min), max),
     );
 
-    const slider = new Slider({ 
-        min, max, step,
+    const slider = new Slider({
+        min,
+        max,
+        step,
         value: () => clampedValue,
-        orientation: 'horizontal',
+        orientation: "horizontal",
         onValueChange: (val) => {
             if (value !== undefined) {
                 value = val;
@@ -43,13 +45,13 @@
         pointerUpHandler = (e) => {
             document.getElementById(slider.thumb.id)?.blur();
         };
-        document.addEventListener('pointerup', pointerUpHandler);
+        document.addEventListener("pointerup", pointerUpHandler);
     }
 
     /** Handle blur on the slider thumb to clean up event listeners. */
     function handleBlur() {
         if (pointerUpHandler) {
-            document.removeEventListener('pointerup', pointerUpHandler);
+            document.removeEventListener("pointerup", pointerUpHandler);
             pointerUpHandler = null;
         }
         onBlur();
@@ -71,7 +73,8 @@
         align-items: center;
     }
 
-    .slider .track, .slider .range {
+    .slider .track,
+    .slider .range {
         height: 3px;
         margin: auto 0;
         border-radius: var(--r-full);

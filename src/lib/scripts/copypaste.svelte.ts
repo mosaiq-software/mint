@@ -1,4 +1,4 @@
-import {getEnumeratedLayerName, type Layer, type LayerID} from "./layer";
+import { getEnumeratedLayerName, type Layer, type LayerID } from "./layer";
 import docs from "./docs.svelte";
 import { deepCopyLayer, postAction, type PostAction } from "./action";
 import ui from "./ui.svelte";
@@ -7,14 +7,14 @@ import ui from "./ui.svelte";
  * Stores the clipboard data for copy-paste operations.
  * Holds an array of layers that can be pasted.
  */
-let clipboard: {layers: Layer[]} = $state({layers: []});
+let clipboard: { layers: Layer[] } = $state({ layers: [] });
 
 /**
  * Copies the currently selected layers to the clipboard.
  */
 export function copyLayersToClipboard() {
     if (ui.selectedLayers.length === 0) return;
-    clipboard.layers = ui.selectedLayers.map(layer => deepCopyLayer(layer));
+    clipboard.layers = ui.selectedLayers.map((layer) => deepCopyLayer(layer));
 }
 
 /**
@@ -32,19 +32,19 @@ export function pasteLayersFromClipboard() {
         const newLayer = {
             ...deepCopyLayer(layer),
             name: getEnumeratedLayerName(name),
-            id
+            id,
         };
         docs.selected.layers.push(newLayer);
         ui.selected?.selectedLayers.push(id);
         actions.push({
             type: "create",
             layer: newLayer,
-            position: docs.selected.layers.length - 1
+            position: docs.selected.layers.length - 1,
         });
     }
 
     postAction({
         type: "compound",
-        actions
+        actions,
     });
 }

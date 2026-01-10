@@ -19,8 +19,11 @@
      * black if no document is open.
      */
     const foregroundColor = $derived(
-        textLayer ? textLayer.foregroundColor : ui.selected
-            ? ui.selected.foregroundColor : { r: 0, g: 0, b: 0, a: 1 }
+        textLayer
+            ? textLayer.foregroundColor
+            : ui.selected
+              ? ui.selected.foregroundColor
+              : { r: 0, g: 0, b: 0, a: 1 },
     );
 
     /**
@@ -40,7 +43,7 @@
             postAction({
                 type: "update",
                 layerID: textLayer.id,
-                newLayer: { fontFamily: p.fontFamily }
+                newLayer: { fontFamily: p.fontFamily },
             });
         }
     }
@@ -61,7 +64,7 @@
             postAction({
                 type: "update",
                 layerID: textLayer.id,
-                newLayer: { fontSize: value }
+                newLayer: { fontSize: value },
             });
         }
     }
@@ -81,7 +84,7 @@
             postAction({
                 type: "update",
                 layerID: textLayer.id,
-                newLayer: { lineHeight: value }
+                newLayer: { lineHeight: value },
             });
         }
     }
@@ -92,7 +95,7 @@
             postAction({
                 type: "update",
                 layerID: textLayer.id,
-                newLayer: { bold: p.bold }
+                newLayer: { bold: p.bold },
             });
         }
     }
@@ -103,7 +106,7 @@
             postAction({
                 type: "update",
                 layerID: textLayer.id,
-                newLayer: { italic: p.italic }
+                newLayer: { italic: p.italic },
             });
         }
     }
@@ -121,7 +124,8 @@
                     onBlur={handleFontSizeChange}
                     placeholder="Font Size"
                     labelPosition="side"
-                ><div class="preview-label">Size</div></Input>
+                    ><div class="preview-label">Size</div></Input
+                >
             </div>
             <div
                 id="type-preview"
@@ -130,7 +134,9 @@
                 style:background-color={previewBackgroundColor}
                 style:font-style={p.italic ? "italic" : "normal"}
                 style:font-weight={p.bold ? "bold" : "normal"}
-            >Aa</div>
+            >
+                Aa
+            </div>
         </div>
         <div id="font-styles">
             <Input
@@ -139,19 +145,21 @@
                 bind:value={lineHeight}
                 onBlur={handleLineHeightChange}
                 placeholder="Line Height"
-                labelPosition="side"
-            >Line Height</Input>
+                labelPosition="side">Line Height</Input
+            >
             <div>
                 <IconToggle
                     label="Bold"
                     bind:value={p.bold}
                     onValueChange={handleBoldToggle}
-                ><Bold size={16}/></IconToggle>
+                    ><Bold size={16} /></IconToggle
+                >
                 <IconToggle
                     label="Italic"
                     bind:value={p.italic}
                     onValueChange={handleItalicToggle}
-                ><Italic size={16}/></IconToggle>
+                    ><Italic size={16} /></IconToggle
+                >
             </div>
         </div>
     </div>

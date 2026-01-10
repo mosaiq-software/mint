@@ -3,10 +3,10 @@
 
     interface Props {
         name: string;
-        children: Snippet
-        type?: 'text' | 'password' | 'email' | 'number';
-        labelPosition?: 'top' | 'side';
-        variant?: 'solid' | 'underline',
+        children: Snippet;
+        type?: "text" | "password" | "email" | "number";
+        labelPosition?: "top" | "side";
+        variant?: "solid" | "underline";
         style?: string;
         placeholder?: string;
         value?: string;
@@ -19,16 +19,16 @@
     let {
         name,
         children,
-        type = 'text',
-        labelPosition = 'top',
-        variant = 'solid',
-        style = '',
-        placeholder = '',
+        type = "text",
+        labelPosition = "top",
+        variant = "solid",
+        style = "",
+        placeholder = "",
         value = $bindable(),
         disabled = false,
         hideLabel = false,
         onBlur = (e: FocusEvent) => {},
-        id
+        id,
     }: Props = $props();
 
     /**
@@ -44,26 +44,22 @@
 
 <div
     class="input-container"
-    style={style}
-    class:label-side={labelPosition === 'side'}
-    class:label-top={labelPosition === 'top'}
+    {style}
+    class:label-side={labelPosition === "side"}
+    class:label-top={labelPosition === "top"}
 >
-    <label
-        class="input-label"
-        for={name}
-        class:sr-only={hideLabel}
-    >
+    <label class="input-label" for={name} class:sr-only={hideLabel}>
         {@render children()}
     </label>
     <input
         class="variant-{variant}"
-        type={type}
-        placeholder={placeholder}
+        {type}
+        {placeholder}
         bind:value
-        disabled={disabled}
+        {disabled}
         onblur={onBlur}
         onkeydown={handleKeydown}
-        id={id}
+        {id}
     />
 </div>
 
@@ -112,7 +108,8 @@
         color: var(--c-txt);
     }
 
-    input.variant-underline:focus, input.variant-underline:hover {
+    input.variant-underline:focus,
+    input.variant-underline:hover {
         border-color: var(--c-txt);
     }
 </style>

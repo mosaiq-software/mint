@@ -16,27 +16,30 @@
         label,
         onValueChange = () => {},
         disabled = false,
-        children
+        children,
     }: Props = $props();
 
     const toggle = new Toggle({
         value,
         onValueChange: (val) => {
-            if (value !== undefined) { value = val; onValueChange(val); }
+            if (value !== undefined) {
+                value = val;
+                onValueChange(val);
+            }
         },
     });
 
     $effect(() => {
         if (value !== undefined && toggle.value !== value) toggle.value = value;
-    })
+    });
 </script>
 
 <button
     {...toggle.trigger}
     class="icon-toggle"
     aria-label="Icon Toggle"
-    disabled={disabled}
-    class:disabled={disabled}
+    {disabled}
+    class:disabled
     class:pressed={toggle.value}
 >
     <IconButtonVisual selected={toggle.value} {label}>

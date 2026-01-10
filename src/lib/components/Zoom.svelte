@@ -21,7 +21,10 @@
         }
     }
 
-    const zooms = [30, 50, 70, 80, 90, 100, 110, 120, 130, 150, 170, 200, 250, 300, 400, 500]
+    const zooms = [
+        30, 50, 70, 80, 90, 100, 110, 120, 130, 150, 170, 200, 250, 300, 400,
+        500,
+    ];
 
     let dropdownZoom = $state(-1);
 
@@ -33,7 +36,7 @@
                     (ui.viewport.width - 60) / docs.selected.width,
                     (ui.viewport.height - 60) / docs.selected.height,
                 );
-                ui.selected.pan = {x: 0, y: 0};
+                ui.selected.pan = { x: 0, y: 0 };
             } else {
                 zoomAroundCenter(dropdownZoom / ui.selected.zoom);
             }

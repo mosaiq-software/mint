@@ -5,20 +5,29 @@ import type { Point } from "./tools";
 import { updateBoundsSnapshot } from "./action";
 
 /** Available interaction modes (tools) */
-export const modes = ['select', 'draw', 'erase', 'text', 'rectangle', 'ellipse', 'fill', 'pan'] as const;
+export const modes = [
+    "select",
+    "draw",
+    "erase",
+    "text",
+    "rectangle",
+    "ellipse",
+    "fill",
+    "pan",
+] as const;
 
 /** Interaction modes (tools) */
-export type Mode = typeof modes[number];
+export type Mode = (typeof modes)[number];
 
 /**
  * Bounding box of the selected layers,
  * including position, size, and rotation.
  */
 export type Bounds = {
-    pos: Point,
-    size: Point,
-    rot: number
-}
+    pos: Point;
+    size: Point;
+    rot: number;
+};
 
 /** UI attributes for a single document */
 type UIAttributes = {
@@ -28,10 +37,10 @@ type UIAttributes = {
     pan: { x: number; y: number };
     zoom: number;
     bounds: Bounds | null;
-}
+};
 
 /** Properties for the global UI state. */
-type UI  = Record<DocumentID, UIAttributes> & {
+type UI = Record<DocumentID, UIAttributes> & {
     mode: Mode;
     selected: UIAttributes | null;
     selectedDocument: DocumentID | null;
@@ -39,8 +48,8 @@ type UI  = Record<DocumentID, UIAttributes> & {
     viewport: {
         width: number;
         height: number;
-    }
-}
+    };
+};
 
 /**
  * The global UI state. Includes per-document UI attributes,
@@ -49,14 +58,14 @@ type UI  = Record<DocumentID, UIAttributes> & {
  * (`selected`).
  * */
 const ui: UI = $state({
-    mode: 'select',
+    mode: "select",
     selectedDocument: null,
     selected: null,
     selectedLayers: [],
     viewport: {
         width: 0,
         height: 0,
-    }
+    },
 });
 
 /** Initializes the UI attributes for a newly opened document. */
@@ -67,8 +76,8 @@ export function initializeUIForDocument(id: DocumentID) {
         backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
         pan: { x: 0, y: 0 },
         zoom: 1,
-        bounds: null
-    }
+        bounds: null,
+    };
 }
 
 /** Updates the selected layers array based on the selected layer IDs. */
@@ -81,7 +90,7 @@ export function updateSelectedLayers() {
     const selectedLayerIDs = ui.selected?.selectedLayers ?? [];
     const selectedLayers: Layer[] = [];
     for (const layerId of selectedLayerIDs) {
-        const layer = docs.selected.layers.find(l => l.id === layerId);
+        const layer = docs.selected.layers.find((l) => l.id === layerId);
         if (layer) selectedLayers.push(layer);
     }
     ui.selectedLayers = selectedLayers;
@@ -109,20 +118,26 @@ export function updateBoundingBox() {
     }
 
     const currentSelectedLayerIDs = ui.selected?.selectedLayers ?? [];
-    let selectedLayersChanged = false
+    let selectedLayersChanged = false;
 
     // detect selection change
-    if (previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
-        !previousSelectedLayerIDs.every((id, index) => id === currentSelectedLayerIDs[index])) {
+    if (
+        previousSelectedLayerIDs.length !== currentSelectedLayerIDs.length ||
+        !previousSelectedLayerIDs.every(
+            (id, index) => id === currentSelectedLayerIDs[index],
+        )
+    ) {
         selectedLayersChanged = true;
         // determine if all selected layers have the same rotation
-        const rotations = ui.selectedLayers.map(layer => {
+        const rotations = ui.selectedLayers.map((layer) => {
             const m = matrixToTransformComponents(layer.transform.matrix);
             return m.rotate;
         });
 
         // if all rotations are the same (within a small tolerance), use that rotation
-        const allSameRotation = rotations.every(rot => Math.abs(rot-rotations[0]) < 0.01);
+        const allSameRotation = rotations.every(
+            (rot) => Math.abs(rot - rotations[0]) < 0.01,
+        );
         previousRotation = allSameRotation ? rotations[0] : 0;
     }
     previousSelectedLayerIDs = [...currentSelectedLayerIDs];
@@ -135,21 +150,25 @@ export function updateBoundingBox() {
     }
 
     // handle multi-layer selection: compute bounding box around all selected layers
-    const allCorners = ui.selectedLayers.flatMap(layer => {
-        const width = layer.type === 'canvas' ? layer.canvas.width : layer.width;
-        const height = layer.type === 'canvas' ? layer.canvas.height : layer.height;
-        
+    const allCorners = ui.selectedLayers.flatMap((layer) => {
+        const width =
+            layer.type === "canvas" ? layer.canvas.width : layer.width;
+        const height =
+            layer.type === "canvas" ? layer.canvas.height : layer.height;
+
         return [
             new DOMPoint(0, 0),
             new DOMPoint(width, 0),
             new DOMPoint(width, height),
-            new DOMPoint(0, height)
-        ].map(corner => layer.transform.matrix.transformPoint(corner));
+            new DOMPoint(0, height),
+        ].map((corner) => layer.transform.matrix.transformPoint(corner));
     });
 
     // rotate corners to align with previous bounding box rotation
     const inverseRotation = new DOMMatrix().rotate(-previousRotation);
-    const rotatedCorners = allCorners.map(corner => corner.matrixTransform(inverseRotation));
+    const rotatedCorners = allCorners.map((corner) =>
+        corner.matrixTransform(inverseRotation),
+    );
 
     // calculate bounding box of selected layers
     let minX = Infinity;
@@ -172,7 +191,7 @@ export function updateBoundingBox() {
     ui.selected.bounds = {
         pos: { x: topLeft.x, y: topLeft.y },
         size: { x: maxX - minX, y: maxY - minY },
-        rot: previousRotation
+        rot: previousRotation,
     };
 
     if (selectedLayersChanged && ui.selectedDocument) {
@@ -210,19 +229,19 @@ export function zoomAroundPoint(zoomFactor: number, point: Point) {
     const h = ui.viewport.height;
     const center = {
         x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
-        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
+        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom,
     };
 
     ui.selected.zoom *= zoomFactor;
 
     const newC = {
         x: center.x + (point.x - center.x) * (zoomFactor - 1),
-        y: center.y + (point.y - center.y) * (zoomFactor - 1)
-    }
+        y: center.y + (point.y - center.y) * (zoomFactor - 1),
+    };
 
     ui.selected.pan = {
         x: 30 + newC.x * ui.selected.zoom - w / 2,
-        y: 30 + newC.y * ui.selected.zoom - h / 2
+        y: 30 + newC.y * ui.selected.zoom - h / 2,
     };
 }
 
@@ -237,14 +256,14 @@ export function zoomAroundCenter(zoomFactor: number) {
     const h = ui.viewport.height;
     const center = {
         x: (ui.selected.pan.x - 30 + w / 2) / ui.selected.zoom,
-        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom
+        y: (ui.selected.pan.y - 30 + h / 2) / ui.selected.zoom,
     };
 
     ui.selected.zoom *= zoomFactor;
 
     ui.selected.pan = {
         x: 30 + center.x * ui.selected.zoom - w / 2,
-        y: 30 + center.y * ui.selected.zoom - h / 2
+        y: 30 + center.y * ui.selected.zoom - h / 2,
     };
 }
 

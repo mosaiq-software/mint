@@ -1,5 +1,15 @@
 <script lang="ts">
-    import { Brush, MousePointer2, Eraser, Type, MoveHorizontal, Circle, Square , PaintBucket, Hand } from "@lucide/svelte";
+    import {
+        Brush,
+        MousePointer2,
+        Eraser,
+        Type,
+        MoveHorizontal,
+        Circle,
+        Square,
+        PaintBucket,
+        Hand,
+    } from "@lucide/svelte";
     import MintLogo from "./ui/svgs/MintLogo.svelte";
     import { Popover, RadioGroup } from "melt/builders";
     import ui, { type Mode } from "../scripts/ui.svelte";
@@ -16,11 +26,11 @@
     const fileMenuPopover = new Popover({
         floatingConfig: {
             computePosition: {
-                placement: 'right-start'
-            }
+                placement: "right-start",
+            },
         },
         open: getPopoverOpen,
-        onOpenChange: (open) => popoverOpen = open,
+        onOpenChange: (open) => (popoverOpen = open),
     });
 
     const modesGroup = new RadioGroup({
@@ -34,7 +44,11 @@
     } | null = $derived.by(() => {
         if (!docs.selected || !ui.selected) return null;
         const selectedLayer = ui.selected.selectedLayers[0] ?? null;
-        if (selectedLayer) return docs.selected.layers.find((l) => l.id === selectedLayer) ?? ui.selected;
+        if (selectedLayer)
+            return (
+                docs.selected.layers.find((l) => l.id === selectedLayer) ??
+                ui.selected
+            );
         return ui.selected;
     });
 
@@ -42,10 +56,10 @@
     const editColorPopover = new Popover({
         floatingConfig: {
             computePosition: {
-                placement: "right-end"
-            }
+                placement: "right-end",
+            },
         },
-        closeOnOutsideClick: false
+        closeOnOutsideClick: false,
     });
 
     /** Swap the foreground and background colors of the source. */
@@ -60,19 +74,18 @@
     /** Handle clicks outside the color edit popover to close it. */
     onMount(() => {
         function handleMouseDown(event: MouseEvent) {
-            const contentEl = document.getElementById(editColorPopover.ids.content);
+            const contentEl = document.getElementById(
+                editColorPopover.ids.content,
+            );
             const containsContent = contentEl?.contains(event.target as Node);
 
             const triggerEls = document.querySelectorAll(`.popover-trigger`);
-            const containsTrigger = Array.from(triggerEls).some(el =>
-                el.contains(event.target as Node)
+            const containsTrigger = Array.from(triggerEls).some((el) =>
+                el.contains(event.target as Node),
             );
 
-            if (
-                editColorPopover.open &&
-                !containsContent &&
-                !containsTrigger
-            ) editColorPopover.open = false;
+            if (editColorPopover.open && !containsContent && !containsTrigger)
+                editColorPopover.open = false;
         }
         document.addEventListener("mousedown", handleMouseDown);
         onDestroy(() => {
@@ -80,7 +93,6 @@
         });
     });
 </script>
-
 
 <div {...modesGroup.root} id="left-sidebar">
     <div id="tools">
@@ -92,42 +104,74 @@
             <FileMenu bind:open={popoverOpen} />
         </div>
         <div {...modesGroup.getItem("select").attrs}>
-            <Tool name="Select" keybind="S" selected={modesGroup.value === "select"}>
+            <Tool
+                name="Select"
+                keybind="S"
+                selected={modesGroup.value === "select"}
+            >
                 <MousePointer2 />
             </Tool>
         </div>
         <div {...modesGroup.getItem("draw").attrs}>
-            <Tool name="Draw" keybind="D" selected={modesGroup.value === "draw"}>
+            <Tool
+                name="Draw"
+                keybind="D"
+                selected={modesGroup.value === "draw"}
+            >
                 <Brush />
             </Tool>
         </div>
         <div {...modesGroup.getItem("erase").attrs}>
-            <Tool name="Erase" keybind="E" selected={modesGroup.value === "erase"}>
+            <Tool
+                name="Erase"
+                keybind="E"
+                selected={modesGroup.value === "erase"}
+            >
                 <Eraser />
             </Tool>
         </div>
         <div {...modesGroup.getItem("text").attrs}>
-            <Tool name="Text" keybind="T" selected={modesGroup.value === "text"}>
+            <Tool
+                name="Text"
+                keybind="T"
+                selected={modesGroup.value === "text"}
+            >
                 <Type />
             </Tool>
         </div>
         <div {...modesGroup.getItem("fill").attrs}>
-            <Tool name="Fill" keybind="F" selected={modesGroup.value === "fill"}>
+            <Tool
+                name="Fill"
+                keybind="F"
+                selected={modesGroup.value === "fill"}
+            >
                 <PaintBucket />
             </Tool>
         </div>
         <div {...modesGroup.getItem("rectangle").attrs}>
-            <Tool name="Rectangle" keybind="R" selected={modesGroup.value === "rectangle"}>
+            <Tool
+                name="Rectangle"
+                keybind="R"
+                selected={modesGroup.value === "rectangle"}
+            >
                 <Square />
             </Tool>
         </div>
         <div {...modesGroup.getItem("ellipse").attrs}>
-            <Tool name="Ellipse" keybind="C" selected={modesGroup.value === "ellipse"}>
+            <Tool
+                name="Ellipse"
+                keybind="C"
+                selected={modesGroup.value === "ellipse"}
+            >
                 <Circle />
             </Tool>
         </div>
         <div {...modesGroup.getItem("pan").attrs}>
-            <Tool name="Pan" keybind="MMB" selected={modesGroup.value === "pan"}>
+            <Tool
+                name="Pan"
+                keybind="MMB"
+                selected={modesGroup.value === "pan"}
+            >
                 <Hand />
             </Tool>
         </div>
@@ -139,7 +183,9 @@
             disabled={!source}
             id="color-background"
             title="Background Color"
-            style:border-color={source ? colorToCSS(source.backgroundColor) : '#fff'}
+            style:border-color={source
+                ? colorToCSS(source.backgroundColor)
+                : "#fff"}
             onclick={(e) => {
                 e.preventDefault();
                 if (!editColorPopover.open || editingColor == "background")
@@ -153,7 +199,9 @@
             disabled={!source}
             id="color-foreground"
             title="Foreground Color"
-            style:background-color={source ? colorToCSS(source.foregroundColor) : '#000'}
+            style:background-color={source
+                ? colorToCSS(source.foregroundColor)
+                : "#000"}
             onclick={(e) => {
                 e.preventDefault();
                 if (!editColorPopover.open || editingColor == "foreground")
@@ -162,7 +210,7 @@
             }}
         ></button>
         <button id="swap-colors" title="Swap Colors" onclick={swapColors}>
-            <MoveHorizontal color="var(--c-txt)" size={16}/>
+            <MoveHorizontal color="var(--c-txt)" size={16} />
         </button>
         {#if source}
             <div {...editColorPopover.content} class="popover">
@@ -186,7 +234,7 @@
         justify-content: space-between;
         width: calc(var(--s-sm) * 4 + 24);
         flex-shrink: 0;
-        overflow: scroll;
+        overflow: auto;
     }
 
     #tools {
@@ -231,7 +279,8 @@
     }
 
     @media (aspect-ratio < 1/1) {
-        #left-sidebar, #tools {
+        #left-sidebar,
+        #tools {
             flex-direction: row;
         }
 

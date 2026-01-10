@@ -1,7 +1,9 @@
 # Rendering
+
 Because the Canvas API takes care of almost every piece of desired rendering behavior, the rendering component of Mint is one of the simplest.
 
 ## Behavior
+
 Whenever the layers in a document are changed, the document is re-rendered. Layers are drawn in the order they appear in `docs.selected.layers`, meaning that the last layer in the layers array is the one that will appear on top.
 
 Before rendering each layer, the layer transform is applied to the drawing context. After rendering a layer, this transformation is popped and replaced by that of the next layer.
@@ -15,4 +17,5 @@ For rectangle layers, the fill content is rendered first using the specified wid
 Importantly, shape objects are not scaled the same way as canvas and text layers. To preserve stroke uniformity, the actual size of shape objects are modified when scaling, rather than modifying the scale components of the transformation matrix. Unlike scale, a shape's translation and rotation are still determined by the transformation matrix.
 
 ## Performance
+
 To simplify the rendering process, each layer is fully drawn before any subsequent layers, leading to overdraw if some layers occlude others. Additionally, layers are not cached between renders, meaning all transformations, text, and shapes are rendered after a change to any layer. These are fairly simple to address in the future, but have not been implemented due to a lack of performance concerns.

@@ -10,85 +10,86 @@ import tabStatus from "./tabStatus.svelte.js";
  * An action that creates a new layer.
  */
 type CreateAction = {
-    type: 'create';
+    type: "create";
     layer: Layer;
     position: number;
-}
+};
 
 /**
  * An action that deletes a layer.
  */
 type DeleteAction = {
-    type: 'delete';
+    type: "delete";
     layer: Layer;
     position: number;
-}
+};
 
 /**
  * An action that transforms a layer.
  */
 type TransformAction = {
-    type: 'transform';
+    type: "transform";
     layerID: LayerID;
     oldMatrix: DOMMatrix;
     newMatrix: DOMMatrix;
     oldBounds: Bounds | null;
     newBounds: Bounds | null;
-}
+};
 
 /**
  * An action that changes the canvas content of a layer.
  */
 type ContentAction = {
-    type: 'content';
+    type: "content";
     layerID: LayerID;
     oldContent: ImageData;
     newContent: ImageData;
-}
+};
 
 /**
  * An action that updates properties of a layer.
  */
 type UpdateAction = {
-    type: 'update';
+    type: "update";
     layerID: LayerID;
     oldLayer: Partial<Layer>;
     newLayer: Partial<Layer>;
-}
+};
 
 /**
  * An action that reorders a layer within the document's layer stack.
  */
 type ReorderAction = {
-    type: 'reorder';
+    type: "reorder";
     layerID: LayerID;
     oldPosition: number;
     newPosition: number;
-}
+};
 
 /**
  * An action that updates properties of a document.
  */
 type DocumentAction = {
-    type: 'document';
-    oldDocument: Partial<Document> & {id: DocumentID};
-    newDocument: Partial<Document> & {id: DocumentID};
-}
+    type: "document";
+    oldDocument: Partial<Document> & { id: DocumentID };
+    newDocument: Partial<Document> & { id: DocumentID };
+};
 
 /**
  * A compound action that groups multiple actions together.
  */
 type CompoundAction = {
-    type: 'compound',
-    actions: (Action | null)[]
-}
+    type: "compound";
+    actions: (Action | null)[];
+};
 
 /**
  * An action represents a change made to a layer. It stores
  * the old state and new state of the layer. Used for undo/redo
  * functionality.
  */
-export type Action = CreateAction
+export type Action =
+    | CreateAction
     | DeleteAction
     | TransformAction
     | ContentAction
@@ -111,29 +112,29 @@ type DeletePostAction = DeleteAction;
  * An action that transforms a layer.
  */
 type TransformPostAction = {
-    type: 'transform';
+    type: "transform";
     layerID: LayerID;
     newMatrix: DOMMatrix;
     newBounds: Bounds | null;
-}
+};
 
 /**
  * An action that changes the canvas content of a layer.
  */
 type ContentPostAction = {
-    type: 'content';
+    type: "content";
     layerID: LayerID;
     newContent: ImageData;
-}
+};
 
 /**
  * An action that updates properties of a layer.
  */
 type UpdatePostAction = {
-    type: 'update';
+    type: "update";
     layerID: LayerID;
     newLayer: Partial<Layer>;
-}
+};
 
 /**
  * An action that reorders a layer within the document's layer stack.
@@ -149,15 +150,16 @@ type DocumentPostAction = DocumentAction;
  * A compound action that groups multiple actions together.
  */
 type CompoundPostAction = {
-    type: 'compound',
-    actions: PostAction[]
-}
+    type: "compound";
+    actions: PostAction[];
+};
 
 /**
  * A PostAction is similar to an Action, but only stores the new state of the layer.
  * Used for creating new actions, as the old state is captured via snapshots.
  */
-export type PostAction = CreatePostAction
+export type PostAction =
+    | CreatePostAction
     | DeletePostAction
     | TransformPostAction
     | ContentPostAction
@@ -189,48 +191,61 @@ const currentActionIndex: Record<DocumentID, number> = {};
  */
 function postActionToAction(postAction: PostAction): Action | null {
     let action: Action;
-    if (postAction.type === 'create') {
+    if (postAction.type === "create") {
         action = {
-            type: 'create',
+            type: "create",
             layer: postAction.layer,
-            position: postAction.position
+            position: postAction.position,
         };
-    } else if (postAction.type === 'delete') {
+    } else if (postAction.type === "delete") {
         action = {
-            type: 'delete',
+            type: "delete",
             layer: postAction.layer,
-            position: postAction.position
+            position: postAction.position,
         };
-    } else if (postAction.type === 'transform') {
+    } else if (postAction.type === "transform") {
         const snapshot = snapshots[postAction.layerID];
         if (!snapshot) return null;
-        const oldBounds = docs.selected ? bounds[docs.selected.id] ?? null : null;
+        const oldBounds = docs.selected
+            ? (bounds[docs.selected.id] ?? null)
+            : null;
         action = {
-            type: 'transform',
+            type: "transform",
             layerID: postAction.layerID,
             oldMatrix: snapshot.transform.matrix,
             newMatrix: postAction.newMatrix,
-            oldBounds: oldBounds ? {
-                pos: { ...oldBounds.pos },
-                size: { ...oldBounds.size },
-                rot: oldBounds.rot
-            } : null,
-            newBounds: postAction.newBounds ? {
-                pos: { ...postAction.newBounds.pos },
-                size: { ...postAction.newBounds.size },
-                rot: postAction.newBounds.rot
-            } : null
+            oldBounds: oldBounds
+                ? {
+                      pos: { ...oldBounds.pos },
+                      size: { ...oldBounds.size },
+                      rot: oldBounds.rot,
+                  }
+                : null,
+            newBounds: postAction.newBounds
+                ? {
+                      pos: { ...postAction.newBounds.pos },
+                      size: { ...postAction.newBounds.size },
+                      rot: postAction.newBounds.rot,
+                  }
+                : null,
         };
-    } else if (postAction.type === 'content') {
+    } else if (postAction.type === "content") {
         const snapshot = snapshots[postAction.layerID];
-        if (!snapshot || snapshot.type !== 'canvas') return null;
+        if (!snapshot || snapshot.type !== "canvas") return null;
         action = {
-            type: 'content',
+            type: "content",
             layerID: postAction.layerID,
-            oldContent: snapshot.canvas.getContext('2d')!.getImageData(0, 0, snapshot.canvas.width, snapshot.canvas.height),
-            newContent: postAction.newContent
+            oldContent: snapshot.canvas
+                .getContext("2d")!
+                .getImageData(
+                    0,
+                    0,
+                    snapshot.canvas.width,
+                    snapshot.canvas.height,
+                ),
+            newContent: postAction.newContent,
         };
-    } else if (postAction.type === 'update') {
+    } else if (postAction.type === "update") {
         const snapshot = snapshots[postAction.layerID];
         if (!snapshot) return null;
 
@@ -241,31 +256,31 @@ function postActionToAction(postAction: PostAction): Action | null {
         }
 
         action = {
-            type: 'update',
+            type: "update",
             layerID: postAction.layerID,
             oldLayer: oldLayer as Partial<Layer>,
-            newLayer: postAction.newLayer
-        }
-    } else if (postAction.type === 'reorder') {
+            newLayer: postAction.newLayer,
+        };
+    } else if (postAction.type === "reorder") {
         action = {
-            type: 'reorder',
+            type: "reorder",
             layerID: postAction.layerID,
             oldPosition: postAction.oldPosition,
-            newPosition: postAction.newPosition
+            newPosition: postAction.newPosition,
         };
-    } else if (postAction.type === 'document') {
+    } else if (postAction.type === "document") {
         action = {
-            type: 'document',
+            type: "document",
             oldDocument: postAction.oldDocument,
-            newDocument: postAction.newDocument
+            newDocument: postAction.newDocument,
         };
-    } else if (postAction.type === 'compound') {
+    } else if (postAction.type === "compound") {
         action = {
-            type: 'compound',
-            actions: postAction.actions.map(postActionToAction)
-        }
+            type: "compound",
+            actions: postAction.actions.map(postActionToAction),
+        };
     } else {
-        console.warn('Unknown postAction type:', postAction);
+        console.warn("Unknown postAction type:", postAction);
         return null;
     }
     return action;
@@ -281,10 +296,14 @@ export function postAction(postAction: PostAction) {
 
     // mske sure an actions array and current action index exists for this document
     if (!actions[documentId]) actions[documentId] = [];
-    if (currentActionIndex[documentId] === undefined) currentActionIndex[documentId] = -1;
+    if (currentActionIndex[documentId] === undefined)
+        currentActionIndex[documentId] = -1;
 
     // remove any actions after the current action index
-    actions[documentId] = actions[documentId].slice(0, currentActionIndex[documentId] + 1);
+    actions[documentId] = actions[documentId].slice(
+        0,
+        currentActionIndex[documentId] + 1,
+    );
 
     let action = postActionToAction(postAction);
     if (!action) return;
@@ -300,7 +319,7 @@ export function postAction(postAction: PostAction) {
     }
 
     // update the snapshot for the layer
-    updateSnapshot(action, 'redo');
+    updateSnapshot(action, "redo");
 
     // update the bounds snapshot
     updateBoundsSnapshot(documentId, ui.selected?.bounds ?? null);
@@ -308,21 +327,25 @@ export function postAction(postAction: PostAction) {
     // indicate unsaved changes
     tabStatus[documentId].actionsSinceSave++;
     tabStatus[documentId].canUndo = true;
-    tabStatus[documentId].canRedo = currentActionIndex[documentId] < actions[documentId].length - 2;
+    tabStatus[documentId].canRedo =
+        currentActionIndex[documentId] < actions[documentId].length - 2;
 }
 
 /**
  * Deep copies a layer. For canvas layers, creates a new OffscreenCanvas and copies the contents.
  * Copies the layer transform object and matrix. Returns a shallow copy for other properties.
- * @param layer 
- * @returns 
+ * @param layer
+ * @returns
  */
 export function deepCopyLayer(layer: Layer): Layer {
-    const layerCopy: Layer = { ...layer};
+    const layerCopy: Layer = { ...layer };
 
-    if (layerCopy.type === 'canvas' && layer.type === 'canvas') {
-        const canvasCopy = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
-        const ctx = canvasCopy.getContext('2d');
+    if (layerCopy.type === "canvas" && layer.type === "canvas") {
+        const canvasCopy = new OffscreenCanvas(
+            layer.canvas.width,
+            layer.canvas.height,
+        );
+        const ctx = canvasCopy.getContext("2d");
         if (ctx) ctx.drawImage(layer.canvas, 0, 0);
         layerCopy.canvas = canvasCopy;
     }
@@ -379,10 +402,10 @@ export function getRedoAction(documentId: DocumentID): Action | null {
  * @param action The action to update the snapshot for.
  * @param type `'undo'` or `'redo'` to indicate which state to use for the snapshot.
  */
-export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
+export function updateSnapshot(action: Action, type: "undo" | "redo") {
     // update the bounds snapshot
-    if (action.type === 'transform') {
-        if (type === 'undo') {
+    if (action.type === "transform") {
+        if (type === "undo") {
             updateBoundsSnapshot(docs.selected!.id, action.oldBounds);
         } else {
             updateBoundsSnapshot(docs.selected!.id, action.newBounds);
@@ -392,51 +415,57 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
     }
 
     // update the layer snapshot
-    if (action.type === 'create') {
-        if (type === 'undo') {
+    if (action.type === "create") {
+        if (type === "undo") {
             delete snapshots[action.layer.id];
         } else {
             snapshots[action.layer.id] = deepCopyLayer(action.layer);
         }
-    } else if (action.type === 'delete') {
-        if (type === 'undo') {
+    } else if (action.type === "delete") {
+        if (type === "undo") {
             snapshots[action.layer.id] = deepCopyLayer(action.layer);
         } else {
             delete snapshots[action.layer.id];
         }
-    } else if (action.type === 'transform') {
+    } else if (action.type === "transform") {
         const layer = snapshots[action.layerID];
         if (layer) {
-            layer.transform.matrix = type === 'undo'
-                ? action.oldMatrix
-                : action.newMatrix;
-            if (docs.selected?.layers.find(l => l.id === action.layerID)) {
-                (docs.selected.layers.find(l => l.id === action.layerID) as Layer).transform.matrix = type === 'undo'
-                    ? action.oldMatrix
-                    : action.newMatrix;
+            layer.transform.matrix =
+                type === "undo" ? action.oldMatrix : action.newMatrix;
+            if (docs.selected?.layers.find((l) => l.id === action.layerID)) {
+                (
+                    docs.selected.layers.find(
+                        (l) => l.id === action.layerID,
+                    ) as Layer
+                ).transform.matrix =
+                    type === "undo" ? action.oldMatrix : action.newMatrix;
             }
         }
-    } else if (action.type === 'content') {
+    } else if (action.type === "content") {
         const layer = snapshots[action.layerID];
-        if (layer && layer.type === 'canvas') {
-            const canvas = new OffscreenCanvas(layer.canvas.width, layer.canvas.height);
-            const ctx = canvas.getContext('2d');
+        if (layer && layer.type === "canvas") {
+            const canvas = new OffscreenCanvas(
+                layer.canvas.width,
+                layer.canvas.height,
+            );
+            const ctx = canvas.getContext("2d");
             if (ctx) {
                 ctx.putImageData(
-                    type === 'undo' ? action.oldContent : action.newContent,
-                    0, 0
+                    type === "undo" ? action.oldContent : action.newContent,
+                    0,
+                    0,
                 );
                 layer.canvas = canvas;
             }
         }
-    } else if (action.type === 'update') {
+    } else if (action.type === "update") {
         const layer = snapshots[action.layerID];
         if (layer) {
-            const changes = type === 'undo' ? action.oldLayer : action.newLayer;
+            const changes = type === "undo" ? action.oldLayer : action.newLayer;
             Object.assign(layer, changes);
         }
-    } else if (action.type === 'compound') {
-        action.actions.forEach(a => {
+    } else if (action.type === "compound") {
+        action.actions.forEach((a) => {
             if (a) updateSnapshot(a, type);
         });
     }
@@ -447,7 +476,10 @@ export function updateSnapshot(action: Action, type: 'undo' | 'redo') {
  * @param documentId The ID of the document to update bounds snapshot for.
  * @param newBounds The new bounds to snapshot, or null to clear.
  */
-export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds | null) {
+export function updateBoundsSnapshot(
+    documentId: DocumentID,
+    newBounds: Bounds | null,
+) {
     if (newBounds === null) {
         bounds[documentId] = null;
         return;
@@ -455,7 +487,7 @@ export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds |
         bounds[documentId] = {
             pos: { ...newBounds.pos },
             size: { ...newBounds.size },
-            rot: newBounds.rot
+            rot: newBounds.rot,
         };
     }
 }
@@ -467,54 +499,67 @@ export function updateBoundsSnapshot(documentId: DocumentID, newBounds: Bounds |
 export function applyUndoAction(action: Action) {
     if (!docs.selected) return;
 
-    if (action.type === 'create') {
+    if (action.type === "create") {
         // layer was created, so remove it from document
-        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
-        if (ui.selected) ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== action.layer.id);
-    } else if (action.type === 'delete') {
+        docs.selected.layers = docs.selected.layers.filter(
+            (l) => l.id !== action.layer.id,
+        );
+        if (ui.selected)
+            ui.selected.selectedLayers = ui.selected.selectedLayers.filter(
+                (id) => id !== action.layer.id,
+            );
+    } else if (action.type === "delete") {
         // layer was deleted, so add it back to document at action.position
         if (action.position !== undefined) {
-            docs.selected.layers.splice(action.position, 0, deepCopyLayer(action.layer));
+            docs.selected.layers.splice(
+                action.position,
+                0,
+                deepCopyLayer(action.layer),
+            );
         } else {
             docs.selected.layers.push(deepCopyLayer(action.layer));
         }
-    } else if (action.type === 'transform') {
+    } else if (action.type === "transform") {
         // layer was transformed, so revert to oldLayer state
-        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        const layer = docs.selected.layers.find((l) => l.id === action.layerID);
         if (layer) {
             layer.transform.matrix = action.oldMatrix;
         }
         applyBounds(action.oldBounds);
-    } else if (action.type === 'content') {
+    } else if (action.type === "content") {
         // layer content was changed, so revert to oldContent
-        const layer = docs.selected.layers.find(l => l.id === action.layerID);
-        if (layer && layer.type === 'canvas') {
-            const ctx = layer.canvas.getContext('2d');
+        const layer = docs.selected.layers.find((l) => l.id === action.layerID);
+        if (layer && layer.type === "canvas") {
+            const ctx = layer.canvas.getContext("2d");
             if (ctx) {
                 ctx.putImageData(action.oldContent, 0, 0);
             }
         }
-    } else if (action.type === 'update') {
+    } else if (action.type === "update") {
         // layer was updated, so revert to oldLayer state
-        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(
+            (l) => l.id === action.layerID,
+        );
         if (layerIndex !== -1) {
             const layer = docs.selected.layers[layerIndex];
             if (layer) {
                 Object.assign(layer, action.oldLayer);
             }
         }
-    } else if (action.type === 'reorder') {
+    } else if (action.type === "reorder") {
         // layer was reordered, so move it back to oldPosition
-        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(
+            (l) => l.id === action.layerID,
+        );
         if (layerIndex !== -1) {
             const [layer] = docs.selected.layers.splice(layerIndex, 1);
             docs.selected.layers.splice(action.oldPosition, 0, layer);
         }
-    } else if (action.type === 'document') {
+    } else if (action.type === "document") {
         const id = action.oldDocument.id;
         Object.assign(docs[id], action.oldDocument);
-    } else if (action.type === 'compound') {
-        action.actions.forEach(a => {
+    } else if (action.type === "compound") {
+        action.actions.forEach((a) => {
             if (a) applyUndoAction(a);
         });
     }
@@ -542,7 +587,9 @@ function applyBounds(newBounds: Bounds | null) {
         return;
     } else if (ui.selectedLayers.length === 1) {
         // single layer, apply rotation of layer
-        const m = matrixToTransformComponents(ui.selectedLayers[0].transform.matrix);
+        const m = matrixToTransformComponents(
+            ui.selectedLayers[0].transform.matrix,
+        );
         setPreviousRotation(m.rotate);
         ui.selected.bounds.rot = m.rotate;
     } else {
@@ -554,60 +601,73 @@ function applyBounds(newBounds: Bounds | null) {
 
 /**
  * Applies a redo action to the document.
- * @param action 
- * @returns 
+ * @param action
+ * @returns
  */
 export function applyRedoAction(action: Action) {
     if (!docs.selected) return;
 
-    if (action.type === 'create') {
+    if (action.type === "create") {
         // layer was created, so add it back to document at action.position
         if (action.position !== undefined) {
-            docs.selected.layers.splice(action.position, 0, deepCopyLayer(action.layer));
+            docs.selected.layers.splice(
+                action.position,
+                0,
+                deepCopyLayer(action.layer),
+            );
         } else {
             docs.selected.layers.push(deepCopyLayer(action.layer));
         }
-    } else if (action.type === 'delete') {
+    } else if (action.type === "delete") {
         // layer was deleted, so remove it from document
-        docs.selected.layers = docs.selected.layers.filter(l => l.id !== action.layer.id);
-        if (ui.selected) ui.selected.selectedLayers = ui.selected.selectedLayers.filter(id => id !== action.layer.id);
-    } else if (action.type === 'transform') {
+        docs.selected.layers = docs.selected.layers.filter(
+            (l) => l.id !== action.layer.id,
+        );
+        if (ui.selected)
+            ui.selected.selectedLayers = ui.selected.selectedLayers.filter(
+                (id) => id !== action.layer.id,
+            );
+    } else if (action.type === "transform") {
         // layer was transformed, so apply newLayer state
-        const layer = docs.selected.layers.find(l => l.id === action.layerID);
+        const layer = docs.selected.layers.find((l) => l.id === action.layerID);
         if (layer) {
             layer.transform.matrix = action.newMatrix;
         }
         applyBounds(action.newBounds);
-    } else if (action.type === 'content') {
+    } else if (action.type === "content") {
         // layer content was changed, so apply newContent
-        const layer = docs.selected.layers.find(l => l.id === action.layerID);
-        if (layer && layer.type === 'canvas') {
-            const ctx = layer.canvas.getContext('2d');
+        const layer = docs.selected.layers.find((l) => l.id === action.layerID);
+        if (layer && layer.type === "canvas") {
+            const ctx = layer.canvas.getContext("2d");
             if (ctx) {
                 ctx.putImageData(action.newContent, 0, 0);
             }
         }
-    } else if (action.type === 'update') {
+    } else if (action.type === "update") {
         // layer was updated, so apply newLayer state
-        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(
+            (l) => l.id === action.layerID,
+        );
         if (layerIndex !== -1) {
             const layer = docs.selected.layers[layerIndex];
             if (layer) {
                 Object.assign(layer, action.newLayer);
             }
         }
-    } else if (action.type === 'reorder') {
+    } else if (action.type === "reorder") {
         // layer was reordered, so move it to newPosition
-        const layerIndex = docs.selected.layers.findIndex(l => l.id === action.layerID);
+        const layerIndex = docs.selected.layers.findIndex(
+            (l) => l.id === action.layerID,
+        );
         if (layerIndex !== -1) {
             const [layer] = docs.selected.layers.splice(layerIndex, 1);
             docs.selected.layers.splice(action.newPosition, 0, layer);
         }
-    } else if (action.type === 'document') {
+    } else if (action.type === "document") {
         const id = action.oldDocument.id;
         Object.assign(docs[id], action.newDocument);
-    } else if (action.type === 'compound') {
-        action.actions.forEach(a => {
+    } else if (action.type === "compound") {
+        action.actions.forEach((a) => {
             if (a) applyRedoAction(a);
         });
     }
@@ -618,7 +678,7 @@ export function applyRedoAction(action: Action) {
 
 /**
  * Populates the snapshots object with deep copies of the given layers.
- * @param layers 
+ * @param layers
  */
 export function populateSnapshots(layers: Layer[]) {
     for (const layer of layers) {

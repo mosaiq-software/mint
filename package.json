@@ -1,26 +1,29 @@
 {
-  "name": "mint",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:prod": "vite build && rm -rf /www/* && cp -r ./dist/* /www",
-    "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
-  },
-  "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^6.2.1",
-    "@tsconfig/svelte": "^5.0.5",
-    "@types/node": "^24.6.0",
-    "svelte": "^5.39.6",
-    "svelte-check": "^4.3.2",
-    "typescript": "~5.9.3",
-    "vite": "^7.1.7"
-  },
-  "dependencies": {
-    "@lucide/svelte": "^0.544.0",
-    "melt": "^0.41.0"
-  }
+    "name": "mint",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "build:prod": "vite build && rm -rf /www/* && cp -r ./dist/* /www",
+        "preview": "vite preview",
+        "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+        "format": "prettier --write ."
+    },
+    "devDependencies": {
+        "@sveltejs/vite-plugin-svelte": "^6.2.1",
+        "@tsconfig/svelte": "^5.0.5",
+        "@types/node": "^24.6.0",
+        "prettier": "^3.7.4",
+        "prettier-plugin-svelte": "^3.4.1",
+        "svelte": "^5.39.6",
+        "svelte-check": "^4.3.2",
+        "typescript": "~5.9.3",
+        "vite": "^7.1.7"
+    },
+    "dependencies": {
+        "@lucide/svelte": "^0.544.0",
+        "melt": "^0.41.0"
+    }
 }

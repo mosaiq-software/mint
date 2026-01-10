@@ -1,16 +1,21 @@
 <script lang="ts">
-    import docs, {type Document, type DocumentID} from '../scripts/docs.svelte';
-    import { Plus, X } from '@lucide/svelte';
-    import {ButtonVisual, IconButtonVisual} from "./ui";
+    import docs, {
+        type Document,
+        type DocumentID,
+    } from "../scripts/docs.svelte";
+    import { Plus, X } from "@lucide/svelte";
+    import { ButtonVisual, IconButtonVisual } from "./ui";
     import ui from "../scripts/ui.svelte";
     import tabStatus from "../scripts/tabStatus.svelte.js";
-    import {Popover} from "melt/builders";
-    import { selectDocument } from '../scripts/docs.svelte';
+    import { Popover } from "melt/builders";
+    import { selectDocument } from "../scripts/docs.svelte";
 
     let tabs = $derived.by(() => {
-        const {selected, ...rest} = docs;
+        const { selected, ...rest } = docs;
         const values = Object.values(rest);
-        values.sort((a, b) => tabStatus[a.id].tabIndex - tabStatus[b.id].tabIndex);
+        values.sort(
+            (a, b) => tabStatus[a.id].tabIndex - tabStatus[b.id].tabIndex,
+        );
         return values;
     });
 
@@ -27,9 +32,13 @@
      * @param tab The reference tab.
      * @param above Whether to search for tabs above (lower index) or below (higher index).
      */
-    function findClosestDocumentIDByTabIndex(tab: Document, above: boolean): DocumentID | null {
+    function findClosestDocumentIDByTabIndex(
+        tab: Document,
+        above: boolean,
+    ): DocumentID | null {
         const selectedTabIndex = tabStatus[tab.id].tabIndex;
-        let closestTabIndex = Number.NEGATIVE_INFINITY, closestTabId = tab.id;
+        let closestTabIndex = Number.NEGATIVE_INFINITY,
+            closestTabId = tab.id;
 
         Object.entries(tabStatus).forEach(([id, { tabIndex }]) => {
             if (tabIndex === selectedTabIndex) return;
@@ -56,7 +65,9 @@
      */
     function handleTabDelete(tab: Document) {
         if (docs.selected?.id === tab.id) {
-            const closestDocID = findClosestDocumentIDByTabIndex(tab, false) ?? findClosestDocumentIDByTabIndex(tab, true);
+            const closestDocID =
+                findClosestDocumentIDByTabIndex(tab, false) ??
+                findClosestDocumentIDByTabIndex(tab, true);
             docs.selected = closestDocID ? docs[closestDocID] : closestDocID;
             ui.selectedDocument = closestDocID;
         }
@@ -75,30 +86,38 @@
                 <button onclick={() => handleTabClick(tab)} class="name">
                     <span>{tab.name}</span>
                 </button>
-                <button {...deleteWarningPopover.trigger} onclick={(e) => {
-                    if (tabStatus[tab.id].actionsSinceSave === 0) {
-                        handleTabDelete(tab);
-                    } else {
-                        docUpForDeletion = tab;
-                        deleteWarningPopover.trigger.onclick(e);
-                    }
-                }} class="close">
-                    <IconButtonVisual
-                            label="Close"
-                            paddingSMd={true}
-                    >
-                        <div class="x-wrapper" class:unsaved={tabStatus[tab.id].actionsSinceSave !== 0}>
+                <button
+                    {...deleteWarningPopover.trigger}
+                    onclick={(e) => {
+                        if (tabStatus[tab.id].actionsSinceSave === 0) {
+                            handleTabDelete(tab);
+                        } else {
+                            docUpForDeletion = tab;
+                            deleteWarningPopover.trigger.onclick(e);
+                        }
+                    }}
+                    class="close"
+                >
+                    <IconButtonVisual label="Close" paddingSMd={true}>
+                        <div
+                            class="x-wrapper"
+                            class:unsaved={tabStatus[tab.id]
+                                .actionsSinceSave !== 0}
+                        >
                             <X size={16} />
                         </div>
                     </IconButtonVisual>
                 </button>
             </div>
         {/each}
-        <div id="new-tab"
-             class="{docs.selected === null ? 'selected' : ''} tab">
-            <button onclick={() => handleTabClick(null)}
-                    title="New tab"
-                    class="name"
+        <div
+            id="new-tab"
+            class="{docs.selected === null ? 'selected' : ''} tab"
+        >
+            <button
+                onclick={() => handleTabClick(null)}
+                title="New tab"
+                class="name"
             >
                 <Plus size={16} />
             </button>
@@ -107,14 +126,21 @@
             <div {...deleteWarningPopover.arrow}></div>
             <div>
                 {#if docUpForDeletion}
-                    <p>Are you sure you want to close <b>{docUpForDeletion.name}</b>?</p>
+                    <p>
+                        Are you sure you want to close <b
+                            >{docUpForDeletion.name}</b
+                        >?
+                    </p>
                     <p>This document may have unsaved changes.</p>
-                    <button class="warning-button" onclick={() => {
-                        if (docUpForDeletion) {
-                            deleteWarningPopover.open = false;
-                            handleTabDelete(docUpForDeletion);
-                        }
-                    }}>
+                    <button
+                        class="warning-button"
+                        onclick={() => {
+                            if (docUpForDeletion) {
+                                deleteWarningPopover.open = false;
+                                handleTabDelete(docUpForDeletion);
+                            }
+                        }}
+                    >
                         <ButtonVisual color="danger">Close</ButtonVisual>
                     </button>
                 {/if}
@@ -170,7 +196,11 @@
         text-overflow: ellipsis;
     }
 
-    .tab:first-child, .tab:hover, .tab:hover + .tab, .tab.selected, .selected + .tab {
+    .tab:first-child,
+    .tab:hover,
+    .tab:hover + .tab,
+    .tab.selected,
+    .selected + .tab {
         border-left-color: transparent;
     }
 
@@ -182,12 +212,14 @@
         flex-grow: 0;
     }
 
-    .tab.selected, .tab.selected:hover {
+    .tab.selected,
+    .tab.selected:hover {
         background: var(--c-bg);
         cursor: default;
     }
 
-    .tab.selected, .tab:hover {
+    .tab.selected,
+    .tab:hover {
         border-top-left-radius: var(--s-md);
         border-top-right-radius: var(--s-md);
     }

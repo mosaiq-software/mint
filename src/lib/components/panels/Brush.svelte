@@ -18,14 +18,16 @@
         if (ui.selectedLayers[0]) {
             return {
                 foregroundColor: ui.selectedLayers[0].foregroundColor,
-                backgroundColor: ui.selectedLayers[0].backgroundColor
+                backgroundColor: ui.selectedLayers[0].backgroundColor,
             };
         } else {
-            return ui.selected ?? {
-                foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-                backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
-            }
-        };
+            return (
+                ui.selected ?? {
+                    foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+                    backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+                }
+            );
+        }
     });
 </script>
 
@@ -37,27 +39,50 @@
                     <label for="size">Size</label>
                     <span>{Math.round(draw.brushSize * 10) / 10}px</span>
                 </div>
-                <Slider bind:value={draw.brushSize} min={1} max={100} step={0.1} />
+                <Slider
+                    bind:value={draw.brushSize}
+                    min={1}
+                    max={100}
+                    step={0.1}
+                />
             </div>
             <div class="control">
                 <div>
                     <label for="feather">Feather</label>
                     <span>{Math.round(draw.brushFeather * 1000) / 1000}</span>
                 </div>
-                <Slider bind:value={draw.brushFeather} min={0} max={1} step={0.001} />
+                <Slider
+                    bind:value={draw.brushFeather}
+                    min={0}
+                    max={1}
+                    step={0.001}
+                />
             </div>
         </div>
         <div id="size-preview">
             <svg width="50" height="50">
                 <defs>
                     <radialGradient id="brush-gradient">
-                        <stop offset="0%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
-                        <stop offset={`${(1 - draw.brushFeather) * 100}%`} stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="1" />
-                        <stop offset="100%" stop-color={colorToCSS(colors.foregroundColor)} stop-opacity="0" />
+                        <stop
+                            offset="0%"
+                            stop-color={colorToCSS(colors.foregroundColor)}
+                            stop-opacity="1"
+                        />
+                        <stop
+                            offset={`${(1 - draw.brushFeather) * 100}%`}
+                            stop-color={colorToCSS(colors.foregroundColor)}
+                            stop-opacity="1"
+                        />
+                        <stop
+                            offset="100%"
+                            stop-color={colorToCSS(colors.foregroundColor)}
+                            stop-opacity="0"
+                        />
                     </radialGradient>
                 </defs>
                 <circle
-                    cx="50%" cy="50%"
+                    cx="50%"
+                    cy="50%"
                     r={draw.brushSize / 2}
                     fill="url(#brush-gradient)"
                 />
