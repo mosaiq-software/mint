@@ -1,10 +1,17 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Input, IconButtonVisual} from "../ui";
-    import ui, { setPreviousRotation, getBoundsCenter } from "../../scripts/ui.svelte";
+    import { Input, IconButtonVisual } from "../ui";
+    import ui, {
+        setPreviousRotation,
+        getBoundsCenter,
+    } from "../../scripts/ui.svelte";
     import { postAction, type PostAction } from "../../scripts/action";
-    import { FlipVertical2, FlipHorizontal2 } from '@lucide/svelte';
-    import { translateLayers, scaleLayers, rotateLayers } from "../../scripts/tools/select.svelte";
+    import { FlipVertical2, FlipHorizontal2 } from "@lucide/svelte";
+    import {
+        translateLayers,
+        scaleLayers,
+        rotateLayers,
+    } from "../../scripts/tools/select.svelte";
     import SliderWithInput from "../ui/SliderWithInput.svelte";
 
     const bounds = $derived(ui.selected ? ui.selected.bounds : null);
@@ -48,30 +55,37 @@
         if (xs !== bounds.pos.x || ys !== bounds.pos.y) {
             const dx = xs - bounds.pos.x;
             const dy = ys - bounds.pos.y;
-            translateLayers(ui.selectedLayers, dx, dy, 'current');
+            translateLayers(ui.selectedLayers, dx, dy, "current");
 
             for (const layer of ui.selectedLayers) {
                 actions.push({
                     type: "transform",
                     layerID: layer.id,
                     newMatrix: layer.transform.matrix,
-                    newBounds: ui.selected ? ui.selected.bounds : null
+                    newBounds: ui.selected ? ui.selected.bounds : null,
                 });
             }
         }
 
         if (ws !== bounds.size.x || hs !== bounds.size.y) {
             const scaleX = ws / bounds.size.x;
-            const scaleY = (hs / bounds.size.y);
+            const scaleY = hs / bounds.size.y;
             let center = { x: bounds.pos.x, y: bounds.pos.y };
-            scaleLayers(ui.selectedLayers, scaleX, scaleY, center, r, 'current');
+            scaleLayers(
+                ui.selectedLayers,
+                scaleX,
+                scaleY,
+                center,
+                r,
+                "current",
+            );
 
             for (const layer of ui.selectedLayers) {
                 actions.push({
                     type: "transform",
                     layerID: layer.id,
                     newMatrix: layer.transform.matrix,
-                    newBounds: ui.selected ? ui.selected.bounds : null
+                    newBounds: ui.selected ? ui.selected.bounds : null,
                 });
                 if (layer.type === "rectangle" || layer.type === "ellipse") {
                     actions.push({
@@ -79,8 +93,8 @@
                         layerID: layer.id,
                         newLayer: {
                             width: layer.width,
-                            height: layer.height
-                        }
+                            height: layer.height,
+                        },
                     });
                 }
             }
@@ -89,7 +103,7 @@
         if (r !== bounds.rot) {
             let center = { x: bounds.pos.x, y: bounds.pos.y };
             const deltaAngle = r - bounds.rot;
-            rotateLayers(ui.selectedLayers, deltaAngle, center, 'current');
+            rotateLayers(ui.selectedLayers, deltaAngle, center, "current");
             setPreviousRotation(r);
 
             for (const layer of ui.selectedLayers) {
@@ -97,7 +111,7 @@
                     type: "transform",
                     layerID: layer.id,
                     newMatrix: layer.transform.matrix,
-                    newBounds: ui.selected ? ui.selected.bounds : null
+                    newBounds: ui.selected ? ui.selected.bounds : null,
                 });
             }
         }
@@ -105,7 +119,7 @@
         if (triggerPostAction && actions.length > 0) {
             postAction({
                 type: "compound",
-                actions: actions
+                actions: actions,
             });
         }
     }
@@ -118,19 +132,22 @@
         if (r == bounds?.rot) return;
 
         debounceTimeout = setTimeout(() => {
-            applyTransform(false); debounceTimeout = null;
+            applyTransform(false);
+            debounceTimeout = null;
         }, 8); // ~1 frame at 60Hz
     }
 
     /** Flip the selected layers horizontally or vertically. */
-    function flip(direction: 'h' | 'v') {
+    function flip(direction: "h" | "v") {
         if (ui.selected?.bounds) {
             const center = getBoundsCenter(ui.selected.bounds);
             scaleLayers(
                 ui.selectedLayers,
-                direction === 'h' ? -1 : 1,
-                direction === 'v' ? -1 : 1,
-                center, r, 'current'
+                direction === "h" ? -1 : 1,
+                direction === "v" ? -1 : 1,
+                center,
+                r,
+                "current",
             );
         }
 
@@ -140,13 +157,13 @@
                 type: "transform",
                 layerID: layer.id,
                 newMatrix: layer.transform.matrix,
-                newBounds: ui.selected ? ui.selected.bounds : null
+                newBounds: ui.selected ? ui.selected.bounds : null,
             });
         }
 
         postAction({
             type: "compound",
-            actions: actions
+            actions: actions,
         });
     }
 </script>
@@ -154,28 +171,40 @@
 <Panel title="Transform" disabled={!bounds}>
     <div>
         <Input
-            name="x" labelPosition="side" disabled={!bounds}
-            bind:value={x} onBlur={() => applyTransform(true)}
+            name="x"
+            labelPosition="side"
+            disabled={!bounds}
+            bind:value={x}
+            onBlur={() => applyTransform(true)}
         >
             <div class="label">X:</div>
         </Input>
         <Input
-            name="y" labelPosition="side" disabled={!bounds}
-            bind:value={y} onBlur={() => applyTransform(true)}
+            name="y"
+            labelPosition="side"
+            disabled={!bounds}
+            bind:value={y}
+            onBlur={() => applyTransform(true)}
         >
             <div class="label">Y:</div>
         </Input>
     </div>
     <div>
         <Input
-            name="w" labelPosition="side" disabled={!bounds}
-            bind:value={w} onBlur={() => applyTransform(true)}
+            name="w"
+            labelPosition="side"
+            disabled={!bounds}
+            bind:value={w}
+            onBlur={() => applyTransform(true)}
         >
             <div class="label">W:</div>
         </Input>
         <Input
-            name="h" labelPosition="side" disabled={!bounds}
-            bind:value={h} onBlur={() => applyTransform(true)}
+            name="h"
+            labelPosition="side"
+            disabled={!bounds}
+            bind:value={h}
+            onBlur={() => applyTransform(true)}
         >
             <div class="label">H:</div>
         </Input>
@@ -184,7 +213,9 @@
         <SliderWithInput
             name="Rotation"
             bind:value={r}
-            min={-180} max={180} step={1}
+            min={-180}
+            max={180}
+            step={1}
             onInputBlur={() => {
                 if (!bounds) return;
                 applyTransform(true);
@@ -192,12 +223,12 @@
             onSliderChange={debouncedApplyTransform}
             onSliderBlur={() => applyTransform(true)}
         />
-        <button onclick={() => flip('h')}>
+        <button onclick={() => flip("h")}>
             <IconButtonVisual label="Flip horizontally">
                 <FlipHorizontal2 size={16} />
             </IconButtonVisual>
         </button>
-        <button onclick={() => flip('v')}>
+        <button onclick={() => flip("v")}>
             <IconButtonVisual label="Flip vertically">
                 <FlipVertical2 size={16} />
             </IconButtonVisual>

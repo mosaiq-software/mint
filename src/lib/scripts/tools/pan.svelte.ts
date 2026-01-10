@@ -4,7 +4,7 @@ import docs from "../docs.svelte";
 
 /** Pan tool state */
 const pan = $state({
-    isPanning: false
+    isPanning: false,
 });
 
 let initial: Point | null = null;
@@ -14,7 +14,7 @@ let initial: Point | null = null;
  * around the canvas by clicking and dragging.
  */
 export const panTool: Tool = {
-    name: 'pan',
+    name: "pan",
     onPointerDown: (data) => {
         if (data.e.button == 0 || data.e.buttons == 1) {
             pan.isPanning = true;
@@ -22,7 +22,8 @@ export const panTool: Tool = {
         }
     },
     onPointerMove: (data) => {
-        if (!pan.isPanning || !initial || !ui.selected || !docs.selected) return;
+        if (!pan.isPanning || !initial || !ui.selected || !docs.selected)
+            return;
 
         const dx = data.v.x - initial.x;
         const dy = data.v.y - initial.y;
@@ -44,7 +45,7 @@ export const panTool: Tool = {
     onPointerUp: (data) => {
         pan.isPanning = false;
         initial = null;
-    }
-}
+    },
+};
 
 export default pan;

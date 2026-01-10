@@ -1,12 +1,12 @@
-import ui, { initializeUIForDocument } from './ui.svelte';
-import type { Layer } from './layer';
-import type { Point } from './tools';
-import { populateSnapshots } from './action';
-import tabStatus, {initializeTab} from "./tabStatus.svelte.js";
+import ui, { initializeUIForDocument } from "./ui.svelte";
+import type { Layer } from "./layer";
+import type { Point } from "./tools";
+import { populateSnapshots } from "./action";
+import tabStatus, { initializeTab } from "./tabStatus.svelte.js";
 
 /* Types */
 
-/** 
+/**
  * A unique identifier string used for documents and layers.
  * Matches the standard UUID format (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
  */
@@ -29,7 +29,7 @@ export type Color = {
     g: number; // 0-255
     b: number; // 0-255
     a: number; // 0-1
-}
+};
 
 /**
  * Breaks down transformation matrix into individual components.
@@ -39,7 +39,7 @@ export type TransformComponents = {
     translate: Point;
     rotate: number; // in degrees
     scale: Point;
-}
+};
 
 /**
  * Represents a document with its properties and layers.
@@ -57,18 +57,21 @@ export type Document = {
  * Stores all open documents in the application.
  * Aliases the currently selected document using the `selected` property.
  */
-const docs: Record<DocumentID, Document> & {selected: Document | null} = $state({
-    selected: null
-});
+const docs: Record<DocumentID, Document> & { selected: Document | null } =
+    $state({
+        selected: null,
+    });
 
 /* Functions */
 
 /**
  * Converts a layer's transformation matrix into individual transform components.
  * @param matrix A layer's transformation matrix.
- * @returns 
+ * @returns
  */
-export function matrixToTransformComponents(matrix: DOMMatrix): TransformComponents {
+export function matrixToTransformComponents(
+    matrix: DOMMatrix,
+): TransformComponents {
     const { a, b, c, d, e, f } = matrix;
     let scaleX = Math.hypot(a, b);
     let scaleY = Math.hypot(c, d);
@@ -80,7 +83,7 @@ export function matrixToTransformComponents(matrix: DOMMatrix): TransformCompone
     return {
         translate: { x: e, y: f },
         rotate,
-        scale: { x: scaleX, y: scaleY }
+        scale: { x: scaleX, y: scaleY },
     };
 }
 
@@ -101,10 +104,18 @@ export function colorToCSS(color: Color): string {
  * @param height The height of the document.
  * @returns The unique identifier of the newly created document.
  */
-export function createDocument(name: string, width: number, height: number): DocumentID {
+export function createDocument(
+    name: string,
+    width: number,
+    height: number,
+): DocumentID {
     const id: DocumentID = `document-${crypto.randomUUID()}`;
     docs[id] = {
-        id, name, width, height, layers: []
+        id,
+        name,
+        width,
+        height,
+        layers: [],
     };
 
     initializeUIForDocument(id);

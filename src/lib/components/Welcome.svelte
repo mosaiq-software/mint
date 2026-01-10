@@ -2,14 +2,14 @@
     import { ButtonVisual, Input } from "./ui";
     import { createDocument, type Document } from "../scripts/docs.svelte";
     import { importImageAsNewDoc } from "../scripts/importImage";
-    import {getDocumentsFromDB} from "../scripts/persistence.svelte";
-    import DocPreview from './DocPreview.svelte';
+    import { getDocumentsFromDB } from "../scripts/persistence.svelte";
+    import DocPreview from "./DocPreview.svelte";
     let creatingDocument = $state(false);
 
     let name = $state("");
     let size = $state({
         width: "800",
-        height: "600"
+        height: "600",
     });
     let creationError: string | null = $state(null);
 
@@ -34,15 +34,15 @@
      * Opens the device file menu for image uploading.
      */
     function handleImportImage() {
-        const input = document.createElement('input');
-        input.type = 'file';
+        const input = document.createElement("input");
+        input.type = "file";
         input.onchange = () => {
             if (input.files) {
                 importImageAsNewDoc(input.files[0], () => {
                     creatingDocument = false;
                 });
             }
-        }
+        };
         input.click();
     }
 
@@ -59,7 +59,12 @@
      * Sort documents by lastModified.
      * @param documents The documents.
      */
-    function sortByLastModified(documents: (Document & {preview: OffscreenCanvas, lastModified: number})[]) {
+    function sortByLastModified(
+        documents: (Document & {
+            preview: OffscreenCanvas;
+            lastModified: number;
+        })[],
+    ) {
         return [...documents].sort((a, b) => a.lastModified - b.lastModified);
     }
 </script>
@@ -71,8 +76,8 @@
             name="document-name"
             labelPosition="top"
             placeholder="Document Name"
-            bind:value={name}
-        >Document Name</Input>
+            bind:value={name}>Document Name</Input
+        >
         <div id="canvas-size">
             <p>Canvas Size (Pixels)</p>
             <div>
@@ -81,16 +86,16 @@
                     name="canvas-width"
                     placeholder="Width"
                     hideLabel
-                    bind:value={size.width}
-                >Width</Input>
+                    bind:value={size.width}>Width</Input
+                >
                 <span>x</span>
                 <Input
                     type="number"
                     name="canvas-height"
                     placeholder="Height"
                     hideLabel
-                    bind:value={size.height}
-                >Height</Input>
+                    bind:value={size.height}>Height</Input
+                >
             </div>
         </div>
         {#if creationError}
@@ -106,7 +111,7 @@
     <div id="welcome">
         <h1>Welcome to Mint!</h1>
         <p>Create or open a document to get started.</p>
-        <button onclick={() => creatingDocument = true}>
+        <button onclick={() => (creatingDocument = true)}>
             <ButtonVisual size="large" color="accent" style="solid">
                 New Document
             </ButtonVisual>
@@ -123,7 +128,7 @@
             {#if documents.length > 0}
                 <div class="docs">
                     {#each sortByLastModified(documents) as doc}
-                        <DocPreview doc={doc} rerenderDocs={rerenderDocs} />
+                        <DocPreview {doc} {rerenderDocs} />
                     {/each}
                 </div>
             {:else}
@@ -164,7 +169,7 @@
         gap: var(--s-xs);
     }
 
-    #canvas-size>div {
+    #canvas-size > div {
         display: flex;
         gap: var(--s-md);
     }

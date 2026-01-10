@@ -1,13 +1,15 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
     import Slider from "../ui/Slider.svelte";
-    import {Input} from "../ui";
+    import { Input } from "../ui";
     import docs from "../../scripts/docs.svelte";
     import ui from "../../scripts/ui.svelte";
     import { postAction } from "../../scripts/action";
     import SliderWithInput from "../ui/SliderWithInput.svelte";
 
-    const selectedLayer = $derived(ui.selectedLayers.length === 1 ? ui.selectedLayers[0] : null);
+    const selectedLayer = $derived(
+        ui.selectedLayers.length === 1 ? ui.selectedLayers[0] : null,
+    );
 
     const selectedLayerId = $derived(selectedLayer?.id);
 
@@ -21,16 +23,25 @@
      * @param min The minimum value.
      * @param max The maximum value.
      */
-    function safeParseFloat(val: string, fallback: number, min: number = Number.NEGATIVE_INFINITY, max: number = Number.POSITIVE_INFINITY) {
+    function safeParseFloat(
+        val: string,
+        fallback: number,
+        min: number = Number.NEGATIVE_INFINITY,
+        max: number = Number.POSITIVE_INFINITY,
+    ) {
         const parsed = parseFloat(val);
-        return (isNaN(parsed) || parsed < min || parsed > max) ? fallback : parsed;
+        return isNaN(parsed) || parsed < min || parsed > max
+            ? fallback
+            : parsed;
     }
 
     /**
      * Causes the layer to update. Used to force an update after debouncing.
      */
     function updateLayer() {
-        const layer = docs.selected?.layers.find((l) => l.id === selectedLayerId);
+        const layer = docs.selected?.layers.find(
+            (l) => l.id === selectedLayerId,
+        );
         if (layer) {
             layer.opacity = opacity;
         }
@@ -54,7 +65,7 @@
             postAction({
                 type: "update",
                 layerID: selectedLayerId!,
-                newLayer: { opacity }
+                newLayer: { opacity },
             });
         }
     }
@@ -77,25 +88,25 @@
         onSliderChange={debouncedUpdateLayer}
         onSliderBlur={addOpacityAction}
     />
-<!--    <div>-->
-<!--        <div class="label">Opacity: </div>-->
-<!--        <Input-->
-<!--            name="r" labelPosition="side" disabled={!selectedLayer} variant="underline"-->
-<!--            style="flex-grow: 1; flex-shrink: 0"-->
-<!--            bind:value={opacityStr}-->
-<!--            onBlur={() => {-->
-<!--                -->
-<!--            }}-->
-<!--        >-->
-<!--            <div></div>-->
-<!--        </Input>-->
-<!--        <Slider-->
-<!--            min={0} max={1} step={0.01}-->
-<!--            bind:value={opacity}-->
-<!--            onValueChange={debouncedUpdateLayer}-->
-<!--            onBlur={addOpacityAction}-->
-<!--        />-->
-<!--    </div>-->
+    <!--    <div>-->
+    <!--        <div class="label">Opacity: </div>-->
+    <!--        <Input-->
+    <!--            name="r" labelPosition="side" disabled={!selectedLayer} variant="underline"-->
+    <!--            style="flex-grow: 1; flex-shrink: 0"-->
+    <!--            bind:value={opacityStr}-->
+    <!--            onBlur={() => {-->
+    <!--                -->
+    <!--            }}-->
+    <!--        >-->
+    <!--            <div></div>-->
+    <!--        </Input>-->
+    <!--        <Slider-->
+    <!--            min={0} max={1} step={0.01}-->
+    <!--            bind:value={opacity}-->
+    <!--            onValueChange={debouncedUpdateLayer}-->
+    <!--            onBlur={addOpacityAction}-->
+    <!--        />-->
+    <!--    </div>-->
 </Panel>
 
 <style>

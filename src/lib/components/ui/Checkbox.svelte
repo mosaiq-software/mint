@@ -4,10 +4,10 @@
         onChange: () => void;
     }
 
-    let {checked = $bindable(), onChange}: Props = $props();
+    let { checked = $bindable(), onChange }: Props = $props();
 </script>
 
-<input type="checkbox" bind:checked={checked} onchange={onChange}>
+<input type="checkbox" bind:checked onchange={onChange} />
 
 <style>
     input {

@@ -18,9 +18,10 @@
      * @param event
      */
     function handleBeforeUnload(event: BeforeUnloadEvent) {
-        if (!Object.values(tabStatus).every(t => t.actionsSinceSave === 0)) {
+        if (!Object.values(tabStatus).every((t) => t.actionsSinceSave === 0)) {
             event.preventDefault();
-            event.returnValue = "Are you sure you want to leave? You may have unsaved changes.";
+            event.returnValue =
+                "Are you sure you want to leave? You may have unsaved changes.";
         }
     }
 </script>

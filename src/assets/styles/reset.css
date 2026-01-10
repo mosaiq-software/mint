@@ -1,5 +1,7 @@
 @layer reset {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
         box-sizing: border-box;
     }
 
@@ -12,34 +14,54 @@
         line-height: 1.5;
     }
 
-    img, picture, video, canvas, svg:not(#about *) {
+    img,
+    picture,
+    video,
+    canvas,
+    svg:not(#about *) {
         display: block;
         max-inline-size: 100%;
     }
 
-    input, button, textarea, select {
+    input,
+    button,
+    textarea,
+    select {
         font: inherit;
         letter-spacing: inherit;
         word-spacing: inherit;
         color: currentColor;
     }
 
-    p, h1, h2, h3, h4, h5, h6 {
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         overflow-wrap: break-word;
     }
 
-    ol, ul {
+    ol,
+    ul {
         list-style: none;
     }
 
     :not([class]) {
-        h1&, h2&, h3&, h4&, h5&, h6& {
+        h1&,
+        h2&,
+        h3&,
+        h4&,
+        h5&,
+        h6& {
             line-height: 1.25;
             text-wrap: balance;
             letter-spacing: -0.05ch;
         }
 
-        ol&, ul& {
+        ol&,
+        ul& {
             list-style: revert;
         }
     }

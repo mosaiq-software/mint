@@ -1,14 +1,14 @@
-import {type Document, type DocumentID} from './docs.svelte';
-import {render} from "./render";
-import type {TextLayer, CanvasLayer} from "./layer";
+import { type Document, type DocumentID } from "./docs.svelte";
+import { render } from "./render";
+import type { TextLayer, CanvasLayer } from "./layer";
 
 /** The current database version. Iterate for future production schemas. */
 const VERSION = 1;
 
 enum DBs {
-    METADATA = 'metadata',
-    LAYERS = 'layers',
-    PREVIEWS = 'previews'
+    METADATA = "metadata",
+    LAYERS = "layers",
+    PREVIEWS = "previews",
 }
 
 /**
@@ -19,16 +19,19 @@ enum DBs {
  */
 interface DatabaseTypes {
     [DBs.METADATA]: Document & {
-        layers: (TextLayer | (Omit<CanvasLayer, "canvas"> & {
-            canvasDimensions: {
-                width: number
-                height: number
-            }
-        }))[],
-        lastModified: number
-    },
-    [DBs.LAYERS]: Blob,
-    [DBs.PREVIEWS]: Blob
+        layers: (
+            | TextLayer
+            | (Omit<CanvasLayer, "canvas"> & {
+                  canvasDimensions: {
+                      width: number;
+                      height: number;
+                  };
+              })
+        )[];
+        lastModified: number;
+    };
+    [DBs.LAYERS]: Blob;
+    [DBs.PREVIEWS]: Blob;
 }
 
 /**
@@ -47,7 +50,7 @@ function workOnDatabase(name: DBs): Promise<IDBDatabase> {
                     database.createObjectStore(name);
                 }
             }
-        }
+        };
 
         request.onsuccess = () => resolve(request.result);
 
@@ -64,7 +67,7 @@ function workOnDatabase(name: DBs): Promise<IDBDatabase> {
 async function putInDB(name: DBs, key: IDBValidKey, value: any) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(name, 'readwrite');
+        const tx = db.transaction(name, "readwrite");
         const req = tx.objectStore(name).put($state.snapshot(value), key);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -79,11 +82,11 @@ async function putInDB(name: DBs, key: IDBValidKey, value: any) {
 async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type]>((resolve, reject) => {
-        const tx = db.transaction(name, 'readonly');
+        const tx = db.transaction(name, "readonly");
         const req = tx.objectStore(name).get(key);
         req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);        
-    })
+        req.onerror = () => reject(req.error);
+    });
 }
 
 /**
@@ -94,20 +97,20 @@ async function getFromDB<type extends DBs>(name: DBs, key: IDBValidKey) {
 async function getSeveralFromDB<type extends DBs>(name: DBs, keys: string[]) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
-        const tx = db.transaction(name, 'readonly');
-        const succeededs = Object.fromEntries(keys.map(key => [key, false]));
-        const reqs = keys.map(key => {
+        const tx = db.transaction(name, "readonly");
+        const succeededs = Object.fromEntries(keys.map((key) => [key, false]));
+        const reqs = keys.map((key) => {
             const req = tx.objectStore(name).get(key);
             req.onsuccess = () => {
                 succeededs[key] = true;
-                if (Object.values(succeededs).every(s => s)) {
-                    resolve(reqs.map(r => r.result));
+                if (Object.values(succeededs).every((s) => s)) {
+                    resolve(reqs.map((r) => r.result));
                 }
             };
             req.onerror = () => reject(req.error);
             return req;
         });
-    })
+    });
 }
 
 /**
@@ -118,7 +121,7 @@ async function getSeveralFromDB<type extends DBs>(name: DBs, keys: string[]) {
 async function deleteFromDB(name: DBs, key: IDBValidKey) {
     const db = await workOnDatabase(name);
     return new Promise((resolve, reject) => {
-        const tx = db.transaction(name, 'readwrite');
+        const tx = db.transaction(name, "readwrite");
         const req = tx.objectStore(name).delete(key);
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
@@ -132,11 +135,11 @@ async function deleteFromDB(name: DBs, key: IDBValidKey) {
 async function getAllFromDB<type extends DBs>(name: DBs) {
     const db = await workOnDatabase(name);
     return new Promise<DatabaseTypes[type][]>((resolve, reject) => {
-        const tx = db.transaction(name, 'readonly');
+        const tx = db.transaction(name, "readonly");
         const req = tx.objectStore(name).getAll();
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
-    })
+    });
 }
 
 /**
@@ -144,9 +147,11 @@ async function getAllFromDB<type extends DBs>(name: DBs) {
  * @param blob
  * @param ctx
  */
-async function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderingContext2D) {
+async function drawBlobOnOffscreenCanvas(
+    blob: Blob,
+    ctx: OffscreenCanvasRenderingContext2D,
+) {
     return new Promise<null>((resolve, reject) => {
-
         const img = new Image();
         img.src = URL.createObjectURL(blob);
 
@@ -154,8 +159,7 @@ async function drawBlobOnOffscreenCanvas(blob: Blob, ctx: OffscreenCanvasRenderi
             ctx.drawImage(img, 0, 0);
             URL.revokeObjectURL(img.src);
             resolve(null);
-        }
-
+        };
     });
 }
 
@@ -167,10 +171,12 @@ export const PREVIEW_MAX_SIZE = 64;
  * @returns The integer width and height of the clamped document.
  */
 export function getPreviewSize(doc: Document) {
-    const docOverPreviewSize = Math.floor(Math.max(doc.width, doc.height) / PREVIEW_MAX_SIZE);
+    const docOverPreviewSize = Math.floor(
+        Math.max(doc.width, doc.height) / PREVIEW_MAX_SIZE,
+    );
     const pWidth = Math.floor(doc.width / docOverPreviewSize);
     const pHeight = Math.floor(doc.height / docOverPreviewSize);
-    return {width: pWidth, height: pHeight};
+    return { width: pWidth, height: pHeight };
 }
 
 /**
@@ -179,13 +185,13 @@ export function getPreviewSize(doc: Document) {
  * @returns A promise to a blob of a preview of a document.
  */
 async function getPreview(doc: Document) {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = doc.width;
     canvas.height = doc.height;
     render(canvas, doc);
-    const {width: pWidth, height: pHeight} = getPreviewSize(doc);
+    const { width: pWidth, height: pHeight } = getPreviewSize(doc);
     const preview = new OffscreenCanvas(pWidth, pHeight);
-    const ptx = preview.getContext('2d');
+    const ptx = preview.getContext("2d");
     if (!ptx) return new Blob();
     ptx.drawImage(canvas, 0, 0, pWidth, pHeight);
     return await preview.convertToBlob();
@@ -204,29 +210,28 @@ export async function saveDocumentToDB(document: Document) {
 
     const metadataP = putInDB(DBs.METADATA, docId, {
         ...document,
-        layers: document.layers.map(l => {
+        layers: document.layers.map((l) => {
             return {
                 ...l,
-                ...(
-                    l.type === 'canvas'
-                        ? {
-                            canvas: undefined,
-                            canvasDimensions: {
-                                width: l.canvas.width,
-                                height: l.canvas.height
-                            }
-                        }
-                        : {}
-                )
+                ...(l.type === "canvas"
+                    ? {
+                          canvas: undefined,
+                          canvasDimensions: {
+                              width: l.canvas.width,
+                              height: l.canvas.height,
+                          },
+                      }
+                    : {}),
             };
         }),
-        lastModified: Date.now()
+        lastModified: Date.now(),
     });
 
     const preview = await getPreview(document);
     const previewP = putInDB(DBs.PREVIEWS, docId, preview);
-    const layerPs = document.layers.filter(layer => layer.type === 'canvas')
-        .map(async layer => {
+    const layerPs = document.layers
+        .filter((layer) => layer.type === "canvas")
+        .map(async (layer) => {
             const blob = await layer.canvas.convertToBlob();
             return putInDB(DBs.LAYERS, layer.id, blob);
         });
@@ -245,10 +250,13 @@ export async function saveDocumentToDB(document: Document) {
 export async function getDocumentFromDB(docId: DocumentID) {
     const doc = await getFromDB<DBs.METADATA>(DBs.METADATA, docId);
 
-    const canvasLayers = doc.layers.filter(l => l.type === 'canvas');
+    const canvasLayers = doc.layers.filter((l) => l.type === "canvas");
 
-    const layerIDs = canvasLayers.map(l => l.id);
-    const layers = canvasLayers.length > 0 ? await getSeveralFromDB<DBs.LAYERS>(DBs.LAYERS, layerIDs) : [];
+    const layerIDs = canvasLayers.map((l) => l.id);
+    const layers =
+        canvasLayers.length > 0
+            ? await getSeveralFromDB<DBs.LAYERS>(DBs.LAYERS, layerIDs)
+            : [];
 
     const canvasBlobPs: Promise<null>[] = [];
 
@@ -256,16 +264,13 @@ export async function getDocumentFromDB(docId: DocumentID) {
     for (let i = 0; i < doc.layers.length; i++) {
         const l = doc.layers[i];
         const m = l.transform.matrix;
-        l.transform.matrix = new DOMMatrix(
-            [m.a, m.b, m.c, m.d, m.e, m.f]
-        );
-        if (l.type === 'canvas') {
-            const {width, height} = l.canvasDimensions;
+        l.transform.matrix = new DOMMatrix([m.a, m.b, m.c, m.d, m.e, m.f]);
+        if (l.type === "canvas") {
+            const { width, height } = l.canvasDimensions;
             const blob = layers[canvasLayerIndex];
             l.canvas = new OffscreenCanvas(width, height);
-            const ctx = l.canvas.getContext('2d');
-            if (ctx)
-                canvasBlobPs.push(drawBlobOnOffscreenCanvas(blob, ctx));
+            const ctx = l.canvas.getContext("2d");
+            if (ctx) canvasBlobPs.push(drawBlobOnOffscreenCanvas(blob, ctx));
             canvasLayerIndex++;
         }
     }
@@ -288,19 +293,21 @@ export async function getDocumentsFromDB() {
     const previews = await getAllFromDB<DBs.PREVIEWS>(DBs.PREVIEWS);
 
     const fullDocPs = docs.map(async (d, index) => {
-        const {width: pWidth, height: pHeight} = getPreviewSize(d);
+        const { width: pWidth, height: pHeight } = getPreviewSize(d);
         const blob = previews[index];
         const canvas = new OffscreenCanvas(pWidth, pHeight);
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         if (ctx) {
             await drawBlobOnOffscreenCanvas(blob, ctx);
         }
-        return {...d, preview: canvas};
+        return { ...d, preview: canvas };
     });
 
     const fullDocs = await Promise.all(fullDocPs);
 
-    return new Promise<(Document & {preview: OffscreenCanvas, lastModified: number})[]>((resolve, reject) => {
+    return new Promise<
+        (Document & { preview: OffscreenCanvas; lastModified: number })[]
+    >((resolve, reject) => {
         resolve(fullDocs);
     });
 }
@@ -313,12 +320,12 @@ export async function getDocumentsFromDB() {
 export async function deleteDocumentFromDB(doc: Document) {
     const metadataP = deleteFromDB(DBs.METADATA, doc.id);
     const previewsP = deleteFromDB(DBs.PREVIEWS, doc.id);
-    const layersPs = doc.layers.map(l => deleteFromDB(DBs.LAYERS, l.id));
+    const layersPs = doc.layers.map((l) => deleteFromDB(DBs.LAYERS, l.id));
     return new Promise((resolve, reject) => {
         Promise.all([metadataP, previewsP, ...layersPs]).then(() => {
             resolve(null);
-        })
-    })
+        });
+    });
 }
 
 /**
@@ -326,8 +333,10 @@ export async function deleteDocumentFromDB(doc: Document) {
  * @param doc The partial document with document ID and updated fields.
  * @returns A promise to the updated document.
  */
-export async function updateDocumentMetadata(doc: Partial<Document> & {id: DocumentID}) {
+export async function updateDocumentMetadata(
+    doc: Partial<Document> & { id: DocumentID },
+) {
     const metadata = await getFromDB<DBs.METADATA>(DBs.METADATA, doc.id);
-    const newMetadata = {...metadata, ...doc};
+    const newMetadata = { ...metadata, ...doc };
     return putInDB(DBs.METADATA, doc.id, newMetadata);
 }

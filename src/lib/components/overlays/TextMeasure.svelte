@@ -5,7 +5,7 @@
 
     const textLayers = $derived.by(() => {
         if (!docs.selected) return [];
-        return docs.selected.layers.filter(l => l.type === 'text');
+        return docs.selected.layers.filter((l) => l.type === "text");
     });
 
     /* Ensure text areas are cleaned up when layers are deleted */
@@ -21,17 +21,20 @@
 
 <div id="text-measure-layer">
     {#each textLayers as layer (layer.id)}
-        <div class="text-measure"
+        <div
+            class="text-measure"
             bind:this={text.elements[layer.id]}
             style:font-family={layer.fontFamily}
-            style:width={layer.width + 'px'}
-            style:height={layer.height + 'px'}
-            style:font-size={layer.fontSize + 'px'}
-             style:font-weight={layer.bold ? 'bold' : 'normal'}
-             style:font-style={layer.italic ? 'italic' : 'normal'}
-             style:text-decoration={layer.underline ? 'underline' : 'normal'}
+            style:width={layer.width + "px"}
+            style:height={layer.height + "px"}
+            style:font-size={layer.fontSize + "px"}
+            style:font-weight={layer.bold ? "bold" : "normal"}
+            style:font-style={layer.italic ? "italic" : "normal"}
+            style:text-decoration={layer.underline ? "underline" : "normal"}
             aria-hidden="true"
-        >{layer.text}</div>
+        >
+            {layer.text}
+        </div>
     {/each}
 </div>
 

@@ -20,24 +20,29 @@
         if (ui.selectedLayers[0]) {
             return {
                 foregroundColor: ui.selectedLayers[0].foregroundColor,
-                backgroundColor: ui.selectedLayers[0].backgroundColor
+                backgroundColor: ui.selectedLayers[0].backgroundColor,
             };
         } else {
-            return ui.selected ?? {
-                foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
-                backgroundColor: { r: 255, g: 255, b: 255, a: 1 }
-            }
-        };
+            return (
+                ui.selected ?? {
+                    foregroundColor: { r: 0, g: 0, b: 0, a: 1 },
+                    backgroundColor: { r: 255, g: 255, b: 255, a: 1 },
+                }
+            );
+        }
     });
 
     /** Get the currently selected shape layer, if any. */
     const selectedShapeLayer = $derived.by(() => {
         if (docs.selected && ui.selected) {
             const layer = docs.selected.layers.find(
-                (layer) => layer.id === ui.selected!.selectedLayers[0]
+                (layer) => layer.id === ui.selected!.selectedLayers[0],
             );
 
-            if (layer && (layer.type === "rectangle" || layer.type === "ellipse")) {
+            if (
+                layer &&
+                (layer.type === "rectangle" || layer.type === "ellipse")
+            ) {
                 return layer;
             }
         }
@@ -58,7 +63,7 @@
     const cornerRadius = $derived(
         selectedShapeLayer && selectedShapeLayer.type === "rectangle"
             ? selectedShapeLayer.cornerRadius
-            : shape.cornerRadius
+            : shape.cornerRadius,
     );
 
     /**
@@ -70,7 +75,8 @@
             return 9999;
         } else {
             if (shapeSource.strokeAlign === "inside") return cornerRadius;
-            else if (shapeSource.strokeAlign === "center") return cornerRadius + shapeSource.strokeWidth / 2;
+            else if (shapeSource.strokeAlign === "center")
+                return cornerRadius + shapeSource.strokeWidth / 2;
             else return cornerRadius + shapeSource.strokeWidth;
         }
     });
@@ -92,24 +98,29 @@
 <Panel title="Shape">
     <div id="container">
         <div id="controls">
-            <SliderWithInput name="Stroke Width"
-                             bind:value={shapeSource.strokeWidth}
-                             min={0}
-                             max={100}
-                             step={0.1}
+            <SliderWithInput
+                name="Stroke Width"
+                bind:value={shapeSource.strokeWidth}
+                min={0}
+                max={100}
+                step={0.1}
             />
-            <SliderWithInput name="Corner Radius"
-                             value={cornerRadius}
-                             min={0}
-                             max={100}
-                             step={0.1}
-                             onSliderChange={updateCornerRadius}
-                             onInputBlur={updateCornerRadius}
-                             disabled={selectedShapeLayer?.type === "ellipse"}
+            <SliderWithInput
+                name="Corner Radius"
+                value={cornerRadius}
+                min={0}
+                max={100}
+                step={0.1}
+                onSliderChange={updateCornerRadius}
+                onInputBlur={updateCornerRadius}
+                disabled={selectedShapeLayer?.type === "ellipse"}
             />
             <div class="control-horizontal">
                 <label for="stroke-alignment">Stroke Align</label>
-                <select bind:value={shapeSource.strokeAlign} id="stroke-alignment">
+                <select
+                    bind:value={shapeSource.strokeAlign}
+                    id="stroke-alignment"
+                >
                     <option value="inside">Inside</option>
                     <option value="center">Center</option>
                     <option value="outside">Outside</option>
@@ -121,8 +132,8 @@
                 id="shape-preview"
                 style:border-width={`${Math.min(shapeSource.strokeWidth, 38)}px`}
                 style:border-start-start-radius="{borderRadius}px"
-                style:border-color="{colorToCSS(colors.backgroundColor)}"
-                style:background-color="{colorToCSS(colors.foregroundColor)}"
+                style:border-color={colorToCSS(colors.backgroundColor)}
+                style:background-color={colorToCSS(colors.foregroundColor)}
             ></div>
         </div>
     </div>

@@ -13,7 +13,9 @@
 
 <script lang="ts">
     import type { TextLayer } from "../../scripts/layer";
-    import docs, {matrixToTransformComponents} from "../../scripts/docs.svelte";
+    import docs, {
+        matrixToTransformComponents,
+    } from "../../scripts/docs.svelte";
     import { colorToCSS } from "../../scripts/docs.svelte";
     import { postAction } from "../../scripts/action";
     import ui from "../../scripts/ui.svelte";
@@ -39,7 +41,7 @@
         }
         layer.text = target.value;
 
-        // trigger reactivity 
+        // trigger reactivity
         if (docs.selected) docs.selected.layers = [...docs.selected.layers];
 
         // keep scroll at top-left
@@ -54,17 +56,20 @@
         postAction({
             type: "update",
             layerID: layer.id,
-            newLayer: { text: layer.text, name: layer.name }
+            newLayer: { text: layer.text, name: layer.name },
         });
     }
 </script>
 
 <div
     id="text-edit-container"
-    style:width={layer.width * t.scale.x * (ui.selected?.zoom ?? 1) + 'px'}
-    style:height={layer.height * Math.abs(t.scale.y) * (ui.selected?.zoom ?? 1) + 'px'}
+    style:width={layer.width * t.scale.x * (ui.selected?.zoom ?? 1) + "px"}
+    style:height={layer.height *
+        Math.abs(t.scale.y) *
+        (ui.selected?.zoom ?? 1) +
+        "px"}
     style:transform={`translate(${t.translate.x * (ui.selected?.zoom ?? 1)}px, ${t.translate.y * (ui.selected?.zoom ?? 1)}px)
-        rotate(${t.rotate}deg) ${t.scale.y < 0 ? 'scaleY(-1)' : ''}`}
+        rotate(${t.rotate}deg) ${t.scale.y < 0 ? "scaleY(-1)" : ""}`}
 >
     <textarea
         bind:this={textarea}
@@ -72,13 +77,13 @@
         oninput={handleInput}
         onblur={handleBlur}
         style:font-family={layer.fontFamily}
-        style:font-size={layer.fontSize + 'px'}
-        style:font-weight={layer.bold ? 'bold' : 'normal'}
-        style:font-style={layer.italic ? 'italic' : 'normal'}
-        style:text-decoration={layer.underline ? 'underline' : 'normal'}
+        style:font-size={layer.fontSize + "px"}
+        style:font-weight={layer.bold ? "bold" : "normal"}
+        style:font-style={layer.italic ? "italic" : "normal"}
+        style:text-decoration={layer.underline ? "underline" : "normal"}
         style:line-height={layer.lineHeight}
-        style:width={layer.width + 'px'}
-        style:height={layer.height + 'px'}
+        style:width={layer.width + "px"}
+        style:height={layer.height + "px"}
         spellcheck="false"
         style:caret-color={colorToCSS(layer.foregroundColor)}
         style:transform={`scale(${Math.hypot(m.a, m.b) * (ui.selected?.zoom ?? 1)}, ${Math.hypot(m.c, m.d) * (ui.selected?.zoom ?? 1)})`}
