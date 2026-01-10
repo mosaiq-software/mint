@@ -234,7 +234,7 @@
         justify-content: space-between;
         width: calc(var(--s-sm) * 4 + 24);
         flex-shrink: 0;
-        overflow: scroll;
+        overflow: auto;
     }
 
     #tools {
