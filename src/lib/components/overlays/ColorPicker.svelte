@@ -381,32 +381,24 @@
         </div>
     </div>
     <div id="codes">
-        <!-- <div>
-            rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(
-                color.b,
-            )})
-        </div>
-        <div>hsl({hue.toFixed(2)}, {sl.s.toFixed(2)}, {sl.l.toFixed(2)})</div>
-        <div>hex: {colorToHex(color)}</div>
-        <div>{(color.a * 100).toFixed(0)}%</div> -->
         <div id="codes">
             <div>
                 rgb:
-                <input
+                r:<input
                     type="number"
                     min="0"
                     max="255"
                     bind:value={rgbInputs.r}
                     oninput={updateFromRgb}
-                />,
-                <input
+                />
+                g:<input
                     type="number"
                     min="0"
                     max="255"
                     bind:value={rgbInputs.g}
                     oninput={updateFromRgb}
-                />,
-                <input
+                />
+                b:<input
                     type="number"
                     min="0"
                     max="255"
@@ -417,23 +409,23 @@
 
             <div>
                 hsl:
-                <input
+                h:<input
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                     bind:value={hslInputs.h}
                     oninput={updateFromHsl}
-                />,
-                <input
+                />
+                s:<input
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                     bind:value={hslInputs.s}
                     oninput={updateFromHsl}
-                />,
-                <input
+                />
+                l:<input
                     type="number"
                     min="0"
                     max="1"
@@ -471,9 +463,15 @@
 </div>
 
 <style>
-    button {
-        width: auto;
-        align-self: flex-end; /* or center */
+    #eyedropper {
+        /*text-align: right;*/
+        /*padding: 0 var(--s-sm);*/
+
+        border-radius: var(--r-md);
+        margin-right: 0;
+        aspect-ratio: 1;
+        width: fit-content;
+
     }
     #color-picker {
         display: flex;
