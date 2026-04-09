@@ -22,15 +22,6 @@
      * When the color changes externally, update hue and alpha slider positions.
      * Prevent updating hue if saturation is near zero (to avoid hue jumps).
      */
-    // $effect(() => {
-    //     const newC = rgbToHsl(color.r, color.g, color.b);
-    //     if (newC.s > 0.001) {
-    //         hue = newC.h;
-    //         hSlider.value = hue;
-    //     }
-
-    //     aSlider.value = color.a;
-    // });
     $effect(() => {
         rgbInputs = {
             r: Math.round(color.r),
@@ -330,10 +321,7 @@
                 b: intVal & 255,
                 a: color.a, // preserve alpha
             };
-        } catch (e) {
-            // User pressed escape or canceled — silently ignore
-            console.log("EyeDropper canceled", e);
-        }
+        } catch (e) {}
     }
 </script>
 
@@ -464,9 +452,6 @@
 
 <style>
     #eyedropper {
-        /*text-align: right;*/
-        /*padding: 0 var(--s-sm);*/
-
         border-radius: var(--r-md);
         margin-right: 0;
         aspect-ratio: 1;
