@@ -71,11 +71,12 @@
 
 {#if creatingDocument}
     <div id="create">
-        <h2>Create New Document</h2>
+        <h1>Create New Document</h1>
         <Input
             name="document-name"
             labelPosition="top"
             placeholder="Document Name"
+            style="width: 100%;"
             bind:value={name}>Document Name</Input
         >
         <div id="canvas-size">
@@ -101,11 +102,16 @@
         {#if creationError}
             <p class="error" style="color: var(--c-fb-err)">{creationError}</p>
         {/if}
-        <button onclick={handleCreateDocument}>
-            <ButtonVisual size="large" color="accent" style="solid">
-                Create
-            </ButtonVisual>
-        </button>
+        <div id="create-actions">
+            <button onclick={handleCreateDocument}>
+                <ButtonVisual size="large" color="accent" style="solid">
+                    Create
+                </ButtonVisual>
+            </button>
+            <button onclick={() => (creatingDocument = false)}>
+                <u style="cursor: pointer">Back</u>
+            </button>
+        </div>
     </div>
 {:else}
     <div id="welcome">
@@ -172,5 +178,10 @@
     #canvas-size > div {
         display: flex;
         gap: var(--s-md);
+    }
+
+    #create-actions {
+        display: flex;
+        gap: var(--s-lg);
     }
 </style>
