@@ -4,6 +4,7 @@
     import { Slider } from "melt/builders";
     import ui from "../../scripts/ui.svelte";
     import { Pipette } from "@lucide/svelte";
+    import "eyedropper-polyfill";
 
     let { color = $bindable() }: { color: Color } = $props();
     let hue: number = $state(0);
@@ -300,28 +301,25 @@
     }
 
     async function pickColorFromScreen() {
-        // Check support (important — not all browsers support this)
         if (!("EyeDropper" in window)) {
-            alert("EyeDropper API not supported in this browser.");
+            alert("The eye dropper is not supported in this browser.");
             return;
         }
 
-        try {
-            const eyeDropper = new (window as any).EyeDropper();
-            const result = await eyeDropper.open();
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
 
-            // result.sRGBHex → "#RRGGBB"
-            const hex = result.sRGBHex;
+        // result.sRGBHex → "#RRGGBB"
+        const hex = result.sRGBHex;
 
-            const intVal = parseInt(hex.slice(1), 16);
+        const intVal = parseInt(hex.slice(1), 16);
 
-            color = {
-                r: (intVal >> 16) & 255,
-                g: (intVal >> 8) & 255,
-                b: intVal & 255,
-                a: color.a, // preserve alpha
-            };
-        } catch (e) {}
+        color = {
+            r: (intVal >> 16) & 255,
+            g: (intVal >> 8) & 255,
+            b: intVal & 255,
+            a: color.a, // preserve alpha
+        };
     }
 </script>
 
@@ -371,8 +369,7 @@
     <div id="codes">
         <div id="codes">
             <div>
-                rgb:
-                r:<input
+                rgb: r:<input
                     type="number"
                     min="0"
                     max="255"
@@ -396,8 +393,7 @@
             </div>
 
             <div>
-                hsl:
-                h:<input
+                hsl: h:<input
                     type="number"
                     min="0"
                     max="1"
@@ -446,8 +442,7 @@
 
     <button id="eyedropper" onclick={pickColorFromScreen}>
         <Pipette></Pipette>
-    </button
-    >
+    </button>
 </div>
 
 <style>
@@ -456,7 +451,6 @@
         margin-right: 0;
         aspect-ratio: 1;
         width: fit-content;
-
     }
     #color-picker {
         display: flex;
