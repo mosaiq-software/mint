@@ -175,7 +175,7 @@
             labelPosition="side"
             disabled={!bounds}
             bind:value={x}
-            onBlur={() => applyTransform(true)}
+            onblur={() => applyTransform(true)}
         >
             <div class="label">X:</div>
         </Input>
@@ -184,7 +184,7 @@
             labelPosition="side"
             disabled={!bounds}
             bind:value={y}
-            onBlur={() => applyTransform(true)}
+            onblur={() => applyTransform(true)}
         >
             <div class="label">Y:</div>
         </Input>
@@ -195,7 +195,7 @@
             labelPosition="side"
             disabled={!bounds}
             bind:value={w}
-            onBlur={() => applyTransform(true)}
+            onblur={() => applyTransform(true)}
         >
             <div class="label">W:</div>
         </Input>
@@ -204,7 +204,7 @@
             labelPosition="side"
             disabled={!bounds}
             bind:value={h}
-            onBlur={() => applyTransform(true)}
+            onblur={() => applyTransform(true)}
         >
             <div class="label">H:</div>
         </Input>

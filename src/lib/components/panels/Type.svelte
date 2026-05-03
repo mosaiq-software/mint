@@ -121,11 +121,11 @@
                     name="Size"
                     type="number"
                     bind:value={fontSize}
-                    onBlur={handleFontSizeChange}
+                    onblur={handleFontSizeChange}
                     placeholder="Font Size"
                     labelPosition="side"
-                    ><div class="preview-label">Size</div></Input
-                >
+                    >Size (px)
+                </Input>
             </div>
             <div
                 id="type-preview"
@@ -143,11 +143,14 @@
                 name="Line Height"
                 type="number"
                 bind:value={lineHeight}
-                onBlur={handleLineHeightChange}
+                onblur={handleLineHeightChange}
                 placeholder="Line Height"
-                labelPosition="side">Line Height</Input
+                labelPosition="side"
+                style="min-width: 3rem"
             >
-            <div>
+                Line Height
+            </Input>
+            <div id="font-weight">
                 <IconToggle
                     label="Bold"
                     bind:value={p.bold}
@@ -173,14 +176,14 @@
     }
 
     #type-preview {
-        width: 50px;
-        height: 50px;
+        width: 4rem;
+        height: 4rem;
         display: flex;
         justify-content: center;
         align-items: center;
         border: 1px solid var(--c-mid);
         border-radius: var(--r-md);
-        font-size: 24px;
+        font-size: 2rem;
     }
 
     #preview-container {
@@ -192,16 +195,18 @@
     #preview-inputs {
         display: flex;
         flex-direction: column;
-        gap: var(--s-sm);
+        gap: var(--s-md);
         flex: 1;
-    }
-
-    .preview-label {
-        width: 35px;
     }
 
     #font-styles {
         display: flex;
         gap: var(--s-md);
+        justify-content: space-between;
+    }
+
+    #font-weight {
+        width: 4rem;
+        flex-shrink: 0;
     }
 </style>

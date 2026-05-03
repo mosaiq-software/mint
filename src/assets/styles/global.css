@@ -141,7 +141,7 @@ input[type="number"] {
 select {
     background: var(--c-bg);
     color: var(--c-txt);
-    border: 2px solid var(--c-sec);
+    border: 1px solid var(--c-txt);
     border-radius: var(--r-sm);
     padding: var(--s-xs) var(--s-sm);
 }
