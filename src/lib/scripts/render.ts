@@ -127,9 +127,9 @@ export function render(
 
                 shapeCtx.closePath();
                 shapeCtx.fill("evenodd");
-
-                ctx.drawImage(shapeCanvas, 0, 0);
             }
+
+            ctx.drawImage(shapeCanvas, 0, 0);
         } else if (layer.type === "ellipse") {
             // draw ellipse on its own layer to prevent outline-fill overlap
             const w = Math.abs(layer.width);
