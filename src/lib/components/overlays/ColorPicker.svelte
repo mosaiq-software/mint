@@ -5,6 +5,7 @@
     import ui from "../../scripts/ui.svelte";
     import { Pipette } from "@lucide/svelte";
     import "eyedropper-polyfill";
+    import Input from "../ui/Input.svelte";
 
     let { color = $bindable() }: { color: Color } = $props();
     let hue: number = $state(0);
@@ -368,74 +369,119 @@
     </div>
     <div id="codes">
         <div id="codes">
-            <div>
-                rgb: r:<input
+            <div class="code">
+                <Input
                     type="number"
                     min="0"
                     max="255"
                     bind:value={rgbInputs.r}
                     oninput={updateFromRgb}
-                />
-                g:<input
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="r"
+                >
+                    r:
+                </Input>
+                <Input
                     type="number"
                     min="0"
                     max="255"
                     bind:value={rgbInputs.g}
                     oninput={updateFromRgb}
-                />
-                b:<input
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="g"
+                >
+                    g:
+                </Input>
+                <Input
                     type="number"
                     min="0"
                     max="255"
                     bind:value={rgbInputs.b}
                     oninput={updateFromRgb}
-                />
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="b"
+                >
+                    b:
+                </Input>
             </div>
 
-            <div>
-                hsl: h:<input
+            <div class="code">
+                <Input
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                     bind:value={hslInputs.h}
                     oninput={updateFromHsl}
-                />
-                s:<input
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="h"
+                >
+                    h:
+                </Input>
+                <Input
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                     bind:value={hslInputs.s}
                     oninput={updateFromHsl}
-                />
-                l:<input
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="s"
+                >
+                    s:
+                </Input>
+                <Input
                     type="number"
                     min="0"
                     max="1"
                     step="0.01"
                     bind:value={hslInputs.l}
                     oninput={updateFromHsl}
-                />
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="l"
+                >
+                    l:
+                </Input>
             </div>
 
-            <div>
+            <Input
+                type="text"
+                bind:value={hexInput}
+                oninput={updateFromHex}
+                variant="underline"
+                labelPosition="side"
+                style="width: 4rem"
+                name="hex"
+            >
                 hex:
-                <input
-                    type="text"
-                    bind:value={hexInput}
-                    oninput={updateFromHex}
-                />
-            </div>
+            </Input>
 
-            <div>
-                alpha: <input
+            <div id="alpha-input">
+                <Input
                     type="number"
                     min="0"
                     max="100"
                     bind:value={alphaInput}
                     oninput={updateAlpha}
-                />%
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="alpha"
+                >
+                    alpha:
+                </Input>%
             </div>
         </div>
     </div>
@@ -459,13 +505,11 @@
         margin: var(--s-md);
     }
 
-    input {
-        border: 1px solid var(--c-txt);
-        background-color: var(--c-bg);
-        padding: var(--s-xs) var(--s-sm);
-        border-radius: var(--r-sm);
-        color: var(--c-txt);
-        /*width: 100%;*/
+    .code {
+        display: flex;
+        gap: var(--s-sm);
+        align-items: center;
+        justify-content: flex-start;
     }
 
     #sl-container {
@@ -546,8 +590,9 @@
         font-family: monospace;
     }
 
-    #codes div {
-        font-size: var(--f-sm);
-        color: var(--c-sec);
+    #alpha-input {
+        display: flex;
+        gap: var(--s-xs);
+        align-items: center;
     }
 </style>

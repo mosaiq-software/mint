@@ -74,8 +74,6 @@
     .input-container {
         display: flex;
         gap: var(--s-xs);
-        min-width: 5em;
-        flex: 1;
     }
 
     .input-container.label-top {
@@ -109,7 +107,7 @@
 
     input[data-variant="underline"] {
         border: none;
-        border-bottom: 1px solid transparent;
+        border-bottom: 1px solid var(--c-mid);
         background-color: transparent;
         font-size: var(--f-md);
         color: var(--c-txt);
