@@ -39,19 +39,16 @@
 </script>
 
 <div id="slider-with-input" class:disabled>
-    <div id="labels">
-        <label for={`slider-input-${name.split(" ")[0]}`}>{name}</label>
-        <Input
-            {name}
-            id={`slider-input-${name.split(" ")[0]}`}
-            bind:value={stringifiedValue}
-            variant="underline"
-            style="flex-shrink: 1; flex-grow: 0"
-            onBlur={handleInputBlur}
-        >
-            <div></div>
-        </Input>
-    </div>
+    <Input
+        {name}
+        bind:value={stringifiedValue}
+        variant="underline"
+        style="width: 3rem; margin-left: auto"
+        onblur={handleInputBlur}
+        labelPosition="side"
+    >
+        {name}
+    </Input>
     <Slider
         {min}
         {max}
@@ -63,11 +60,6 @@
 </div>
 
 <style>
-    #labels {
-        display: flex;
-        justify-content: space-between;
-    }
-
     .disabled {
         opacity: 0.5;
         pointer-events: none;

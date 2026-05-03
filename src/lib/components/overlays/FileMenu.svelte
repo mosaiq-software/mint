@@ -122,7 +122,7 @@
                 name="doc-name"
                 placeholder="Name"
                 bind:value={name}
-                onBlur={() => handleDocNameBlur()}>Name:</Input
+                onblur={() => handleDocNameBlur()}>Name:</Input
             >
             <div id="canvas-size">
                 <Input
@@ -130,7 +130,7 @@
                     name="canvas-width"
                     placeholder="Width"
                     bind:value={widthStr}
-                    onBlur={() => {
+                    onblur={() => {
                         widthStr = handleCanvasSizeBlur("width", widthStr);
                     }}>Width:</Input
                 >
@@ -139,7 +139,7 @@
                     name="canvas-height"
                     placeholder="Height"
                     bind:value={heightStr}
-                    onBlur={() => {
+                    onblur={() => {
                         heightStr = handleCanvasSizeBlur("height", heightStr);
                     }}>Height:</Input
                 >

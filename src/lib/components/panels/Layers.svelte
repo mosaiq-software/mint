@@ -300,7 +300,7 @@
                                     : "Layer name"}
                                 name="layer-name"
                                 bind:value={layer.name}
-                                onBlur={handleRenameBlur}><div></div></Input
+                                onblur={handleRenameBlur}><div></div></Input
                             >
                         {:else}
                             <div class="name">{layer.name}</div>

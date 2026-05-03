@@ -1,34 +1,39 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
+    import type {
+        HTMLInputAttributes,
+        HTMLInputTypeAttribute,
+    } from "svelte/elements";
 
-    interface Props {
-        name: string;
-        children: Snippet;
-        type?: "text" | "password" | "email" | "number";
+    type InputType = Omit<HTMLInputTypeAttribute, "file">;
+
+    type CustomProps = {
+        children?: Snippet;
         labelPosition?: "top" | "side";
         variant?: "solid" | "underline";
-        style?: string;
-        placeholder?: string;
-        value?: string;
-        disabled?: boolean;
         hideLabel?: boolean;
-        onBlur?: (e: FocusEvent) => void;
-        id?: string;
-    }
+    };
+
+    type Props = CustomProps &
+        Omit<HTMLInputAttributes, "type"> & {
+            ref?: HTMLInputElement | null;
+        } & (
+            | { type: "file"; files?: FileList }
+            | { type?: InputType; files?: undefined }
+        );
 
     let {
-        name,
+        ref = $bindable(null),
+        value = $bindable(),
+        type,
+        files = $bindable(),
+        class: className,
+        "data-slot": dataSlot = "input",
         children,
-        type = "text",
         labelPosition = "top",
         variant = "solid",
-        style = "",
-        placeholder = "",
-        value = $bindable(),
-        disabled = false,
         hideLabel = false,
-        onBlur = (e: FocusEvent) => {},
-        id,
+        ...restProps
     }: Props = $props();
 
     /**
@@ -44,22 +49,24 @@
 
 <div
     class="input-container"
-    {style}
     class:label-side={labelPosition === "side"}
     class:label-top={labelPosition === "top"}
 >
-    <label class="input-label" for={name} class:sr-only={hideLabel}>
-        {@render children()}
-    </label>
+    {#if children}
+        <label
+            class="input-label"
+            for={restProps.id ?? restProps.name}
+            class:sr-only={hideLabel}
+        >
+            {@render children()}
+        </label>
+    {/if}
     <input
-        class="variant-{variant}"
-        {type}
-        {placeholder}
+        id={restProps.id ?? restProps.name}
+        data-variant={variant}
         bind:value
-        {disabled}
-        onblur={onBlur}
         onkeydown={handleKeydown}
-        {id}
+        {...restProps}
     />
 </div>
 
@@ -92,7 +99,7 @@
         flex-shrink: 0;
     }
 
-    input.variant-solid {
+    input[data-variant="solid"] {
         border: 1px solid var(--c-txt);
         background-color: var(--c-bg);
         padding: var(--s-xs) var(--s-sm);
@@ -100,7 +107,7 @@
         color: var(--c-txt);
     }
 
-    input.variant-underline {
+    input[data-variant="underline"] {
         border: none;
         border-bottom: 1px solid transparent;
         background-color: transparent;
@@ -108,8 +115,8 @@
         color: var(--c-txt);
     }
 
-    input.variant-underline:focus,
-    input.variant-underline:hover {
+    input[data-variant="underline"]:focus,
+    input[data-variant="underline"]:hover {
         border-color: var(--c-txt);
     }
 </style>
