@@ -123,7 +123,7 @@
             name="doc-name"
             placeholder="Name"
             bind:value={name}
-            onBlur={() => handleDocNameBlur()}>Name:</Input
+            onblur={() => handleDocNameBlur()}>Name:</Input
         >
         <button {...warningPopover.trigger} class="warning-button">
             <ButtonVisual color="danger">Delete</ButtonVisual>
