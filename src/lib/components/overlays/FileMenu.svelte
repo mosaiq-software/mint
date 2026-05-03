@@ -122,7 +122,7 @@
                 name="doc-name"
                 placeholder="Name"
                 bind:value={name}
-                onBlur={() => handleDocNameBlur()}>Name:</Input
+                onblur={() => handleDocNameBlur()}>Name:</Input
             >
             <div id="canvas-size">
                 <Input
@@ -130,7 +130,7 @@
                     name="canvas-width"
                     placeholder="Width"
                     bind:value={widthStr}
-                    onBlur={() => {
+                    onblur={() => {
                         widthStr = handleCanvasSizeBlur("width", widthStr);
                     }}>Width:</Input
                 >
@@ -139,7 +139,7 @@
                     name="canvas-height"
                     placeholder="Height"
                     bind:value={heightStr}
-                    onBlur={() => {
+                    onblur={() => {
                         heightStr = handleCanvasSizeBlur("height", heightStr);
                     }}>Height:</Input
                 >
@@ -157,6 +157,14 @@
         <span>About Mint</span>
         <ChevronRight style="opacity: 0.5" size={16} />
     </button>
+    <a
+        href="https://github.com/mosaiq-software/mint"
+        target="_blank"
+        class="arrowed-link"
+    >
+        <span>View on GitHub</span>
+        <ChevronRight style="opacity: 0.5" size={16} />
+    </a>
     <About bind:open={aboutOpen} />
     <div {...exportsPopover.content} class="popover">
         <div {...exportsPopover.arrow}></div>
@@ -177,6 +185,18 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+    }
+
+    .arrowed-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--s-sm);
+        text-decoration: none;
+    }
+
+    .arrowed-link:hover {
+        background-color: var(--c-sur);
     }
 
     .file-menu {

@@ -121,7 +121,7 @@
                     name="Size"
                     type="number"
                     bind:value={fontSize}
-                    onBlur={handleFontSizeChange}
+                    onblur={handleFontSizeChange}
                     placeholder="Font Size"
                     labelPosition="side"
                     ><div class="preview-label">Size</div></Input
@@ -143,7 +143,7 @@
                 name="Line Height"
                 type="number"
                 bind:value={lineHeight}
-                onBlur={handleLineHeightChange}
+                onblur={handleLineHeightChange}
                 placeholder="Line Height"
                 labelPosition="side">Line Height</Input
             >
