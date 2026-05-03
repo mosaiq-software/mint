@@ -3,9 +3,16 @@
     import type { Color } from "../../scripts/docs.svelte";
     import { Slider } from "melt/builders";
     import ui from "../../scripts/ui.svelte";
+    import { Pipette } from "@lucide/svelte";
+    import "eyedropper-polyfill";
+    import Input from "../ui/Input.svelte";
 
     let { color = $bindable() }: { color: Color } = $props();
     let hue: number = $state(0);
+    let rgbInputs = $state({ r: 0, g: 0, b: 0 });
+    let hslInputs = $state({ h: 0, s: 0, l: 0 });
+    let hexInput = $state("#000000");
+    let alphaInput = $state(100);
 
     /** Derive saturation and lightness from color */
     let sl = $derived.by(() => {
@@ -18,13 +25,21 @@
      * Prevent updating hue if saturation is near zero (to avoid hue jumps).
      */
     $effect(() => {
-        const newC = rgbToHsl(color.r, color.g, color.b);
-        if (newC.s > 0.001) {
-            hue = newC.h;
-            hSlider.value = hue;
-        }
+        rgbInputs = {
+            r: Math.round(color.r),
+            g: Math.round(color.g),
+            b: Math.round(color.b),
+        };
 
-        aSlider.value = color.a;
+        const hsl = rgbToHsl(color.r, color.g, color.b);
+        hslInputs = {
+            h: Number(hsl.h.toFixed(2)),
+            s: Number(hsl.s.toFixed(2)),
+            l: Number(hsl.l.toFixed(2)),
+        };
+
+        hexInput = colorToHex(color);
+        alphaInput = Math.round(color.a * 100);
     });
 
     /** Update color based on current hue, saturation, and lightness */
@@ -131,6 +146,47 @@
                 },
             });
         }
+    }
+
+    function clamp(n: number, min: number, max: number) {
+        return Math.min(Math.max(n, min), max);
+    }
+
+    function updateFromRgb() {
+        color = {
+            r: clamp(rgbInputs.r, 0, 255),
+            g: clamp(rgbInputs.g, 0, 255),
+            b: clamp(rgbInputs.b, 0, 255),
+            a: color.a,
+        };
+    }
+
+    function updateFromHsl() {
+        hue = clamp(hslInputs.h, 0, 1);
+
+        const rgb = hslToRgb(hue, hslInputs.s, hslInputs.l);
+        color = { ...rgb, a: color.a };
+    }
+
+    function updateFromHex() {
+        const match = /^#?([0-9a-fA-F]{6})$/.exec(hexInput);
+        if (!match) return;
+
+        const intVal = parseInt(match[1], 16);
+
+        color = {
+            r: (intVal >> 16) & 255,
+            g: (intVal >> 8) & 255,
+            b: intVal & 255,
+            a: color.a,
+        };
+    }
+
+    function updateAlpha() {
+        color = {
+            ...color,
+            a: clamp(alphaInput / 100, 0, 1),
+        };
     }
 
     /**
@@ -244,6 +300,28 @@
 
         applyColor();
     }
+
+    async function pickColorFromScreen() {
+        if (!("EyeDropper" in window)) {
+            alert("The eye dropper is not supported in this browser.");
+            return;
+        }
+
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+
+        // result.sRGBHex → "#RRGGBB"
+        const hex = result.sRGBHex;
+
+        const intVal = parseInt(hex.slice(1), 16);
+
+        color = {
+            r: (intVal >> 16) & 255,
+            g: (intVal >> 8) & 255,
+            b: intVal & 255,
+            a: color.a, // preserve alpha
+        };
+    }
 </script>
 
 <div id="color-picker">
@@ -290,23 +368,148 @@
         </div>
     </div>
     <div id="codes">
-        <div>
-            rgb({Math.round(color.r)}, {Math.round(color.g)}, {Math.round(
-                color.b,
-            )})
+        <div id="codes">
+            <div class="code">
+                <Input
+                    type="number"
+                    min="0"
+                    max="255"
+                    bind:value={rgbInputs.r}
+                    oninput={updateFromRgb}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="r"
+                >
+                    r:
+                </Input>
+                <Input
+                    type="number"
+                    min="0"
+                    max="255"
+                    bind:value={rgbInputs.g}
+                    oninput={updateFromRgb}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="g"
+                >
+                    g:
+                </Input>
+                <Input
+                    type="number"
+                    min="0"
+                    max="255"
+                    bind:value={rgbInputs.b}
+                    oninput={updateFromRgb}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="b"
+                >
+                    b:
+                </Input>
+            </div>
+
+            <div class="code">
+                <Input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    bind:value={hslInputs.h}
+                    oninput={updateFromHsl}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="h"
+                >
+                    h:
+                </Input>
+                <Input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    bind:value={hslInputs.s}
+                    oninput={updateFromHsl}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="s"
+                >
+                    s:
+                </Input>
+                <Input
+                    type="number"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    bind:value={hslInputs.l}
+                    oninput={updateFromHsl}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="l"
+                >
+                    l:
+                </Input>
+            </div>
+
+            <Input
+                type="text"
+                bind:value={hexInput}
+                oninput={updateFromHex}
+                variant="underline"
+                labelPosition="side"
+                style="width: 4rem"
+                name="hex"
+            >
+                hex:
+            </Input>
+
+            <div id="alpha-input">
+                <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    bind:value={alphaInput}
+                    oninput={updateAlpha}
+                    variant="underline"
+                    labelPosition="side"
+                    style="width: 2rem"
+                    name="alpha"
+                >
+                    alpha:
+                </Input>%
+            </div>
         </div>
-        <div>hsl({hue.toFixed(2)}, {sl.s.toFixed(2)}, {sl.l.toFixed(2)})</div>
-        <div>hex: {colorToHex(color)}</div>
-        <div>{(color.a * 100).toFixed(0)}%</div>
     </div>
+
+    <button id="eyedropper" onclick={pickColorFromScreen}>
+        <Pipette></Pipette>
+    </button>
 </div>
 
 <style>
+    #eyedropper {
+        border-radius: var(--r-md);
+        margin-right: 0;
+        aspect-ratio: 1;
+        width: fit-content;
+    }
     #color-picker {
         display: flex;
         flex-direction: column;
         gap: var(--s-md);
         margin: var(--s-md);
+    }
+
+    .code {
+        display: flex;
+        gap: var(--s-sm);
+        align-items: center;
+        justify-content: flex-start;
     }
 
     #sl-container {
@@ -387,8 +590,9 @@
         font-family: monospace;
     }
 
-    #codes div {
-        font-size: var(--f-sm);
-        color: var(--c-sec);
+    #alpha-input {
+        display: flex;
+        gap: var(--s-xs);
+        align-items: center;
     }
 </style>

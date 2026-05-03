@@ -1,6 +1,5 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Slider } from "../ui";
     import { shape } from "../../scripts/tools/utils/shape.svelte";
     import ui from "../../scripts/ui.svelte";
     import docs from "../../scripts/docs.svelte";
@@ -148,6 +147,9 @@
     }
 
     #controls {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-sm);
         flex: 1;
     }
 
@@ -171,11 +173,6 @@
         border-right-style: none;
     }
 
-    .control {
-        display: flex;
-        flex-direction: column;
-    }
-
     .control-horizontal {
         display: flex;
         flex-direction: row;
@@ -184,19 +181,7 @@
         margin-top: var(--s-xs);
     }
 
-    .control div {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .control span {
-        font-size: var(--f-sm);
-        color: var(--c-sec);
-    }
-
-    .control.disabled {
-        opacity: 0.5;
-        pointer-events: none;
+    #stroke-alignment {
+        margin-left: auto;
     }
 </style>
