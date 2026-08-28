@@ -171,32 +171,11 @@
         border-right-style: none;
     }
 
-    .control {
-        display: flex;
-        flex-direction: column;
-    }
-
     .control-horizontal {
         display: flex;
         flex-direction: row;
         gap: var(--s-md);
         align-items: center;
         margin-top: var(--s-xs);
-    }
-
-    .control div {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .control span {
-        font-size: var(--f-sm);
-        color: var(--c-sec);
-    }
-
-    .control.disabled {
-        opacity: 0.5;
-        pointer-events: none;
     }
 </style>
