@@ -69,7 +69,8 @@ export function handleShortcuts(event: KeyboardEvent) {
             t: "text",
             f: "fill",
             r: "rectangle",
-            c: "ellipse",
+            u: "ellipse",
+            c: "crop",
         }[event.key];
         if (newMode) ui.mode = newMode as Mode;
     }

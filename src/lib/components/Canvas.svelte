@@ -5,7 +5,7 @@
         zoomAroundPoint,
     } from "../scripts/ui.svelte";
     import { render } from "../scripts/render";
-    import { select, text, tools, type Point } from "../scripts/tools";
+    import { select, text, crop, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
     import Handles from "./overlays/Handles.svelte";
     import CropHandles from "./overlays/CropHandles.svelte";
@@ -67,6 +67,14 @@
                 return "nwse-resize";
             } else if (text.action === "edit") {
                 return "text";
+            } else {
+                return "default";
+            }
+        } else if (tool.name === "crop") {
+            if (crop.action.type === "move") {
+                return "move";
+            } else if (crop.action.type === "scale") {
+                return cursorMap[crop.action.direction];
             } else {
                 return "default";
             }
