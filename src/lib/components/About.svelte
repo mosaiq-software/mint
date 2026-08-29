@@ -791,8 +791,7 @@
     }
 
     .icon-wrapper,
-    kbd,
-    svg {
+    kbd {
         display: inline-block;
         vertical-align: middle;
     }
