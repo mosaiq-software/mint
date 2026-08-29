@@ -1,6 +1,5 @@
 <script lang="ts">
     import Panel from "./Panel.svelte";
-    import { Slider } from "../ui";
     import { shape } from "../../scripts/tools/utils/shape.svelte";
     import ui from "../../scripts/ui.svelte";
     import docs from "../../scripts/docs.svelte";
@@ -148,6 +147,9 @@
     }
 
     #controls {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s-sm);
         flex: 1;
     }
 
@@ -177,5 +179,9 @@
         gap: var(--s-md);
         align-items: center;
         margin-top: var(--s-xs);
+    }
+
+    #stroke-alignment {
+        margin-left: auto;
     }
 </style>
