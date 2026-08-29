@@ -7,6 +7,7 @@ import rectangle, { rectangleTool } from "./rectangle.svelte";
 import ellipse, { ellipseTool } from "./ellipse.svelte";
 import { fillTool } from "./fill.svelte";
 import pan, { panTool } from "./pan.svelte";
+import crop, { cropTool } from "./crop.svelte";
 
 /** A 2D point with x and y coordinates. */
 export interface Point {
@@ -48,6 +49,7 @@ export const tools: Record<Mode, Tool> = {
     ellipse: ellipseTool,
     fill: fillTool,
     pan: panTool,
+    crop: cropTool,
 };
 
-export { draw, select, erase, text, rectangle, ellipse, pan };
+export { draw, select, erase, text, rectangle, ellipse, pan, crop };

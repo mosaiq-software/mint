@@ -16,7 +16,7 @@ const p = {
     initial: { x: 0, y: 0 } as Point,
 };
 
-let selectedEllipseLayer = $derived.by(getSelectedRectangleLayer);
+let selectedRectangleLayer = $derived.by(getSelectedRectangleLayer);
 
 /** The rectangle tool implementation. Creates new rectangle layers on drag. */
 export const rectangleTool: Tool = {
@@ -40,19 +40,19 @@ export const rectangleTool: Tool = {
                 const width = Math.abs(dx);
                 const height = Math.abs(dy);
 
-                if (!selectedEllipseLayer && width > 0 && height > 0) {
+                if (!selectedRectangleLayer && width > 0 && height > 0) {
                     if (!docs.selected || !ui.selected) return;
                     const newLayer = createLayer("rectangle", "Rectangle");
                     docs.selected.layers.push(newLayer);
                     ui.selected.selectedLayers = [newLayer.id];
                 }
 
-                if (selectedEllipseLayer) {
-                    selectedEllipseLayer.width = width;
-                    selectedEllipseLayer.height = height;
-                    selectedEllipseLayer.transform.matrix.e =
+                if (selectedRectangleLayer) {
+                    selectedRectangleLayer.width = width;
+                    selectedRectangleLayer.height = height;
+                    selectedRectangleLayer.transform.matrix.e =
                         dx < 0 ? data.c.x : p.initial.x;
-                    selectedEllipseLayer.transform.matrix.f =
+                    selectedRectangleLayer.transform.matrix.f =
                         dy < 0 ? data.c.y : p.initial.y;
                 }
             }
@@ -63,12 +63,12 @@ export const rectangleTool: Tool = {
     onPointerUp: () => {
         rectangle.dragging = false;
 
-        if (rectangle.action === "create" && selectedEllipseLayer) {
+        if (rectangle.action === "create" && selectedRectangleLayer) {
             ui.mode = "select";
 
             postAction({
                 type: "create",
-                layer: selectedEllipseLayer!,
+                layer: selectedRectangleLayer!,
                 position: docs.selected!.layers.length - 1,
             });
         }

@@ -444,17 +444,12 @@ export function updateSnapshot(action: Action, type: "undo" | "redo") {
     } else if (action.type === "content") {
         const layer = snapshots[action.layerID];
         if (layer && layer.type === "canvas") {
-            const canvas = new OffscreenCanvas(
-                layer.canvas.width,
-                layer.canvas.height,
-            );
+            const content =
+                type === "undo" ? action.oldContent : action.newContent;
+            const canvas = new OffscreenCanvas(content.width, content.height);
             const ctx = canvas.getContext("2d");
             if (ctx) {
-                ctx.putImageData(
-                    type === "undo" ? action.oldContent : action.newContent,
-                    0,
-                    0,
-                );
+                ctx.putImageData(content, 0, 0);
                 layer.canvas = canvas;
             }
         }
@@ -530,9 +525,14 @@ export function applyUndoAction(action: Action) {
         // layer content was changed, so revert to oldContent
         const layer = docs.selected.layers.find((l) => l.id === action.layerID);
         if (layer && layer.type === "canvas") {
-            const ctx = layer.canvas.getContext("2d");
+            const canvas = new OffscreenCanvas(
+                action.oldContent.width,
+                action.oldContent.height,
+            );
+            const ctx = canvas.getContext("2d");
             if (ctx) {
                 ctx.putImageData(action.oldContent, 0, 0);
+                layer.canvas = canvas;
             }
         }
     } else if (action.type === "update") {
@@ -638,9 +638,14 @@ export function applyRedoAction(action: Action) {
         // layer content was changed, so apply newContent
         const layer = docs.selected.layers.find((l) => l.id === action.layerID);
         if (layer && layer.type === "canvas") {
-            const ctx = layer.canvas.getContext("2d");
+            const canvas = new OffscreenCanvas(
+                action.newContent.width,
+                action.newContent.height,
+            );
+            const ctx = canvas.getContext("2d");
             if (ctx) {
                 ctx.putImageData(action.newContent, 0, 0);
+                layer.canvas = canvas;
             }
         }
     } else if (action.type === "update") {
