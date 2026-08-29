@@ -11,33 +11,35 @@
             height: {b.size.y * (ui.selected?.zoom ?? 1) + 'px'};
         "
     >
-        <div
-            class="transform-overlay"
-            style="
-            transform: 
+        {#if ui.mode !== "crop"}
+            <div
+                class="transform-overlay"
+                style="
+            transform:
                 translate({b.pos.x * (ui.selected?.zoom ?? 1)}px, {b.pos.y *
-                (ui.selected?.zoom ?? 1)}px)
+                    (ui.selected?.zoom ?? 1)}px)
                 rotate({b.rot}deg)
         "
-        >
-            {#if ui.mode === "select"}
-                <div class="transform-rotate-container">
-                    <div class="transform-rotate-handle"></div>
-                    <div class="transform-rotate-line"></div>
-                </div>
+            >
+                {#if ui.mode === "select"}
+                    <div class="transform-rotate-container">
+                        <div class="transform-rotate-handle"></div>
+                        <div class="transform-rotate-line"></div>
+                    </div>
 
-                <div class="transform-scale n"></div>
-                <div class="transform-scale e"></div>
-                <div class="transform-scale s"></div>
-                <div class="transform-scale w"></div>
-                <div class="transform-scale nw"></div>
-                <div class="transform-scale ne"></div>
-                <div class="transform-scale sw"></div>
-                <div class="transform-scale se"></div>
-            {:else if ui.mode === "text" && ui.selectedLayers.length === 1 && ui.selectedLayers[0].type === "text"}
-                <div class="transform-scale se"></div>
-            {/if}
-        </div>
+                    <div class="transform-scale n"></div>
+                    <div class="transform-scale e"></div>
+                    <div class="transform-scale s"></div>
+                    <div class="transform-scale w"></div>
+                    <div class="transform-scale nw"></div>
+                    <div class="transform-scale ne"></div>
+                    <div class="transform-scale sw"></div>
+                    <div class="transform-scale se"></div>
+                {:else if ui.mode === "text" && ui.selectedLayers.length === 1 && ui.selectedLayers[0].type === "text"}
+                    <div class="transform-scale se"></div>
+                {/if}
+            </div>
+        {/if}
     </div>
 {/if}
 

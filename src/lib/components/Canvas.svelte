@@ -8,6 +8,7 @@
     import { select, text, tools, type Point } from "../scripts/tools";
     import { draw } from "../scripts/tools";
     import Handles from "./overlays/Handles.svelte";
+    import CropHandles from "./overlays/CropHandles.svelte";
     import TextMeasure from "./overlays/TextMeasure.svelte";
     import TextEdit from "./overlays/TextEdit.svelte";
     import type { ScaleDirection } from "../scripts/tools/select.svelte";
@@ -384,6 +385,7 @@
                     <DropMargin side="right" />
                 {/if}
                 <Handles />
+                <CropHandles />
                 {#if select.snappedX}
                     <div class="snap-line vertical"></div>
                 {/if}
