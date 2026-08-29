@@ -14,6 +14,7 @@ export const modes = [
     "ellipse",
     "fill",
     "pan",
+    "crop",
 ] as const;
 
 /** Interaction modes (tools) */

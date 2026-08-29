@@ -2,6 +2,8 @@
 
 Mint is a digital compositing tool for the web. It can be used to crop and resize images, create collages, build mockups, or otherwise complete basic compositing tasks. It supports image manipulation, drawings, text, and basic shapes. Mint is built as a static website, meaning it can be easily hosted locally or used as an internal tool.
 
+Try it out at [https://mint.photo](https://mint.photo).
+
 Mint was created by [Sam Randa](https://github.com/notsoli) and [Alex Santagata](https://www.linkedin.com/in/alex-santagata) for [Mosaiq Software](https://mosaiq.dev/).
 
 ## Run locally

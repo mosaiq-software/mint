@@ -9,6 +9,7 @@
         Square,
         PaintBucket,
         Hand,
+        Crop,
     } from "@lucide/svelte";
     import MintLogo from "./ui/svgs/MintLogo.svelte";
     import { Popover, RadioGroup } from "melt/builders";
@@ -164,6 +165,15 @@
                 selected={modesGroup.value === "ellipse"}
             >
                 <Circle />
+            </Tool>
+        </div>
+        <div {...modesGroup.getItem("crop").attrs}>
+            <Tool
+                name="Crop"
+                keybind="Shift+C"
+                selected={modesGroup.value === "crop"}
+            >
+                <Crop />
             </Tool>
         </div>
         <div {...modesGroup.getItem("pan").attrs}>
