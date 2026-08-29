@@ -1,6 +1,7 @@
 <script lang="ts">
     import docs from "../scripts/docs.svelte";
     import ui from "../scripts/ui.svelte";
+    import { crop } from "../scripts/tools";
     import {
         SquareDashed,
         ArrowLeft,
@@ -91,13 +92,28 @@
                 <p>Click and drag to create a rectangle</p>
             {:else if ui.mode === "ellipse"}
                 <p>Click and drag to create an ellipse</p>
+            {:else if ui.mode === "pan"}
+                <p>Click and drag to pan the canvas</p>
+            {:else if ui.mode === "crop"}
+                {#if crop.target === "document"}
+                    <p>
+                        Click and drag to crop the canvas. Press <kbd>Enter</kbd
+                        > to save.
+                    </p>
+                {:else if crop.target !== "none"}
+                    <p>
+                        Click and drag to crop the layer. Press <kbd>Enter</kbd> to
+                        save.
+                    </p>
+                {/if}
             {/if}
         </div>
         <div>
+            {#if tabStatus[docs.selected.id].canUndo}
+                <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Z</kbd> to undo</p>
+            {/if}
             {#if tabStatus[docs.selected.id].canRedo}
                 <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Y</kbd> to redo</p>
-            {:else if tabStatus[docs.selected.id].canUndo}
-                <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>Z</kbd> to undo</p>
             {/if}
             {#if tabStatus[docs.selected.id].actionsSinceSave !== 0}
                 <p><kbd>{ctrl}</kbd>{keybindConnector}<kbd>S</kbd> to save</p>
@@ -108,8 +124,7 @@
 
 <style>
     i,
-    kbd,
-    svg {
+    kbd {
         display: inline-block;
         vertical-align: middle;
     }
