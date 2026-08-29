@@ -133,7 +133,10 @@ export const cropTool: Tool = {
         setAction(data.v, data.c, data.e);
     },
     onKeyDown: (e) => {
-        if (e.key === "Enter") applyCrop();
+        if (e.key === "Enter") {
+            applyCrop();
+            ui.mode = "select";
+        }
     },
 };
 
