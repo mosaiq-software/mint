@@ -161,7 +161,7 @@
         <div {...modesGroup.getItem("ellipse").attrs}>
             <Tool
                 name="Ellipse"
-                keybind="C"
+                keybind="U"
                 selected={modesGroup.value === "ellipse"}
             >
                 <Circle />
@@ -170,7 +170,7 @@
         <div {...modesGroup.getItem("crop").attrs}>
             <Tool
                 name="Crop"
-                keybind="Shift+C"
+                keybind="C"
                 selected={modesGroup.value === "crop"}
             >
                 <Crop />
