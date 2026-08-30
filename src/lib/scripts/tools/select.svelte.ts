@@ -4,6 +4,7 @@ import type { Tool, Point } from ".";
 import { translateLayerBy, type Layer, type LayerID } from "../layer";
 import { postAction, type PostAction } from "../action";
 import { setPreviousRotation } from "../ui.svelte";
+import { findLayerAtPoint, updateSelectionForClick } from "./utils/select";
 
 const scaleHandleHitboxSize = 5;
 const rotateHandleHitboxSize = 5;
@@ -59,71 +60,20 @@ export const selectTool: Tool = {
 
         if (select.action.type === "select") {
             // traverse layers from top to bottom to find the first shape under the cursor
-            let found: LayerID | null = null;
-            for (let i = docs.selected.layers.length - 1; i >= 0; i--) {
-                const layer = docs.selected.layers[i];
-                if (layer.type === "canvas" && layer.visible) {
-                    // sample canvas pixel at data.c, transformed to layer space
-                    const ctx = layer.canvas.getContext("2d");
-                    if (!ctx) continue;
-
-                    const invMatrix = layer.transform.matrix.inverse();
-                    const point = new DOMPoint(
-                        data.c.x,
-                        data.c.y,
-                    ).matrixTransform(invMatrix);
-                    const pixel = ctx.getImageData(point.x, point.y, 1, 1).data;
-
-                    // if pixel is not transparent, select this layer
-                    if (pixel[3] > 0) {
-                        found = layer.id;
-                        data.l = { x: point.x, y: point.y };
-                        break;
-                    }
-                } else if (
-                    (layer.type === "text" ||
-                        layer.type === "rectangle" ||
-                        layer.type === "ellipse") &&
-                    layer.visible
-                ) {
-                    // convert point to layer space
-                    const invMatrix = layer.transform.matrix.inverse();
-                    const point = new DOMPoint(
-                        data.c.x,
-                        data.c.y,
-                    ).matrixTransform(invMatrix);
-
-                    // check if point is within text bounding box
-                    if (
-                        point.x >= 0 &&
-                        point.x <= layer.width &&
-                        point.y >= 0 &&
-                        point.y <= layer.height
-                    ) {
-                        data.l = { x: point.x, y: point.y };
-                        found = layer.id;
-                        break;
-                    }
-                }
-            }
+            const hit = findLayerAtPoint(docs.selected.layers, data.c);
+            const found = hit?.id ?? null;
 
             if (found) {
+                data.l = hit!.local;
                 setAction(data.v, data.c, data.e);
-                if (ui.selected) {
-                    if (data.e.shiftKey) {
-                        // toggle selection
-                        ui.selected.selectedLayers =
-                            ui.selected.selectedLayers.includes(found)
-                                ? ui.selected.selectedLayers.filter(
-                                      (id) => id !== found,
-                                  )
-                                : [...ui.selected.selectedLayers, found];
-                    } else {
-                        ui.selected.selectedLayers = [found];
-                    }
-                }
-            } else if (ui.selected) {
-                if (!data.e.shiftKey) ui.selected.selectedLayers = [];
+            }
+
+            if (ui.selected) {
+                ui.selected.selectedLayers = updateSelectionForClick(
+                    found,
+                    ui.selected.selectedLayers,
+                    data.e.shiftKey,
+                );
             }
         } else {
             // store initial matrices for all selected layers

@@ -4,13 +4,9 @@ import docs, {
     type Document,
 } from "../docs.svelte";
 import ui, { type Bounds } from "../ui.svelte";
-import {
-    translateLayerBy,
-    type CanvasLayer,
-    type Layer,
-    type LayerID,
-} from "../layer";
+import { translateLayerBy, type CanvasLayer, type Layer } from "../layer";
 import { postAction, type PostAction } from "../action";
+import { findLayerAtPoint, updateSelectionForClick } from "./utils/select";
 
 const scaleHandleHitboxSize = 5;
 const minSize = 1;
@@ -99,64 +95,15 @@ export const cropTool: Tool = {
         setAction(data.v, data.c, data.e);
 
         if (crop.action.type === "idle") {
-            // traverse layers from top to bottom to find the first shape under the cursor
-            // (same hit-testing logic as the select tool)
-            let found: LayerID | null = null;
-            for (let i = docs.selected.layers.length - 1; i >= 0; i--) {
-                const layer = docs.selected.layers[i];
-                if (layer.type === "canvas" && layer.visible) {
-                    const ctx = layer.canvas.getContext("2d");
-                    if (!ctx) continue;
+            const found =
+                findLayerAtPoint(docs.selected.layers, data.c)?.id ?? null;
 
-                    const invMatrix = layer.transform.matrix.inverse();
-                    const point = new DOMPoint(
-                        data.c.x,
-                        data.c.y,
-                    ).matrixTransform(invMatrix);
-                    const pixel = ctx.getImageData(point.x, point.y, 1, 1).data;
-
-                    if (pixel[3] > 0) {
-                        found = layer.id;
-                        break;
-                    }
-                } else if (
-                    (layer.type === "text" ||
-                        layer.type === "rectangle" ||
-                        layer.type === "ellipse") &&
-                    layer.visible
-                ) {
-                    const invMatrix = layer.transform.matrix.inverse();
-                    const point = new DOMPoint(
-                        data.c.x,
-                        data.c.y,
-                    ).matrixTransform(invMatrix);
-
-                    if (
-                        point.x >= 0 &&
-                        point.x <= layer.width &&
-                        point.y >= 0 &&
-                        point.y <= layer.height
-                    ) {
-                        found = layer.id;
-                        break;
-                    }
-                }
-            }
-
-            if (found && ui.selected) {
-                if (data.e.shiftKey) {
-                    // toggle selection
-                    ui.selected.selectedLayers =
-                        ui.selected.selectedLayers.includes(found)
-                            ? ui.selected.selectedLayers.filter(
-                                  (id) => id !== found,
-                              )
-                            : [...ui.selected.selectedLayers, found];
-                } else {
-                    ui.selected.selectedLayers = [found];
-                }
-            } else if (ui.selected) {
-                if (!data.e.shiftKey) ui.selected.selectedLayers = [];
+            if (ui.selected) {
+                ui.selected.selectedLayers = updateSelectionForClick(
+                    found,
+                    ui.selected.selectedLayers,
+                    data.e.shiftKey,
+                );
             }
         } else if (crop.bounds) {
             // store initial bounds and pointer position
@@ -170,77 +117,10 @@ export const cropTool: Tool = {
     },
     onPointerMove: (data) => {
         if (crop.dragging) {
-            if (!docs.selected || !initial.bounds) return;
-
             if (crop.action.type === "move") {
-                const dx = data.c.x - initial.c.x;
-                const dy = data.c.y - initial.c.y;
-
-                crop.bounds = {
-                    pos: {
-                        x: initial.bounds.pos.x + dx,
-                        y: initial.bounds.pos.y + dy,
-                    },
-                    size: { ...initial.bounds.size },
-                    rot: initial.bounds.rot,
-                };
+                moveBounds(data.c);
             } else if (crop.action.type === "scale") {
-                const dir = crop.action.direction;
-
-                // get pivot point in world space
-                const matrix = new DOMMatrix()
-                    .translate(initial.bounds.pos.x, initial.bounds.pos.y)
-                    .rotate(initial.bounds.rot);
-                const pivot = getScalePivotPoint(
-                    dir,
-                    initial.bounds.size.x,
-                    initial.bounds.size.y,
-                );
-                const pivotWorld = new DOMPoint(
-                    pivot.x,
-                    pivot.y,
-                ).matrixTransform(matrix);
-
-                // translate initial and current pointer positions to pivot space
-                const rotMatrix = new DOMMatrix().rotate(-initial.bounds.rot);
-                const initialVector = new DOMPoint(
-                    initial.c.x,
-                    initial.c.y,
-                ).matrixTransform(rotMatrix);
-                const currentVector = new DOMPoint(
-                    data.c.x,
-                    data.c.y,
-                ).matrixTransform(rotMatrix);
-
-                // calculate scale factors, clamped so the box can't invert
-                const dx = currentVector.x - initialVector.x;
-                const dy = currentVector.y - initialVector.y;
-                let scaleX =
-                    (initial.bounds.size.x +
-                        (dir.includes("e")
-                            ? dx
-                            : dir.includes("w")
-                              ? -dx
-                              : 0)) /
-                    initial.bounds.size.x;
-                let scaleY =
-                    (initial.bounds.size.y +
-                        (dir.includes("s")
-                            ? dy
-                            : dir.includes("n")
-                              ? -dy
-                              : 0)) /
-                    initial.bounds.size.y;
-
-                scaleX = Math.max(scaleX, minSize / initial.bounds.size.x);
-                scaleY = Math.max(scaleY, minSize / initial.bounds.size.y);
-
-                crop.bounds = resizeBounds(
-                    initial.bounds,
-                    scaleX,
-                    scaleY,
-                    pivotWorld,
-                );
+                scaleBounds(crop.action.direction, data.c);
             }
         } else {
             setAction(data.v, data.c, data.e);
@@ -253,9 +133,103 @@ export const cropTool: Tool = {
         setAction(data.v, data.c, data.e);
     },
     onKeyDown: (e) => {
-        if (e.key === "Enter") applyCrop();
+        if (e.key === "Enter") {
+            applyCrop();
+            ui.mode = "select";
+        }
     },
 };
+
+/**
+ * Moves the crop bounds based on the mouse position
+ */
+function moveBounds(mousePos: Point) {
+    if (!initial.bounds) return;
+
+    const dx = mousePos.x - initial.c.x;
+    const dy = mousePos.y - initial.c.y;
+
+    crop.bounds = {
+        pos: {
+            x: initial.bounds.pos.x + dx,
+            y: initial.bounds.pos.y + dy,
+        },
+        size: { ...initial.bounds.size },
+        rot: initial.bounds.rot,
+    };
+}
+
+/**
+ * Scales the crop bounds based on the mouse position and the active scale handle
+ */
+function scaleBounds(dir: ScaleDirection, mousePos: Point) {
+    if (!initial.bounds) return;
+
+    const pivotWorld = getWorldSpacePivot(dir, initial.bounds);
+
+    // translate initial and current pointer positions to local (bounds) space
+    const rotMatrix = new DOMMatrix().rotate(-initial.bounds.rot);
+    const initialLocal = new DOMPoint(initial.c.x, initial.c.y).matrixTransform(
+        rotMatrix,
+    );
+    const currentLocal = new DOMPoint(mousePos.x, mousePos.y).matrixTransform(
+        rotMatrix,
+    );
+
+    // calculate scale factors, clamped so the box can't invert
+    const { scaleX, scaleY } = calculateClampedScaleFactors(
+        initialLocal,
+        currentLocal,
+        dir,
+        initial.bounds,
+    );
+
+    crop.bounds = resizeBounds(initial.bounds, scaleX, scaleY, pivotWorld);
+}
+
+/**
+ * Calculates the world space position of the bounds' pivot point
+ */
+function getWorldSpacePivot(
+    dir: ScaleDirection,
+    initialBounds: Bounds,
+): DOMPoint {
+    const matrix = new DOMMatrix()
+        .translate(initialBounds.pos.x, initialBounds.pos.y)
+        .rotate(initialBounds.rot);
+    const pivot = getScalePivotPoint(
+        dir,
+        initialBounds.size.x,
+        initialBounds.size.y,
+    );
+    const pivotWorld = new DOMPoint(pivot.x, pivot.y).matrixTransform(matrix);
+
+    return pivotWorld;
+}
+
+function calculateClampedScaleFactors(
+    initialVector: DOMPoint,
+    currentVector: DOMPoint,
+    dir: ScaleDirection,
+    initialBounds: Bounds,
+): { scaleX: number; scaleY: number } {
+    const dx = currentVector.x - initialVector.x;
+    const dy = currentVector.y - initialVector.y;
+
+    let scaleX =
+        (initialBounds.size.x +
+            (dir.includes("e") ? dx : dir.includes("w") ? -dx : 0)) /
+        initialBounds.size.x;
+    let scaleY =
+        (initialBounds.size.y +
+            (dir.includes("s") ? dy : dir.includes("n") ? -dy : 0)) /
+        initialBounds.size.y;
+
+    scaleX = Math.max(scaleX, minSize / initialBounds.size.x);
+    scaleY = Math.max(scaleY, minSize / initialBounds.size.y);
+
+    return { scaleX, scaleY };
+}
 
 /**
  * Applies the crop operation to the current target (document or layer)
@@ -443,12 +417,13 @@ function assembleLayerCropActions(layer: CanvasLayer): PostAction[] {
 }
 
 /**
- * Modifies the crop tool action based on mouse position.
- * @param v The current viewport position
- * @param c The current canvas position
- * @param e The MouseEvent
+ * Modifies the crop tool action based on mouse position
  */
-function setAction(v: Point, c: Point, e: MouseEvent) {
+function setAction(viewportPos: Point, canvasPos: Point, event: MouseEvent) {
+    const v = viewportPos;
+    const c = canvasPos;
+    const e = event;
+
     if (!docs.selected || !crop.bounds) {
         crop.action = { type: "idle" };
         return;
@@ -558,14 +533,7 @@ function getLayerBounds(layer: Layer): Bounds {
 
 /**
  * Resizes a bounding box by the given scale factors around a pivot point in
- * world space, keeping its rotation fixed. Since the box has no persistent
- * scale, the result is expressed directly as a new size and position
- * (resembling shape scaling, rather than a scaled transform matrix).
- * @param bounds The bounding box to resize.
- * @param scaleX The scale factor in x.
- * @param scaleY The scale factor in y.
- * @param pivot The pivot point in world space.
- * @returns The resized bounding box.
+ * world space, keeping its rotation fixed
  */
 function resizeBounds(
     bounds: Bounds,
@@ -598,11 +566,7 @@ function resizeBounds(
 }
 
 /**
- * Calculates the world positions of the scale handles given a transform matrix and size.
- * @param transform The bounding box's transform matrix
- * @param width The bounding box's width
- * @param height The bounding box's height
- * @returns A record mapping each scale direction to its world position
+ * Calculates the world positions of the scale handles given a transform matrix and size
  */
 function getScaleHandlePositions(
     transform: DOMMatrix,
